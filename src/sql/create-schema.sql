@@ -80,7 +80,7 @@ CREATE TABLE rl.app_invite (
     created_at TIMESTAMP NOT NULL,
     last_used_at TIMESTAMP NOT NULL,
     group_id INT NOT NULL REFERENCES rl.group(group_id),
-    PRIMARY KEY (invite_id, owner_id, group_id)
+    PRIMARY KEY (invite_id, owner_id)
 );
 
 CREATE TABLE rl.hardware (
