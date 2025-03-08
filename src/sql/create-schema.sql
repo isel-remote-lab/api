@@ -88,8 +88,8 @@ CREATE TABLE rl.hardware (
     hw_name VARCHAR(255) NOT NULL,
     hw_serial_num VARCHAR(255) NOT NULL,
     status VARCHAR(255) NOT NULL,
-    mac_address VARCHAR(255) NOT NULL,
-    ip_address VARCHAR(255) NOT NULL,
+    mac_address VARCHAR(255),
+    ip_address VARCHAR(255),
     created_at TIMESTAMP NOT NULL
 );
 
