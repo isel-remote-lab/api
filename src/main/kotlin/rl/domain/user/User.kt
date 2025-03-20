@@ -1,4 +1,4 @@
-package domain.user
+package rl.domain.user
 
 import kotlinx.datetime.Instant
 

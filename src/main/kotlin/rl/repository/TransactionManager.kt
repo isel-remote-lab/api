@@ -1,4 +1,4 @@
-package repository
+package rl.repository
 
 /**
  * Transaction manager.

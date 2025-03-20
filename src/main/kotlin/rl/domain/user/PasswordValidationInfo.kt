@@ -1,4 +1,4 @@
-package domain.user
+package rl.domain.user
 
 /**
  * Represents the result of a password validation.

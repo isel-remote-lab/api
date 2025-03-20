@@ -1,4 +1,4 @@
-package repository
+package rl.repository
 
 /**
  * Represents a transaction that involves various repositories.

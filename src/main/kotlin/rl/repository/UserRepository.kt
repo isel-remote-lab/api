@@ -1,8 +1,8 @@
-package repository
+package rl.repository
 
-import domain.user.Email
-import domain.user.PasswordValidationInfo
-import domain.user.User
+import rl.domain.user.Email
+import rl.domain.user.PasswordValidationInfo
+import rl.domain.user.User
 import kotlinx.datetime.Instant
 
 /**
