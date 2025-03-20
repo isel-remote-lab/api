@@ -1,0 +1,4 @@
+package rl
+
+object Environment {
+}
