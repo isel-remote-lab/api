@@ -1,3 +1,9 @@
 package rl.domain.config
 
-data class HardwareDomainConfig()
+data class HardwareDomainConfig(
+    val hardwareNameSizeInBytes: Int,
+){
+    init {
+        require(hardwareNameSizeInBytes > 0) { "HardwareNameSizeInBytes must be greater than zero." }
+    }
+}

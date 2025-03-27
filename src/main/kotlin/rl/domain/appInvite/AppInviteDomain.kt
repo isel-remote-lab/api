@@ -1,3 +1,9 @@
 package rl.domain.appInvite
 
-data class AppInviteDomain()
+import rl.domain.config.AppInvitesDomainConfig
+
+data class AppInviteDomain(
+    private val domainConfig: AppInvitesDomainConfig,
+) {
+
+}

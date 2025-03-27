@@ -1,4 +1,5 @@
 package rl.domain.appInvite
 
-class InviteCodeInfo {
-}
+data class InviteCodeInfo(
+    val inviteCode: String,
+)

@@ -1,4 +1,7 @@
 package rl.domain.hardware
 
-class HardwareStatus {
+enum class HardwareStatus {
+    Available,
+    Occupied,
+    Maintenance
 }

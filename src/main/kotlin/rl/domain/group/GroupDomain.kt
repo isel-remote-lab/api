@@ -1,3 +1,9 @@
 package rl.domain.group
 
-data class GroupDomain()
+import rl.domain.config.GroupDomainConfig
+
+data class GroupDomain(
+    private val domainConfig: GroupDomainConfig
+) {
+
+}

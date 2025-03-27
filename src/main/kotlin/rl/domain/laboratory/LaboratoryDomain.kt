@@ -1,3 +1,7 @@
 package rl.domain.laboratory
 
-data class LaboratoryDomain()
+import rl.domain.config.LaboratoryDomainConfig
+
+data class LaboratoryDomain(
+    private val domainConfig: LaboratoryDomainConfig
+)

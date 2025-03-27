@@ -1,3 +1,7 @@
 package rl.domain.hardware
 
-data class HardwareDomain()
+import rl.domain.config.HardwareDomainConfig
+
+data class HardwareDomain(
+    private val domainConfig: HardwareDomainConfig
+)

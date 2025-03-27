@@ -1,5 +1,5 @@
-package rl.domain.user
+package rl.domain.user.token
 
 data class TokenValidationInfo(
-    val token
+    val validationInfo: String
 )
