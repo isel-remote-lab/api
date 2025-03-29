@@ -1,7 +1,7 @@
 package rl.domain.user
 
 data class Email(
-    val email: String
+    val emailInfo: String
 ) {
     init {
         // TODO: Add constraints

@@ -1,9 +1,10 @@
 package rl.repository
 
 import rl.domain.user.Email
-import rl.domain.user.PasswordValidationInfo
 import rl.domain.user.User
 import kotlinx.datetime.Instant
+import rl.domain.user.token.Token
+import rl.domain.user.token.TokenValidationInfo
 
 /**
  * Repository for users.
@@ -11,9 +12,7 @@ import kotlinx.datetime.Instant
 interface UserRepository {
     fun createUser(
         username: String,
-        passwordValidation: PasswordValidationInfo,
         email: Email,
-        studentNr: Int,
         createdAt: Instant
     ): Int
 
@@ -21,14 +20,26 @@ interface UserRepository {
 
     fun getUserByEmail(email: Email): User?
 
-    fun getUserByStudentNr(studentNr: Int): User?
+    /**
+     * Creates a new token for a user.
+     * @param token the token to be created
+     * @param maxTokens the maximum number of tokens allowed
+     */
+    fun createToken(
+        token: Token,
+        maxTokens: Int,
+    )
 
-    // TODO: Check if the returned type is fine!
+    fun updateTokenLastUsed(token: Token, now: Instant)
+
+    fun getTokenByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
+
+    fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int
+
     fun updateUserUsername(
         userId: Int,
         username: String
-    ): Boolean
+    ): User
 
-    // TODO: Check if the returned type is fine!
     fun deleteUser(userId: Int): Boolean
 }

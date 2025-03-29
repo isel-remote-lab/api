@@ -1,12 +1,12 @@
 START TRANSACTION;
 
 -- Insert test users
-INSERT INTO rl.user (username, password_validation, email, student_nr, created_at)
+INSERT INTO rl.user (username, email, created_at)
 VALUES
-    ('admin', 'hashed_password_123', 'admin@example.com', 'A00001', NOW()),
-    ('professor1', 'hashed_password_456', 'professor1@example.com', 'P00001', NOW()),
-    ('student1', 'hashed_password_789', 'student1@example.com', 'S00001', NOW()),
-    ('student2', 'hashed_password_012', 'student2@example.com', 'S00002', NOW());
+    ('admin', 'admin@example.com', now()),
+    ('professor1', 'professor1@example.com', now()),
+    ('student1', 'student1@example.com', now()),
+    ('student2',  'student2@example.com', now());
 
 -- Insert test tokens
 INSERT INTO rl.token (token_validation, user_id, created_at, last_used_at)

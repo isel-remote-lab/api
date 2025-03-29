@@ -57,3 +57,34 @@ kotlin {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.test {
+	useJUnitPlatform()
+	if (System.getenv("DB_URL") == null) {
+		environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+	}
+	dependsOn("dbTestsWait")
+	finalizedBy("dbTestsDown")
+}
+
+/**
+ * DB related tasks
+ * - To run `psql` inside the container, do
+ *      docker exec -ti db-tests psql -d db -U dbuser -W
+ *   and provide it with the same password as define on `docker/Dockerfile-db-tests`
+ */
+
+def dockerComposePath = "${projectDir}/docker-compose.yml"
+
+tasks.register('dbTestsUp', Exec) {
+	commandLine("docker", "compose", "-f", dockerComposePath, "up", "-d", "--build", "--force-recreate", "db-tests")
+}
+
+tasks.register('dbTestsWait', Exec) {
+	commandLine("docker", "exec", "db-tests", "/app/bin/wait-for-postgres.sh", "localhost")
+	dependsOn("dbTestsUp")
+}
+
+tasks.register('dbTestsDown', Exec) {
+	commandLine("docker", "compose", "-f", dockerComposePath, "down", "db-tests")
+}
