@@ -2,6 +2,7 @@ package rl.repository
 
 import kotlinx.datetime.Instant
 import rl.domain.group.Group
+import rl.domain.user.User
 
 /**
  * Repository for groups
@@ -12,13 +13,21 @@ interface GroupRepository {
         groupDescription: String,
         createdAt: Instant,
         ownerId: Int
-    ): Group
+    ): Int
 
-    fun getGroupById(groupId: Int): Group
+    fun getGroupById(groupId: Int): Group?
 
-    fun getGroupsByName(groupName: String): Group
+    fun getGroupByName(groupName: String): Group?
 
-    fun updateGroupName(groupId: Int, groupName: String): Group
+    fun getGroupUsers(groupId: Int): List<Int>
 
-    fun updateGroupDescription(groupId: Int, groupDescription: String): Group
+    fun addUserToGroup(userId: Int, groupId: Int): Boolean
+
+    fun removeUserFromGroup(userId: Int, groupId: Int): Boolean
+
+    fun updateGroupName(groupId: Int, groupName: String): Boolean
+
+    fun updateGroupDescription(groupId: Int, groupDescription: String): Boolean
+
+    fun deleteGroup(groupId: Int): Boolean
 }

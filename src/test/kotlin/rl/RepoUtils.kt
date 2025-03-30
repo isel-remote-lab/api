@@ -12,6 +12,10 @@ class RepoUtils {
 
     fun newTestUsername() = "user-${abs(Random.nextLong())}"
 
+    fun newTestGroupName() = "group-${abs(Random.nextLong())}"
+
+    fun newTestGroupDescription() = "description-${abs(Random.nextLong())}"
+
     fun newTestEmail() = Email("email-${abs(Random.nextLong())}")
 
     fun newTokenValidationData() = "token-${abs(Random.nextLong())}"

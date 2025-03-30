@@ -110,8 +110,8 @@ data class JdbiUserRepository(
             .singleOrNull()
             ?.userAndToken
 
-    override fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int {
-        return handle.createUpdate(
+    override fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int =
+        handle.createUpdate(
             """
                 DELETE FROM rl.Tokens
                 WHERE token_validation = :validation_information
@@ -119,7 +119,7 @@ data class JdbiUserRepository(
         )
             .bind("validation_information", tokenValidationInfo.validationInfo)
             .execute()
-    }
+
 
     override fun updateUserUsername(userId: Int, username: String): User {
         handle.createUpdate(
@@ -136,8 +136,8 @@ data class JdbiUserRepository(
         return getUserById(userId)!!
     }
 
-    override fun deleteUser(userId: Int): Boolean {
-        return handle.createUpdate(
+    override fun deleteUser(userId: Int): Boolean =
+        handle.createUpdate(
             """
             DELETE FROM rl.user
             WHERE id = :id
@@ -145,7 +145,6 @@ data class JdbiUserRepository(
         )
             .bind("id", userId)
             .execute() == 1 // Check if 1 deletion was perform
-    }
 
     private data class UserAndTokenModel(
         val id: Int,

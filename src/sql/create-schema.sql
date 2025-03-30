@@ -21,8 +21,8 @@ CREATE TABLE rl.user (
 CREATE TABLE rl.token (
     token_validation VARCHAR(255) NOT NULL,
     user_id INT NOT NULL REFERENCES rl.user(id),
-    created_at TIMESTAMP NOT NULL,
-    last_used_at TIMESTAMP NOT NULL, -- see about bigint and timestamp
+    created_at TIMESTAMPTZ NOT NULL,
+    last_used_at TIMESTAMPTZ NOT NULL, -- see about bigint and timestamp
     PRIMARY KEY (token_validation, user_id)
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE rl.group (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     group_name VARCHAR(255) NOT NULL,
     group_description TEXT,
-    created_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
     owner_id INT NOT NULL REFERENCES rl.user(id)
 );
 
@@ -45,7 +45,7 @@ CREATE TABLE rl.laboratory (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     lab_name VARCHAR(255) NOT NULL,
     lab_duration INT NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
     owner_id INT NOT NULL REFERENCES rl.user(id)
 );
 
@@ -60,8 +60,8 @@ CREATE TABLE rl.lab_session (
     id INT GENERATED ALWAYS AS IDENTITY,
     lab_id INT NOT NULL REFERENCES rl.laboratory(id),
     owner_id INT NOT NULL REFERENCES rl.user(id),
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
+    start_time TIMESTAMPTZ,
+    end_time TIMESTAMPTZ,
     PRIMARY KEY (id, lab_id, owner_id)
 );
 
@@ -76,8 +76,8 @@ CREATE TABLE rl.app_invite (
     invite_code VARCHAR(255) NOT NULL,
     -- email VARCHAR(255) NOT NULL, -- TODO: see to add specific invited email
     owner_id INT NOT NULL REFERENCES rl.user(id),
-    created_at TIMESTAMP NOT NULL,
-    last_used_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    last_used_at TIMESTAMPTZ NOT NULL,
     group_id INT NOT NULL REFERENCES rl.group(id),
     PRIMARY KEY (id, owner_id)
 );
@@ -89,7 +89,7 @@ CREATE TABLE rl.hardware (
     status VARCHAR(255) NOT NULL,
     mac_address VARCHAR(255),
     ip_address VARCHAR(255),
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE rl.hardware_laboratory (
