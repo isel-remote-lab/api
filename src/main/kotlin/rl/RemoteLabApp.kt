@@ -8,11 +8,20 @@ import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
+import rl.domain.group.GroupDescription
+import rl.domain.group.GroupName
+import rl.domain.laboratory.LabName
 import rl.domain.user.Email
+import rl.domain.user.Username
 import rl.domain.user.token.TokenValidationInfo
-import rl.repositoryJdbi.mappers.EmailMapper
+import rl.repositoryJdbi.mappers.user.EmailMapper
 import rl.repositoryJdbi.mappers.InstantMapper
 import rl.repositoryJdbi.mappers.TokenValidationInfoMapper
+import rl.repositoryJdbi.mappers.group.GroupDescriptionMapper
+import rl.repositoryJdbi.mappers.group.GroupNameMapper
+import rl.repositoryJdbi.mappers.laboratory.LabNameMapper
+import rl.repositoryJdbi.mappers.user.UsernameMapper
+import kotlin.time.Duration
 
 @SpringBootApplication
 class RemoteLabApp {
@@ -34,9 +43,20 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
     installPlugin(KotlinPlugin())
     installPlugin(PostgresPlugin())
 
+    // User Mappers
+    registerColumnMapper(Username::class.java, UsernameMapper())
     registerColumnMapper(Email::class.java, EmailMapper())
-    registerColumnMapper(Instant::class.java, InstantMapper())
     registerColumnMapper(TokenValidationInfo::class.java, TokenValidationInfoMapper())
+
+    // Group Mappers
+    registerColumnMapper(GroupName::class.java, GroupNameMapper())
+    registerColumnMapper(GroupDescription::class.java, GroupDescriptionMapper())
+
+    // Laboratory Mappers
+    registerColumnMapper(LabName::class.java, LabNameMapper())
+
+    // General Mappers
+    registerColumnMapper(Instant::class.java, InstantMapper())
 
     return this
 }

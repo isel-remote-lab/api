@@ -14,7 +14,6 @@ CREATE TABLE rl.user (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    --student_nr INT UNIQUE,
     created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -22,7 +21,7 @@ CREATE TABLE rl.token (
     token_validation VARCHAR(255) NOT NULL,
     user_id INT NOT NULL REFERENCES rl.user(id),
     created_at TIMESTAMPTZ NOT NULL,
-    last_used_at TIMESTAMPTZ NOT NULL, -- see about bigint and timestamp
+    last_used_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (token_validation, user_id)
 );
 

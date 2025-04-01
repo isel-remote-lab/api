@@ -3,6 +3,7 @@ package rl.repository
 import rl.domain.user.Email
 import rl.domain.user.User
 import kotlinx.datetime.Instant
+import rl.domain.user.Username
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
 
@@ -11,7 +12,7 @@ import rl.domain.user.token.TokenValidationInfo
  */
 interface UserRepository {
     fun createUser(
-        username: String,
+        username: Username,
         email: Email,
         createdAt: Instant
     ): Int
@@ -38,7 +39,7 @@ interface UserRepository {
 
     fun updateUserUsername(
         userId: Int,
-        username: String
+        username: Username
     ): User
 
     fun deleteUser(userId: Int): Boolean

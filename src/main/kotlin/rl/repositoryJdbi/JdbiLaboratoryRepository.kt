@@ -1,0 +1,151 @@
+package rl.repositoryJdbi
+
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
+import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.kotlin.mapTo
+import rl.domain.laboratory.LabName
+import rl.domain.laboratory.Laboratory
+import rl.repository.LaboratoryRepository
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+
+data class JdbiLaboratoryRepository(
+    val handle: Handle
+) : LaboratoryRepository {
+    override fun createLaboratory(labName: LabName, labDuration: Duration, createdAt: Instant, ownerId: Int): Int =
+        handle.createUpdate(
+            """
+            INSERT INTO rl.laboratory (lab_name, lab_duration, created_at, owner_id)
+            VALUES (:lab_name, :lab_duration, :created_at, :owner_id)
+        """
+        )
+            .bind("lab_name", labName.labNameInfo)
+            .bind("lab_duration", labDuration.toInt(DurationUnit.MINUTES))
+            .bind("created_at", createdAt.toJavaInstant())
+            .bind("owner_id", ownerId)
+            .executeAndReturnGeneratedKeys()
+            .mapTo<Int>()
+            .one()
+
+    override fun getLaboratoryById(labId: Int): Laboratory? =
+        handle.createQuery(
+            """
+            SELECT * FROM rl.laboratory 
+            WHERE id = :id
+        """
+        )
+            .bind("id", labId)
+            .mapTo<Laboratory>()
+            .singleOrNull()
+
+    override fun getLaboratoryByName(labName: LabName): Laboratory? =
+        handle.createQuery(
+            """
+            SELECT * FROM rl.laboratory 
+            WHERE lab_name = :lab_name
+        """
+        )
+            .bind("lab_name", labName.labNameInfo)
+            .mapTo<Laboratory>()
+            .singleOrNull()
+
+    override fun updateLaboratoryName(labId: Int, labName: LabName): Boolean =
+        handle.createUpdate(
+            """
+            UPDATE rl.laboratory 
+            SET lab_name = :lab_name
+            WHERE id = :id
+        """
+        )
+            .bind("lab_name", labName.labNameInfo)
+            .bind("id", labId)
+            .execute() == 1
+
+    override fun deleteLaboratory(labId: Int): Boolean =
+        handle.createUpdate(
+            """
+            DELETE FROM rl.laboratory 
+            WHERE id = :id
+        """
+        )
+            .bind("id", labId)
+            .execute() == 1
+
+    override fun addGroupToLaboratory(labId: Int, groupId: Int): Boolean =
+        handle.createUpdate(
+            """
+            INSERT INTO rl.group_laboratory (group_id, lab_id)
+            VALUES (:group_id, :lab_id)
+        """
+        )
+            .bind("group_id", groupId)
+            .bind("lab_id", labId)
+            .execute() == 1
+
+    override fun removeGroupFromLaboratory(labId: Int, groupId: Int): Boolean =
+        handle.createUpdate(
+            """
+            DELETE FROM rl.group_laboratory 
+            WHERE lab_id = :lab_id AND group_id = :group_id
+        """
+        )
+            .bind("group_id", groupId)
+            .bind("lab_id", labId)
+            .execute() == 1
+
+    override fun getLaboratoryGroups(labId: Int): List<Int> =
+        handle.createQuery(
+            """
+            SELECT group_id FROM rl.group_laboratory 
+            WHERE lab_id = :lab_id
+        """
+        )
+            .bind("lab_id", labId)
+            .mapTo<Int>()
+            .list()
+
+    override fun addUserToLabQueue(labId: Int, userId: Int): Boolean =
+        handle.createUpdate(
+            """
+            INSERT INTO rl.user_waiting_queue (user_id, lab_id)
+            VALUES (:user_id, :lab_id)
+        """
+        )
+            .bind("user_id", userId)
+            .bind("lab_id", labId)
+            .execute() == 1
+
+    override fun removeUserLabQueue(labId: Int, userId: Int): Boolean =
+        handle.createUpdate(
+            """
+            DELETE FROM rl.user_waiting_queue 
+            WHERE lab_id = :lab_id AND user_id = :user_id
+        """
+        )
+            .bind("user_id", userId)
+            .bind("lab_id", labId)
+            .execute() == 1
+
+    override fun addHardwareToLaboratory(labId: Int, hwId: Int): Boolean =
+        handle.createUpdate(
+            """
+            INSERT INTO rl.hardware_laboratory (lab_id, hw_id)
+            VALUES (:lab_id, :hw_id)
+        """
+        )
+            .bind("hw_id", hwId)
+            .bind("lab_id", labId)
+            .execute() == 1
+
+    override fun removeHardwareLaboratory(labId: Int, hwId: Int): Boolean =
+        handle.createUpdate(
+            """
+            DELETE FROM rl.hardware_laboratory 
+            WHERE hw_id = :hw_id AND lab_id = :lab_id
+        """
+        )
+            .bind("hw_id", hwId)
+            .bind("lab_id", labId)
+            .execute() == 1
+}

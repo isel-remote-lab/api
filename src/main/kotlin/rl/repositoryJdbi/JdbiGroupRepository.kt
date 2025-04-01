@@ -5,20 +5,22 @@ import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
 import rl.domain.group.Group
+import rl.domain.group.GroupDescription
+import rl.domain.group.GroupName
 import rl.repository.GroupRepository
 
 data class JdbiGroupRepository(
     val handle: Handle
 ) : GroupRepository {
-    override fun createGroup(groupName: String, groupDescription: String, createdAt: Instant, ownerId: Int): Int =
+    override fun createGroup(groupName: GroupName, groupDescription: GroupDescription, createdAt: Instant, ownerId: Int): Int =
         handle.createUpdate(
             """
            INSERT INTO rl.group (group_name, group_description, created_at, owner_id)
            VALUES (:group_name, :group_description, :created_at, :owner_id)
         """
         )
-            .bind("group_name", groupName)
-            .bind("group_description", groupDescription)
+            .bind("group_name", groupName.groupNameInfo)
+            .bind("group_description", groupDescription.groupDescriptionInfo)
             .bind("created_at", createdAt.toJavaInstant())
             .bind("owner_id", ownerId)
             .executeAndReturnGeneratedKeys()
@@ -35,9 +37,9 @@ data class JdbiGroupRepository(
             .mapTo<Group>()
             .singleOrNull()
 
-    override fun getGroupByName(groupName: String): Group? =
+    override fun getGroupByName(groupName: GroupName): Group? =
         handle.createQuery("""SELECT * FROM rl.group WHERE group_name = :group_name""")
-            .bind("group_name", groupName)
+            .bind("group_name", groupName.groupNameInfo)
             .mapTo<Group>()
             .singleOrNull()
 
@@ -76,7 +78,7 @@ data class JdbiGroupRepository(
             .bind("group_id", groupId)
             .execute() == 1
 
-    override fun updateGroupName(groupId: Int, groupName: String): Boolean =
+    override fun updateGroupName(groupId: Int, groupName: GroupName): Boolean =
         handle.createUpdate(
             """
             UPDATE rl.group 
@@ -85,10 +87,10 @@ data class JdbiGroupRepository(
         """
         )
             .bind("id", groupId)
-            .bind("group_name", groupName)
+            .bind("group_name", groupName.groupNameInfo)
             .execute() == 1
 
-    override fun updateGroupDescription(groupId: Int, groupDescription: String): Boolean =
+    override fun updateGroupDescription(groupId: Int, groupDescription: GroupDescription): Boolean =
         handle.createUpdate(
             """
             UPDATE rl.group 
@@ -97,7 +99,7 @@ data class JdbiGroupRepository(
         """
         )
             .bind("id", groupId)
-            .bind("group_description", groupDescription)
+            .bind("group_description", groupDescription.groupDescriptionInfo)
             .execute() == 1
 
     override fun deleteGroup(groupId: Int): Boolean =

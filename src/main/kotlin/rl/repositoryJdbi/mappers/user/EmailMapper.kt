@@ -1,4 +1,4 @@
-package rl.repositoryJdbi.mappers
+package rl.repositoryJdbi.mappers.user
 
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.statement.StatementContext

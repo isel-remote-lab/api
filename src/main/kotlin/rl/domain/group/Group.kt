@@ -4,8 +4,8 @@ import kotlinx.datetime.Instant
 
 data class Group(
     val id: Int,
-    val groupName: String,
-    val groupDescription: String,
+    val groupName: GroupName,
+    val groupDescription: GroupDescription,
     val createdAt: Instant,
     val ownerId: Int,
 )
