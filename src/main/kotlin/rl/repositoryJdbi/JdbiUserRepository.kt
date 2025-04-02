@@ -6,6 +6,7 @@ import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
 import org.slf4j.LoggerFactory
 import rl.domain.user.Email
+import rl.domain.user.Role
 import rl.domain.user.User
 import rl.domain.user.Username
 import rl.domain.user.token.Token
@@ -17,16 +18,18 @@ data class JdbiUserRepository(
     val handle: Handle
 ) : UserRepository {
     override fun createUser(
+        role: Role,
         username: Username,
         email: Email,
         createdAt: Instant
     ): Int =
         handle.createUpdate(
             """
-           INSERT INTO rl.user (username, email, created_at)
-           VALUES (:username, :email, :created_at)
+           INSERT INTO rl.user (role, username, email, created_at)
+           VALUES (:role, :username, :email, :created_at)
            """
         )
+            .bind("role", role.char)
             .bind("username", username.usernameInfo)
             .bind("email", email.emailInfo)
             .bind("created_at", createdAt.toJavaInstant())
@@ -94,6 +97,7 @@ data class JdbiUserRepository(
         handle.createQuery(
             """
                 SELECT users.id, 
+                users.role,
                 users.username, 
                 users.email, 
                 users.created_at AS user_created_at, 
@@ -149,6 +153,7 @@ data class JdbiUserRepository(
 
     private data class UserAndTokenModel(
         val id: Int,
+        val role: Role,
         val username: Username,
         val email: Email,
         val userCreatedAt: Instant,
@@ -158,7 +163,7 @@ data class JdbiUserRepository(
     ) {
         val userAndToken: Pair<User, Token>
             get() = Pair(
-                User(id, username, email, userCreatedAt),
+                User(id, role, username, email, userCreatedAt),
                 Token(
                     tokenValidation,
                     id,

@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS rl.group_laboratory CASCADE;
 
 CREATE TABLE rl.user (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    role CHAR (1) NOT NULL,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL
@@ -44,15 +45,17 @@ CREATE TABLE rl.laboratory (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     lab_name VARCHAR(255) NOT NULL,
     lab_duration INT NOT NULL,
+    lab_queue_limit INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     owner_id INT NOT NULL REFERENCES rl.user(id)
 );
 
 -- Waiting queue for a lab
 CREATE TABLE rl.lab_waiting_queue (
+    id INT GENERATED ALWAYS AS IDENTITY, -- For the order of the queue
     user_id INT NOT NULL REFERENCES rl.user(id),
     lab_id INT NOT NULL REFERENCES rl.laboratory(id),
-    PRIMARY KEY (user_id, lab_id)
+    PRIMARY KEY (id, user_id, lab_id)
 );
 
 CREATE TABLE rl.lab_session (

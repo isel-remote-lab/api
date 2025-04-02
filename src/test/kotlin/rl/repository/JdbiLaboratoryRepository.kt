@@ -12,7 +12,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class JdbiLaboratoryRepository {
     @Test
-    fun `store laboratory and retrieve`(){
+    fun `store laboratory and retrieve`() {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoryRepository(handle)
@@ -24,19 +24,22 @@ class JdbiLaboratoryRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val userId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
-            val labDuration = 10.minutes  //repoUtils.newTestLabDuration()
+            val labDuration = repoUtils.newTestLabDuration()
             val labCreatedAt = clock.now()
-            val labId = laboratoryRepo.createLaboratory(labName, labDuration, labCreatedAt, userId)
+            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
+            val labId = laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
 
             //then: retrieve laboratory by Id
             val labById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(labById) { "No laboratory retrieved from database" }
             assertEquals(labName, labById!!.labName)
             assertEquals(labDuration, labById.labDuration.minutes)
+            assertEquals(randomLabQueueLimit, labById.labQueueLimit)
             assertEquals(labCreatedAt, labById.createdAt)
             assertEquals(userId, labById.ownerId)
             assertTrue(labById.id >= 0)
@@ -46,6 +49,7 @@ class JdbiLaboratoryRepository {
             assertNotNull(labByName) { "No laboratory retrieved from database" }
             assertEquals(labName, labByName!!.labName)
             assertEquals(labDuration, labByName.labDuration.minutes)
+            assertEquals(randomLabQueueLimit, labByName.labQueueLimit)
             assertEquals(labCreatedAt, labByName.createdAt)
             assertEquals(userId, labByName.ownerId)
             assertTrue(labByName.id >= 0)
@@ -65,13 +69,15 @@ class JdbiLaboratoryRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val userId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
-            val labDuration = 10.minutes  //repoUtils.newTestLabDuration()
+            val labDuration = repoUtils.newTestLabDuration()
             val labCreatedAt = clock.now()
-            val labId = laboratoryRepo.createLaboratory(labName, labDuration, labCreatedAt, userId)
+            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
+            val labId = laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
 
             // when: updating the laboratory name
             val newLabName = repoUtils.newTestLabName()
@@ -103,13 +109,15 @@ class JdbiLaboratoryRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val userId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
-            val labDuration = 10.minutes  //repoUtils.newTestLabDuration()
+            val labDuration = repoUtils.newTestLabDuration()
             val labCreatedAt = clock.now()
-            val labId = laboratoryRepo.createLaboratory(labName, labDuration, labCreatedAt, userId)
+            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
+            val labId = laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
 
             // when: adding a group to the laboratory
             val groupId = 1 // Replace with actual group ID

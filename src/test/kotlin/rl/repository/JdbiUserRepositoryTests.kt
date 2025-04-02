@@ -2,6 +2,7 @@ package rl.repository
 
 import rl.RepoUtils
 import rl.TestClock
+import rl.domain.user.Role
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
 import rl.repositoryJdbi.JdbiUserRepository
@@ -20,8 +21,8 @@ class JdbiUserRepositoryTests {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
-
-            val userId = userRepo.createUser(username, email, createdAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, createdAt)
 
             // when: retrieving a user by Id
             val userById = userRepo.getUserById(userId)
@@ -55,7 +56,8 @@ class JdbiUserRepositoryTests {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
-            val userId = userRepo.createUser(username, email, createdAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, createdAt)
 
             // when: updating username
             val newUsername = repoUtils.newTestUsername()
@@ -79,7 +81,8 @@ class JdbiUserRepositoryTests {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
-            val userId = userRepo.createUser(username, email, createdAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole, username, email, createdAt)
 
             // when: deleting a user
             userRepo.deleteUser(userId)
@@ -102,7 +105,8 @@ class JdbiUserRepositoryTests {
             val userName = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
-            val userId = repo.createUser(userName, email, createdAt)
+            val userRole = repoUtils.randomUserRole()
+            val userId = repo.createUser(userRole, userName, email, createdAt)
 
             // and: test TokenValidationInfo
             val testTokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())

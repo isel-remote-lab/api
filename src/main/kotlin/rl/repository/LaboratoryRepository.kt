@@ -9,6 +9,7 @@ interface LaboratoryRepository {
     fun createLaboratory(
         labName: LabName,
         labDuration: Duration,
+        labQueueLimit: Int,
         createdAt: Instant,
         ownerId: Int
     ): Int
@@ -37,16 +38,6 @@ interface LaboratoryRepository {
     fun getLaboratoryGroups(
         labId: Int
     ): List<Int>
-
-    fun addUserToLabQueue(
-        labId: Int,
-        userId: Int
-    ): Boolean
-
-    fun removeUserLabQueue(
-        labId: Int,
-        userId: Int
-    ): Boolean
 
     fun addHardwareToLaboratory(
         labId: Int,

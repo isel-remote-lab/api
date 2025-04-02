@@ -20,7 +20,8 @@ class JdbiGroupRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val ownerId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -69,13 +70,15 @@ class JdbiGroupRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val ownerId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a user
             val username2 = repoUtils.newTestUsername()
             val email2 = repoUtils.newTestEmail()
             val userCreatedAt2 = clock.now()
-            val userId = userRepo.createUser(username2, email2, userCreatedAt2)
+            val userRole2 = repoUtils.randomUserRole()
+            val userId = userRepo.createUser(userRole2, username2, email2, userCreatedAt2)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -115,7 +118,8 @@ class JdbiGroupRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val ownerId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -152,7 +156,8 @@ class JdbiGroupRepository {
             val username = repoUtils.newTestUsername()
             val email = repoUtils.newTestEmail()
             val userCreatedAt = clock.now()
-            val ownerId = userRepo.createUser(username, email, userCreatedAt)
+            val userRole = repoUtils.randomUserRole()
+            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()

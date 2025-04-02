@@ -7,6 +7,7 @@ import rl.domain.group.GroupDescription
 import rl.domain.group.GroupName
 import rl.domain.laboratory.LabName
 import rl.domain.user.Email
+import rl.domain.user.Role
 import rl.domain.user.Username
 import kotlin.math.abs
 import kotlin.random.Random
@@ -22,7 +23,11 @@ class RepoUtils {
 
     fun newTestLabName() = LabName("lab-${abs(Random.nextLong())}")
 
-    fun newTestLabDuration() = abs(Random.nextLong()).toDuration(DurationUnit.MINUTES)
+    fun newTestLabDuration() = abs(Random.nextInt()).toDuration(DurationUnit.MINUTES)
+
+    fun randomLabQueueLimit() = (1..50).random()
+
+    fun randomUserRole() = Role.entries.random()
 
     fun newTestGroupDescription() = GroupDescription("description-${abs(Random.nextLong())}")
 

@@ -12,6 +12,7 @@ import rl.domain.group.GroupDescription
 import rl.domain.group.GroupName
 import rl.domain.laboratory.LabName
 import rl.domain.user.Email
+import rl.domain.user.Role
 import rl.domain.user.Username
 import rl.domain.user.token.TokenValidationInfo
 import rl.repositoryJdbi.mappers.user.EmailMapper
@@ -20,6 +21,7 @@ import rl.repositoryJdbi.mappers.TokenValidationInfoMapper
 import rl.repositoryJdbi.mappers.group.GroupDescriptionMapper
 import rl.repositoryJdbi.mappers.group.GroupNameMapper
 import rl.repositoryJdbi.mappers.laboratory.LabNameMapper
+import rl.repositoryJdbi.mappers.user.RoleMapper
 import rl.repositoryJdbi.mappers.user.UsernameMapper
 import kotlin.time.Duration
 
@@ -47,6 +49,7 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
     registerColumnMapper(Username::class.java, UsernameMapper())
     registerColumnMapper(Email::class.java, EmailMapper())
     registerColumnMapper(TokenValidationInfo::class.java, TokenValidationInfoMapper())
+    registerColumnMapper(Role::class.java, RoleMapper())
 
     // Group Mappers
     registerColumnMapper(GroupName::class.java, GroupNameMapper())

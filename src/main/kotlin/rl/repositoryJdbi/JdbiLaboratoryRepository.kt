@@ -13,15 +13,22 @@ import kotlin.time.DurationUnit
 data class JdbiLaboratoryRepository(
     val handle: Handle
 ) : LaboratoryRepository {
-    override fun createLaboratory(labName: LabName, labDuration: Duration, createdAt: Instant, ownerId: Int): Int =
+    override fun createLaboratory(
+        labName: LabName,
+        labDuration: Duration,
+        labQueueLimit: Int,
+        createdAt: Instant,
+        ownerId: Int
+    ): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.laboratory (lab_name, lab_duration, created_at, owner_id)
-            VALUES (:lab_name, :lab_duration, :created_at, :owner_id)
+            INSERT INTO rl.laboratory (lab_name, lab_duration, lab_queue_limit, created_at, owner_id)
+            VALUES (:lab_name, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
         """
         )
             .bind("lab_name", labName.labNameInfo)
             .bind("lab_duration", labDuration.toInt(DurationUnit.MINUTES))
+            .bind("lab_queue_limit", labQueueLimit)
             .bind("created_at", createdAt.toJavaInstant())
             .bind("owner_id", ownerId)
             .executeAndReturnGeneratedKeys()
@@ -104,28 +111,6 @@ data class JdbiLaboratoryRepository(
             .bind("lab_id", labId)
             .mapTo<Int>()
             .list()
-
-    override fun addUserToLabQueue(labId: Int, userId: Int): Boolean =
-        handle.createUpdate(
-            """
-            INSERT INTO rl.user_waiting_queue (user_id, lab_id)
-            VALUES (:user_id, :lab_id)
-        """
-        )
-            .bind("user_id", userId)
-            .bind("lab_id", labId)
-            .execute() == 1
-
-    override fun removeUserLabQueue(labId: Int, userId: Int): Boolean =
-        handle.createUpdate(
-            """
-            DELETE FROM rl.user_waiting_queue 
-            WHERE lab_id = :lab_id AND user_id = :user_id
-        """
-        )
-            .bind("user_id", userId)
-            .bind("lab_id", labId)
-            .execute() == 1
 
     override fun addHardwareToLaboratory(labId: Int, hwId: Int): Boolean =
         handle.createUpdate(

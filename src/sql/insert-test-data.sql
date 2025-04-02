@@ -1,12 +1,12 @@
 START TRANSACTION;
 
 -- Insert test users
-INSERT INTO rl.user (username, email, created_at)
+INSERT INTO rl.user (role, username, email, created_at)
 VALUES
-    ('admin', 'admin@example.com', now()),
-    ('professor1', 'professor1@example.com', now()),
-    ('student1', 'student1@example.com', now()),
-    ('student2',  'student2@example.com', now());
+    ('A', 'admin', 'admin@example.com', now()),
+    ('P','professor1', 'professor1@example.com', now()),
+    ('S', 'student1', 'student1@example.com', now()),
+    ('S', 'student2',  'student2@example.com', now());
 
 -- Insert test tokens
 INSERT INTO rl.token (token_validation, user_id, created_at, last_used_at)
@@ -32,11 +32,11 @@ VALUES
     (4, 3); -- student2 in Study Group A
 
 -- Insert laboratories
-INSERT INTO rl.laboratory (lab_name, lab_duration, created_at, owner_id)
+INSERT INTO rl.laboratory (lab_name, lab_duration, lab_queue_limit, created_at, owner_id)
 VALUES
-    ('Pendulum Experiment', 30, NOW(), 2),
-    ('Circuit Analysis', 45, NOW(), 2),
-    ('Wave Motion', 60, NOW(), 2);
+    ('Pendulum Experiment', 30, 10, NOW(), 2),
+    ('Circuit Analysis', 45, 25,NOW(), 2),
+    ('Wave Motion', 60, 30,NOW(), 2);
 
 -- Insert group-laboratory relationships
 INSERT INTO rl.group_laboratory (group_id, lab_id)
