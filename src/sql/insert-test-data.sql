@@ -1,12 +1,12 @@
 START TRANSACTION;
 
 -- Insert test users
-INSERT INTO rl.user (role, username, email, created_at)
+INSERT INTO rl.user (o_auth_id, role, username, email, created_at)
 VALUES
-    ('A', 'admin', 'admin@example.com', now()),
-    ('P','professor1', 'professor1@example.com', now()),
-    ('S', 'student1', 'student1@example.com', now()),
-    ('S', 'student2',  'student2@example.com', now());
+    (123, 'A', 'admin', 'admin@example.com', now()),
+    (1234, 'P','professor1', 'professor1@example.com' , now()),
+    (12345, 'S', 'student1', 'student1@example.com' , now()),
+    (123456, 'S', 'student2',  'student2@example.com' ,now());
 
 -- Insert test tokens
 INSERT INTO rl.token (token_validation, user_id, created_at, last_used_at)
@@ -46,10 +46,10 @@ VALUES
     (2, 2); -- Electronics Lab - Circuit Analysis
 
 -- Insert some waiting queue entries
-INSERT INTO rl.lab_waiting_queue (user_id, lab_id)
-VALUES
-    (3, 1), -- student1 waiting for Pendulum Experiment
-    (4, 2); -- student2 waiting for Circuit Analysis
+--INSERT INTO rl.lab_waiting_queue (user_id, lab_id)
+--VALUES
+--    (3, 1), -- student1 waiting for Pendulum Experiment
+--    (4, 2); -- student2 waiting for Circuit Analysis
 
 -- Insert lab sessions
 INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time)
@@ -66,9 +66,9 @@ VALUES
 -- Insert hardware
 INSERT INTO rl.hardware (hw_name, hw_serial_num, status, mac_address, ip_address, created_at)
 VALUES
-    ('Pendulum Sensor', 'PS001', 'ACTIVE', '00:1A:2B:3C:4D:5E', '192.168.1.100', NOW()),
-    ('Circuit Board', 'CB001', 'ACTIVE', '00:1A:2B:3C:4D:5F', '192.168.1.101', NOW()),
-    ('Wave Generator', 'WG001', 'ACTIVE', '00:1A:2B:3C:4D:60', '192.168.1.102', NOW());
+    ('Pendulum Sensor', 'PS001', 'A', '00:1A:2B:3C:4D:5E', '192.168.1.100', NOW()),
+    ('Circuit Board', 'CB001', 'A', '00:1A:2B:3C:4D:5F', '192.168.1.101', NOW()),
+    ('Wave Generator', 'WG001', 'A', '00:1A:2B:3C:4D:60', '192.168.1.102', NOW());
 
 -- Insert hardware-laboratory relationships
 INSERT INTO rl.hardware_laboratory (hw_id, lab_id)

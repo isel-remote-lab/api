@@ -1,8 +1,6 @@
 package rl.repository
 
-import rl.RepoUtils
 import rl.TestClock
-import rl.domain.user.Role
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
 import rl.repositoryJdbi.JdbiUserRepository
@@ -22,7 +20,8 @@ class JdbiUserRepositoryTests {
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
             val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, createdAt)
+            val oAuthId = repoUtils.newTestOauthId()
+            val userId = userRepo.createUser(oAuthId, userRole, username, email, createdAt)
 
             // when: retrieving a user by Id
             val userById = userRepo.getUserById(userId)
@@ -57,7 +56,8 @@ class JdbiUserRepositoryTests {
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
             val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, createdAt)
+            val oAuthId = repoUtils.newTestOauthId()
+            val userId = userRepo.createUser(oAuthId, userRole, username, email, createdAt)
 
             // when: updating username
             val newUsername = repoUtils.newTestUsername()
@@ -82,7 +82,8 @@ class JdbiUserRepositoryTests {
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
             val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, createdAt)
+            val oAuthId = repoUtils.newTestOauthId()
+            val userId = userRepo.createUser(oAuthId, userRole, username, email, createdAt)
 
             // when: deleting a user
             userRepo.deleteUser(userId)
@@ -106,7 +107,8 @@ class JdbiUserRepositoryTests {
             val email = repoUtils.newTestEmail()
             val createdAt = clock.now()
             val userRole = repoUtils.randomUserRole()
-            val userId = repo.createUser(userRole, userName, email, createdAt)
+            val oAuthId = repoUtils.newTestOauthId()
+            val userId = repo.createUser(oAuthId, userRole, userName, email, createdAt)
 
             // and: test TokenValidationInfo
             val testTokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())
@@ -136,7 +138,6 @@ class JdbiUserRepositoryTests {
             assertEquals(tokenCreationInstant, retrievedToken.createdAt)
         }
     }
-
 
     companion object {
         private val repoUtils = RepoUtils()

@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS rl.group_laboratory CASCADE;
 
 CREATE TABLE rl.user (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    o_auth_id VARCHAR(255) NOT NULL UNIQUE,
     role CHAR (1) NOT NULL,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -76,7 +77,6 @@ CREATE TABLE rl.group_laboratory (
 CREATE TABLE rl.app_invite (
     id INT GENERATED ALWAYS AS IDENTITY,
     invite_code VARCHAR(255) NOT NULL,
-    -- email VARCHAR(255) NOT NULL, -- TODO: see to add specific invited email
     owner_id INT NOT NULL REFERENCES rl.user(id),
     created_at TIMESTAMPTZ NOT NULL,
     last_used_at TIMESTAMPTZ NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE rl.hardware (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     hw_name VARCHAR(255) NOT NULL,
     hw_serial_num VARCHAR(255) NOT NULL,
-    status VARCHAR(255) NOT NULL,
+    status CHAR(1) NOT NULL,
     mac_address VARCHAR(255),
     ip_address VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL

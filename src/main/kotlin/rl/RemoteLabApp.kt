@@ -10,6 +10,8 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import rl.domain.group.GroupDescription
 import rl.domain.group.GroupName
+import rl.domain.hardware.HardwareName
+import rl.domain.hardware.HardwareStatus
 import rl.domain.laboratory.LabName
 import rl.domain.user.Email
 import rl.domain.user.Role
@@ -20,10 +22,11 @@ import rl.repositoryJdbi.mappers.InstantMapper
 import rl.repositoryJdbi.mappers.TokenValidationInfoMapper
 import rl.repositoryJdbi.mappers.group.GroupDescriptionMapper
 import rl.repositoryJdbi.mappers.group.GroupNameMapper
+import rl.repositoryJdbi.mappers.hardware.HardwareNameMapper
+import rl.repositoryJdbi.mappers.hardware.HardwareStatusMapper
 import rl.repositoryJdbi.mappers.laboratory.LabNameMapper
 import rl.repositoryJdbi.mappers.user.RoleMapper
 import rl.repositoryJdbi.mappers.user.UsernameMapper
-import kotlin.time.Duration
 
 @SpringBootApplication
 class RemoteLabApp {
@@ -57,6 +60,10 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
 
     // Laboratory Mappers
     registerColumnMapper(LabName::class.java, LabNameMapper())
+
+    // Hardware Mappers
+    registerColumnMapper(HardwareName::class.java, HardwareNameMapper())
+    registerColumnMapper(HardwareStatus::class.java, HardwareStatusMapper())
 
     // General Mappers
     registerColumnMapper(Instant::class.java, InstantMapper())

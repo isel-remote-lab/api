@@ -1,27 +1,20 @@
 package rl.repository
 
-import rl.RepoUtils
 import rl.TestClock
 import rl.repositoryJdbi.JdbiGroupRepository
-import rl.repositoryJdbi.JdbiUserRepository
 import kotlin.test.*
 
-class JdbiGroupRepository {
+class JdbiGroupRepositoryTests {
     @Test
     fun `store group and retrieve`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -62,23 +55,14 @@ class JdbiGroupRepository {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a user
-            val username2 = repoUtils.newTestUsername()
-            val email2 = repoUtils.newTestEmail()
-            val userCreatedAt2 = clock.now()
-            val userRole2 = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole2, username2, email2, userCreatedAt2)
+            val userId = repoUtils.createTestUser(handle)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -110,16 +94,11 @@ class JdbiGroupRepository {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()
@@ -148,16 +127,11 @@ class JdbiGroupRepository {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val ownerId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
             val groupName = repoUtils.newTestGroupName()

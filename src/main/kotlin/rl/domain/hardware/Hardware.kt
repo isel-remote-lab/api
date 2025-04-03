@@ -4,10 +4,10 @@ import kotlinx.datetime.Instant
 
 data class Hardware(
     val id: Int,
-    val name: String,
-    val serialNumber: String,
+    val hwName: HardwareName,
+    val hwSerialNum: String,
     val status: HardwareStatus,
-    val macAddress: String,
-    val ipAddress: String,
+    val macAddress: String?,
+    val ipAddress: String?,
     val createdAt: Instant
 )

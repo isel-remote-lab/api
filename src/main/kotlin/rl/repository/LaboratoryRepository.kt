@@ -44,6 +44,8 @@ interface LaboratoryRepository {
         hwId: Int
     ): Boolean
 
+    fun getLaboratoryHardware(labId: Int): List<Int>
+
     fun removeHardwareLaboratory(
         labId: Int,
         hwId: Int

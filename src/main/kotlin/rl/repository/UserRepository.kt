@@ -13,6 +13,7 @@ import rl.domain.user.token.TokenValidationInfo
  */
 interface UserRepository {
     fun createUser(
+        oAuthId: String,
         role: Role,
         username: Username,
         email: Email,

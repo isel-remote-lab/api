@@ -123,6 +123,17 @@ data class JdbiLaboratoryRepository(
             .bind("lab_id", labId)
             .execute() == 1
 
+    override fun getLaboratoryHardware(labId: Int): List<Int> =
+        handle.createQuery(
+            """
+            SELECT hw_id FROM rl.hardware_laboratory 
+            WHERE lab_id = :lab_id
+        """
+        )
+            .bind("lab_id", labId)
+            .mapTo<Int>()
+            .list()
+
     override fun removeHardwareLaboratory(labId: Int, hwId: Int): Boolean =
         handle.createUpdate(
             """

@@ -18,6 +18,7 @@ data class JdbiUserRepository(
     val handle: Handle
 ) : UserRepository {
     override fun createUser(
+        oAuthId: String,
         role: Role,
         username: Username,
         email: Email,
@@ -25,10 +26,11 @@ data class JdbiUserRepository(
     ): Int =
         handle.createUpdate(
             """
-           INSERT INTO rl.user (role, username, email, created_at)
-           VALUES (:role, :username, :email, :created_at)
+           INSERT INTO rl.user (o_auth_id, role, username, email, created_at)
+           VALUES (:o_auth_id, :role, :username, :email, :created_at)
            """
         )
+            .bind("o_auth_id", oAuthId)
             .bind("role", role.char)
             .bind("username", username.usernameInfo)
             .bind("email", email.emailInfo)
@@ -97,6 +99,7 @@ data class JdbiUserRepository(
         handle.createQuery(
             """
                 SELECT users.id, 
+                users.o_auth_id,
                 users.role,
                 users.username, 
                 users.email, 
@@ -153,6 +156,7 @@ data class JdbiUserRepository(
 
     private data class UserAndTokenModel(
         val id: Int,
+        val oAuthId: String,
         val role: Role,
         val username: Username,
         val email: Email,
@@ -163,7 +167,7 @@ data class JdbiUserRepository(
     ) {
         val userAndToken: Pair<User, Token>
             get() = Pair(
-                User(id, role, username, email, userCreatedAt),
+                User(id, oAuthId, role, username, email, userCreatedAt),
                 Token(
                     tokenValidation,
                     id,

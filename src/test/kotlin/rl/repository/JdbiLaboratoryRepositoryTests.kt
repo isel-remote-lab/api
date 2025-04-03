@@ -1,31 +1,25 @@
 package rl.repository
 
+
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import rl.RepoUtils
 import rl.TestClock
 import rl.repositoryJdbi.JdbiLaboratoryRepository
-import rl.repositoryJdbi.JdbiUserRepository
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.minutes
 
-class JdbiLaboratoryRepository {
+class JdbiLaboratoryRepositoryTests {
     @Test
     fun `store laboratory and retrieve`() {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoryRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
@@ -61,16 +55,11 @@ class JdbiLaboratoryRepository {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoryRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
@@ -99,18 +88,13 @@ class JdbiLaboratoryRepository {
     @Test
     fun `add group to laboratory and remove it`() {
         repoUtils.runWithHandle { handle ->
-            // given: a laboratory and user repo
+            // given: a laboratory, user repo and group repo
             val laboratoryRepo = JdbiLaboratoryRepository(handle)
-            val userRepo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val userCreatedAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val userId = userRepo.createUser(userRole, username, email, userCreatedAt)
+            val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
             val labName = repoUtils.newTestLabName()
@@ -119,8 +103,10 @@ class JdbiLaboratoryRepository {
             val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
             val labId = laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
 
+            // when: storing a group
+            val groupId = repoUtils.createTestGroup(userId, handle)
+
             // when: adding a group to the laboratory
-            val groupId = 1 // Replace with actual group ID
             assertTrue(laboratoryRepo.addGroupToLaboratory(labId, groupId))
 
             // then: retrieving the laboratory groups
@@ -136,6 +122,46 @@ class JdbiLaboratoryRepository {
             val groupsAfterRemoval = laboratoryRepo.getLaboratoryGroups(labId)
             assertNotNull(groupsAfterRemoval) { "No groups retrieved from database" }
             assertTrue(groupsAfterRemoval.isEmpty()) { "Groups should be empty after removal" }
+        }
+    }
+
+    @Test
+    fun `add hardware to laboratory and remove it`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory, user repo and hardware repo
+            val laboratoryRepo = JdbiLaboratoryRepository(handle)
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a hardware
+            val hwId = repoUtils.createTestHardware(handle)
+
+            // when: storing a laboratory
+            val labName = repoUtils.newTestLabName()
+            val labDuration = repoUtils.newTestLabDuration()
+            val labCreatedAt = clock.now()
+            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
+            val labId = laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
+
+            // when: adding a hardware to the laboratory
+            assertTrue(laboratoryRepo.addHardwareToLaboratory(labId, hwId))
+
+            // then: retrieving the laboratory hardware
+            val hardwares = laboratoryRepo.getLaboratoryHardware(labId)
+            assertNotNull(hardwares) { "No hardwares retrieved from database" }
+            assertTrue(hardwares.contains(hwId)) { "Hardware not found in laboratory hardwares" }
+            assertTrue(hardwares.size == 1) { "Unexpected number of hardwares in laboratory" }
+
+            // when: removing the hardware from the laboratory
+            assertTrue(laboratoryRepo.removeHardwareLaboratory(labId, hwId))
+
+            // then: retrieving the laboratory hardwares should be empty
+            val hardwaresAfterRemoval = laboratoryRepo.getLaboratoryHardware(labId)
+            assertNotNull(hardwaresAfterRemoval) { "No hardwares retrieved from database" }
+            assertTrue(hardwaresAfterRemoval.isEmpty()) { "Hardwares should be empty after removal" }
         }
     }
 

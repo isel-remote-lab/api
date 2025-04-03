@@ -10,7 +10,7 @@ data class JdbiLabWaitingQueueRepository(
     override fun addUserToLabQueue(labId: Int, userId: Int): Boolean =
         handle.createUpdate(
             """
-            INSERT INTO rl.user_waiting_queue (user_id, lab_id)
+            INSERT INTO rl.lab_waiting_queue (user_id, lab_id)
             VALUES (:user_id, :lab_id)
         """
         )
@@ -21,7 +21,7 @@ data class JdbiLabWaitingQueueRepository(
     override fun removeUserLabQueue(labId: Int, userId: Int): Boolean =
         handle.createUpdate(
             """
-            DELETE FROM rl.user_waiting_queue 
+            DELETE FROM rl.lab_waiting_queue 
             WHERE lab_id = :lab_id AND user_id = :user_id
         """
         )
@@ -37,6 +37,31 @@ data class JdbiLabWaitingQueueRepository(
         """)
             .bind("lab_id", labId)
             .mapTo<Boolean>()
+            .one()
+
+    override fun getQueueSize(labId: Int): Int =
+        handle.createQuery("""
+            SELECT COUNT(*)
+            FROM rl.lab_waiting_queue
+            WHERE lab_id = :lab_id
+        """)
+            .bind("lab_id", labId)
+            .mapTo<Int>()
+            .one()
+
+    override fun getUserQueuePosition(labId: Int, userId: Int): Int =
+        handle.createQuery("""
+            SELECT COUNT(*) + 1
+            FROM rl.lab_waiting_queue
+            WHERE lab_id = :lab_id AND id < (
+                SELECT id
+                FROM rl.lab_waiting_queue
+                WHERE lab_id = :lab_id AND user_id = :user_id
+            )
+        """)
+            .bind("lab_id", labId)
+            .bind("user_id", userId)
+            .mapTo<Int>()
             .one()
 
     // Returns user id.
@@ -59,6 +84,4 @@ data class JdbiLabWaitingQueueRepository(
             .executeAndReturnGeneratedKeys("user_id")
             .mapTo<Int>()
             .one()
-
-
 }
