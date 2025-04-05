@@ -27,9 +27,7 @@ interface GroupRepository {
 
     fun removeUserFromGroup(userId: Int, groupId: Int): Boolean
 
-    fun updateGroupName(groupId: Int, groupName: GroupName): Boolean
-
-    fun updateGroupDescription(groupId: Int, groupDescription: GroupDescription): Boolean
+    fun updateGroup(groupId: Int, groupName: GroupName? = null, groupDescription: GroupDescription? = null): Boolean
 
     fun deleteGroup(groupId: Int): Boolean
 }

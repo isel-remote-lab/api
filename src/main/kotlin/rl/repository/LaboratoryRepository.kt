@@ -1,6 +1,7 @@
 package rl.repository
 
 import kotlinx.datetime.Instant
+import rl.domain.laboratory.LabDescription
 import rl.domain.laboratory.LabName
 import rl.domain.laboratory.Laboratory
 import kotlin.time.Duration
@@ -8,6 +9,7 @@ import kotlin.time.Duration
 interface LaboratoryRepository {
     fun createLaboratory(
         labName: LabName,
+        labDescription: LabDescription,
         labDuration: Duration,
         labQueueLimit: Int,
         createdAt: Instant,
@@ -18,9 +20,10 @@ interface LaboratoryRepository {
 
     fun getLaboratoryByName(labName: LabName): Laboratory?
 
-    fun updateLaboratoryName(
+    fun updateLaboratory(
         labId: Int,
-        labName: LabName
+        labName: LabName? = null,
+        labDescription: LabDescription? = null
     ): Boolean
 
     fun deleteLaboratory(labId: Int): Boolean

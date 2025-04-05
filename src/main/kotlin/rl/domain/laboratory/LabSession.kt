@@ -8,4 +8,5 @@ data class LabSession(
     val ownerId: Int,
     val startTime: Instant,
     val endTime: Instant,
+    val state: LabSessionState,
 )

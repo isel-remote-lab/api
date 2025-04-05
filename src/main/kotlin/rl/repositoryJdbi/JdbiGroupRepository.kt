@@ -78,29 +78,27 @@ data class JdbiGroupRepository(
             .bind("group_id", groupId)
             .execute() == 1
 
-    override fun updateGroupName(groupId: Int, groupName: GroupName): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.group 
-            SET group_name = :group_name 
-            WHERE id = :id
-        """
-        )
-            .bind("id", groupId)
-            .bind("group_name", groupName.groupNameInfo)
-            .execute() == 1
+    override fun updateGroup(groupId: Int, groupName: GroupName?, groupDescription: GroupDescription?): Boolean {
+        val updateQuery = StringBuilder("UPDATE rl.group SET ")
+        val params = mutableMapOf<String, Any?>()
 
-    override fun updateGroupDescription(groupId: Int, groupDescription: GroupDescription): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.group 
-            SET group_description = :group_description 
-            WHERE id = :id
-        """
-        )
-            .bind("id", groupId)
-            .bind("group_description", groupDescription.groupDescriptionInfo)
+        groupName?.let {
+            updateQuery.append("group_name = :group_name, ")
+            params["group_name"] = it.groupNameInfo
+        }
+
+        groupDescription?.let {
+            updateQuery.append("group_description = :group_description, ")
+            params["group_description"] = it.groupDescriptionInfo
+        }
+
+        updateQuery.append("WHERE id = :id")
+        params["id"] = groupId
+
+        return handle.createUpdate(updateQuery.toString())
+            .bindMap(params)
             .execute() == 1
+    }
 
     override fun deleteGroup(groupId: Int): Boolean =
         handle.createUpdate(

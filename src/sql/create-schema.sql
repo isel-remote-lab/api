@@ -56,6 +56,7 @@ CREATE TABLE
     rl.laboratory (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         lab_name VARCHAR(255) NOT NULL,
+        lab_description TEXT,
         lab_duration INT NOT NULL,
         lab_queue_limit INT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL,
@@ -78,6 +79,7 @@ CREATE TABLE
         owner_id INT NOT NULL REFERENCES rl.user (id),
         start_time TIMESTAMPTZ,
         end_time TIMESTAMPTZ,
+        state CHAR(1) NOT NULL,
         PRIMARY KEY (id, lab_id, owner_id)
     );
 

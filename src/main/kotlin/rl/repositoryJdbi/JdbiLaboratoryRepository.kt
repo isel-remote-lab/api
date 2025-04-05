@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
+import rl.domain.laboratory.LabDescription
 import rl.domain.laboratory.LabName
 import rl.domain.laboratory.Laboratory
 import rl.repository.LaboratoryRepository
@@ -15,6 +16,7 @@ data class JdbiLaboratoryRepository(
 ) : LaboratoryRepository {
     override fun createLaboratory(
         labName: LabName,
+        labDescription: LabDescription,
         labDuration: Duration,
         labQueueLimit: Int,
         createdAt: Instant,
@@ -22,11 +24,12 @@ data class JdbiLaboratoryRepository(
     ): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.laboratory (lab_name, lab_duration, lab_queue_limit, created_at, owner_id)
-            VALUES (:lab_name, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
+            INSERT INTO rl.laboratory (lab_name, lab_description, lab_duration, lab_queue_limit, created_at, owner_id)
+            VALUES (:lab_name, :lab_description, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
         """
         )
             .bind("lab_name", labName.labNameInfo)
+            .bind("lab_description", labDescription.labDescriptionInfo)
             .bind("lab_duration", labDuration.toInt(DurationUnit.MINUTES))
             .bind("lab_queue_limit", labQueueLimit)
             .bind("created_at", createdAt.toJavaInstant())
@@ -57,17 +60,28 @@ data class JdbiLaboratoryRepository(
             .mapTo<Laboratory>()
             .singleOrNull()
 
-    override fun updateLaboratoryName(labId: Int, labName: LabName): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.laboratory 
-            SET lab_name = :lab_name
-            WHERE id = :id
-        """
-        )
-            .bind("lab_name", labName.labNameInfo)
-            .bind("id", labId)
+    override fun updateLaboratory(labId: Int, labName: LabName?, labDescription: LabDescription?): Boolean {
+        val updateQuery = StringBuilder("UPDATE rl.laboratory SET ")
+        val params = mutableMapOf<String, Any>()
+
+        if (labName != null) {
+            updateQuery.append("lab_name = :lab_name, ")
+            params["lab_name"] = labName.labNameInfo
+        }
+
+        if (labDescription != null) {
+            updateQuery.append("lab_description = :lab_description, ")
+            params["lab_description"] = labDescription.labDescriptionInfo
+        }
+
+        updateQuery.delete(updateQuery.length - 2, updateQuery.length)
+        updateQuery.append(" WHERE id = :id")
+        params["id"] = labId
+
+        return handle.createUpdate(updateQuery.toString())
+            .bindMap(params)
             .execute() == 1
+    }
 
     override fun deleteLaboratory(labId: Int): Boolean =
         handle.createUpdate(

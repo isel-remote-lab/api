@@ -12,6 +12,7 @@ import rl.domain.group.GroupDescription
 import rl.domain.group.GroupName
 import rl.domain.hardware.HardwareName
 import rl.domain.hardware.HardwareStatus
+import rl.domain.laboratory.LabDescription
 import rl.domain.laboratory.LabName
 import rl.domain.user.Email
 import rl.domain.user.Role
@@ -24,6 +25,7 @@ import rl.repositoryJdbi.mappers.group.GroupDescriptionMapper
 import rl.repositoryJdbi.mappers.group.GroupNameMapper
 import rl.repositoryJdbi.mappers.hardware.HardwareNameMapper
 import rl.repositoryJdbi.mappers.hardware.HardwareStatusMapper
+import rl.repositoryJdbi.mappers.laboratory.LabDescriptionMapper
 import rl.repositoryJdbi.mappers.laboratory.LabNameMapper
 import rl.repositoryJdbi.mappers.user.RoleMapper
 import rl.repositoryJdbi.mappers.user.UsernameMapper
@@ -60,6 +62,7 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
 
     // Laboratory Mappers
     registerColumnMapper(LabName::class.java, LabNameMapper())
+    registerColumnMapper(LabDescription::class.java, LabDescriptionMapper())
 
     // Hardware Mappers
     registerColumnMapper(HardwareName::class.java, HardwareNameMapper())

@@ -10,7 +10,9 @@ import rl.domain.group.GroupDescription
 import rl.domain.group.GroupName
 import rl.domain.hardware.HardwareName
 import rl.domain.hardware.HardwareStatus
+import rl.domain.laboratory.LabDescription
 import rl.domain.laboratory.LabName
+import rl.domain.laboratory.LabSessionState
 import rl.domain.user.Email
 import rl.domain.user.Role
 import rl.domain.user.Username
@@ -72,8 +74,10 @@ class RepoUtils {
 
     // Lab functions
     fun newTestLabName() = LabName("lab-${abs(Random.nextLong())}")
+    fun newTestLabDescription() = LabDescription("description-${abs(Random.nextLong())}")
     fun newTestLabDuration() = abs(Random.nextInt()).toDuration(DurationUnit.MINUTES)
     fun randomLabQueueLimit() = (1..50).random()
+    fun randomLabSessionState() = LabSessionState.entries.random()
 
     fun createTestLab(handle: Handle): Int {
         val laboratoryRepo = JdbiLaboratoryRepository(handle)
@@ -81,12 +85,13 @@ class RepoUtils {
 
         // when: storing a laboratory
         val labName = newTestLabName()
+        val labDescription = newTestLabDescription()
         val labDuration = newTestLabDuration()
         val labCreatedAt = clock.now()
         val randomLabQueueLimit = randomLabQueueLimit()
         val userId = createTestUser(handle)
 
-        return laboratoryRepo.createLaboratory(labName, labDuration, randomLabQueueLimit, labCreatedAt, userId)
+        return laboratoryRepo.createLaboratory(labName, labDescription, labDuration, randomLabQueueLimit, labCreatedAt, userId)
     }
 
     // Hardware functions

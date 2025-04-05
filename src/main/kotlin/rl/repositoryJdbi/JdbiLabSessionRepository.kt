@@ -5,22 +5,24 @@ import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
 import rl.domain.laboratory.LabSession
+import rl.domain.laboratory.LabSessionState
 import rl.repository.LabSessionRepository
 
 data class JdbiLabSessionRepository(
     val handle: Handle
 ) : LabSessionRepository {
-    override fun createLabSession(labId: Int, ownerId: Int, startTime: Instant, endTime: Instant): Int =
+    override fun createLabSession(labId: Int, ownerId: Int, startTime: Instant, endTime: Instant, state: LabSessionState): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time)
-            VALUES (:lab_id, :owner_id, :start_time, :end_time)
+            INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time, state)
+            VALUES (:lab_id, :owner_id, :start_time, :end_time, :state)
             """
         )
             .bind("lab_id", labId)
             .bind("owner_id", ownerId)
             .bind("start_time", startTime.toJavaInstant())
             .bind("end_time", endTime.toJavaInstant())
+            .bind("state", state.name)
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
@@ -58,18 +60,35 @@ data class JdbiLabSessionRepository(
             .mapTo<LabSession>()
             .list()
 
-    override fun updateLabSession(labSessionId: Int, startTime: Instant, endTime: Instant): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.lab_session 
-            SET start_time = :start_time, end_time = :end_time
-            WHERE id = :id
-            """
-        )
-            .bind("start_time", startTime.toJavaInstant())
-            .bind("end_time", endTime.toJavaInstant())
-            .bind("id", labSessionId)
+    override fun updateLabSession(labSessionId: Int, startTime: Instant?, endTime: Instant?, state: LabSessionState?): Boolean {
+        val updateQuery = StringBuilder("UPDATE rl.lab_session SET ")
+        val params = mutableMapOf<String, Any?>()
+
+        startTime?.let {
+            updateQuery.append("start_time = :start_time, ")
+            params["start_time"] = it.toJavaInstant()
+        }
+        endTime?.let {
+            updateQuery.append("end_time = :end_time, ")
+            params["end_time"] = it.toJavaInstant()
+        }
+        state?.let {
+            updateQuery.append("state = :state, ")
+            params["state"] = it.name
+        }
+
+        // Remove the last comma and space
+        if (params.isNotEmpty()) {
+            updateQuery.setLength(updateQuery.length - 2)
+        }
+
+        updateQuery.append(" WHERE id = :id")
+        params["id"] = labSessionId
+
+        return handle.createUpdate(updateQuery.toString())
+            .bindMap(params)
             .execute() == 1
+    }
 
     override fun removeLabSessionById(labSessionId: Int): Boolean =
         handle.createUpdate(

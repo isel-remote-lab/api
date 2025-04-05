@@ -26,19 +26,25 @@ class JdbiUserRepositoryTests {
             // when: retrieving a user by Id
             val userById = userRepo.getUserById(userId)
 
-            // then:
+            // then: verify the retrieved user details
             assertNotNull(userById) { "No user retrieved from database" }
             assertEquals(username, userById.username)
             assertEquals(email, userById.email)
+            assertEquals(createdAt, userById.createdAt)
+            assertEquals(userRole, userById.role)
+            assertEquals(oAuthId, userById.oauthId)
             assertTrue(userById.id >= 0)
 
             // when: retrieving a user by email
             val userByEmail = userRepo.getUserByEmail(email)
 
-            // then:
+            // then: verify the retrieved user details
             assertNotNull(userByEmail) { "No user retrieved from database" }
             assertEquals(username, userByEmail.username)
             assertEquals(email, userByEmail.email)
+            assertEquals(createdAt, userByEmail.createdAt)
+            assertEquals(userRole, userByEmail.role)
+            assertEquals(oAuthId, userByEmail.oauthId)
             assertTrue(userByEmail.id >= 0)
         }
     }
@@ -63,7 +69,7 @@ class JdbiUserRepositoryTests {
             val newUsername = repoUtils.newTestUsername()
             val userWithNewUsername = userRepo.updateUserUsername(userId, newUsername)
 
-            // then:
+            // then: verify the updated username
             assertEquals(newUsername, userWithNewUsername.username)
             assertNotEquals(username, userWithNewUsername.username)
         }
@@ -97,7 +103,7 @@ class JdbiUserRepositoryTests {
     @Test
     fun `can create and validate tokens`() {
         repoUtils.runWithHandle { handle ->
-            // given: a UsersRepository
+            // given: a user repo
             val repo = JdbiUserRepository(handle)
             // and: a test clock
             val clock = TestClock()

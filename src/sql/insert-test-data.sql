@@ -32,11 +32,11 @@ VALUES
     (4, 3); -- student2 in Study Group A
 
 -- Insert laboratories
-INSERT INTO rl.laboratory (lab_name, lab_duration, lab_queue_limit, created_at, owner_id)
+INSERT INTO rl.laboratory (lab_name, lab_description, lab_duration, lab_queue_limit, created_at, owner_id)
 VALUES
-    ('Pendulum Experiment', 30, 10, NOW(), 2),
-    ('Circuit Analysis', 45, 25,NOW(), 2),
-    ('Wave Motion', 60, 30,NOW(), 2);
+    ('Pendulum Experiment', 'description1',  30, 10, NOW(), 2),
+    ('Circuit Analysis', 'description2', 45, 25,NOW(), 2),
+    ('Wave Motion', 'description3', 60, 30,NOW(), 2);
 
 -- Insert group-laboratory relationships
 INSERT INTO rl.group_laboratory (group_id, lab_id)
@@ -52,10 +52,10 @@ VALUES
 --    (4, 2); -- student2 waiting for Circuit Analysis
 
 -- Insert lab sessions
-INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time)
+INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time, state)
 VALUES
-    (1, 3, NOW() - INTERVAL '1 hour', NOW()),
-    (2, 4, NOW(), NOW() + INTERVAL '45 minutes');
+    (1, 3, NOW() - INTERVAL '1 hour', NOW(), 'P'),
+    (2, 4, NOW(), NOW() + INTERVAL '45 minutes', 'C');
 
 -- Insert app invites
 INSERT INTO rl.app_invite (invite_code, owner_id, created_at, last_used_at, group_id)
