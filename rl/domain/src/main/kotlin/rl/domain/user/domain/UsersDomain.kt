@@ -2,8 +2,9 @@ package rl.domain.user.domain
 
 import kotlinx.datetime.Instant
 import org.springframework.stereotype.Component
-import rl.domain.config.UsersDomainConfig
+import rl.domain.exceptions.ServicesExceptions
 import rl.domain.user.*
+import rl.domain.user.props.*
 import java.util.*
 
 @Component
@@ -31,9 +32,17 @@ class UsersDomain(
         )
     }
 
+    fun validateUserId(userId: String): Int {
+        try {
+            return userId.toInt()
+        } catch (e: Exception) {
+            throw ServicesExceptions.Users.InvalidUserId
+        }
+    }
+
     fun checkUsername(username: String): Username {
         return if (username.isBlank()) {
-            throw UsersDomainException.InvalidUsername
+            throw ServicesExceptions.Users.InvalidUsername
         } else {
             Username(username)
         }
@@ -41,7 +50,7 @@ class UsersDomain(
 
     fun checkEmail(email: String): Email {
         return if (email.isBlank()) {
-            throw UsersDomainException.InvalidEmail
+            throw ServicesExceptions.Users.InvalidEmail
         } else {
             Email(email)
         }
@@ -49,7 +58,7 @@ class UsersDomain(
 
     fun checkOAuthId(oauthId: String): OAuthId {
         return if (oauthId.isBlank()) {
-            throw UsersDomainException.InvalidOauthId
+            throw ServicesExceptions.Users.InvalidOauthId
         } else {
             OAuthId(oauthId)
         }
@@ -60,7 +69,7 @@ class UsersDomain(
             "S" -> Role.STUDENT
             "T" -> Role.TEACHER
             "A" -> Role.ADMIN
-            else -> throw UsersDomainException.InvalidRole
+            else -> throw ServicesExceptions.Users.InvalidRole
         }
     }
 }

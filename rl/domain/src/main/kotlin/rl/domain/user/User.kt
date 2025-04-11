@@ -1,6 +1,7 @@
 package rl.domain.user
 
 import kotlinx.datetime.Instant
+import rl.domain.user.props.*
 
 class User internal constructor(
     val id: Int,

@@ -1,11 +1,11 @@
-package rl.jdbi.mappers
+package rl.jdbi.mappers.user
 
 import kotlinx.datetime.toKotlinInstant
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
-import rl.domain.user.*
 import rl.domain.user.User
 import rl.domain.user.UserFactory
+import rl.domain.user.props.*
 import java.sql.ResultSet
 import java.sql.SQLException
 

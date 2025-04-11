@@ -1,4 +1,4 @@
-package rl.http.model
+package rl.http.model.user
 
 data class UserCreateInputModel(
     val oauthId: String,

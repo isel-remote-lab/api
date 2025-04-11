@@ -1,17 +1,11 @@
 package rl.services.interfaces
 
+import rl.domain.exceptions.ServicesExceptions
+import rl.domain.user.User
 import rl.services.utils.Either
 
-sealed class CreateUserError {
-    data object InvalidOauthId : CreateUserError()
-    data object InvalidRole : CreateUserError()
-    data object InvalidUsername : CreateUserError()
-    data object InvalidEmail : CreateUserError()
-
-    data object UnexpectedError : CreateUserError()
-}
-
-typealias CreateUserResult = Either<CreateUserError, Int>
+typealias CreateUserResult = Either<ServicesExceptions, Int>
+typealias GetUserResult = Either<ServicesExceptions, User>
 
 interface IUsersServices {
     fun createUser(
@@ -20,4 +14,12 @@ interface IUsersServices {
         username: String,
         email: String
     ): CreateUserResult
+
+    fun getUserById(
+        id: String
+    ): GetUserResult
+
+    fun getUserByEmail(
+        email: String
+    ): GetUserResult
 }

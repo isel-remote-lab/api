@@ -1,9 +1,10 @@
 package rl.repository
 
 import kotlinx.datetime.Instant
-import rl.domain.user.*
 import rl.domain.user.User
 import rl.domain.user.ValidatedUser
+import rl.domain.user.props.Email
+import rl.domain.user.props.Username
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
 

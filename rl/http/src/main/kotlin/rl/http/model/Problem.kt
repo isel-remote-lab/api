@@ -66,5 +66,23 @@ class Problem(
                 "Invalid oauthId",
                 "The oauthId provided is invalid."
             )
+
+        val invalidUserId =
+            Problem(
+                URI(
+                    "TODO"
+                ).toASCIIString(),
+                "Invalid userId",
+                "The userId provided is invalid. It should be a number."
+            )
+
+        val userNotFound =
+            Problem(
+                URI(
+                    "TODO"
+                ).toASCIIString(),
+                "User not found",
+                "The user with the provided id was not found."
+            )
     }
 }

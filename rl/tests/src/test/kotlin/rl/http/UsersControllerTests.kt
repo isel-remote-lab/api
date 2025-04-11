@@ -1,3 +1,5 @@
+package rl.http
+
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -6,10 +8,9 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import rl.RemoteLabApp
-import rl.http.HttpUtils
-import rl.http.Uris
+import rl.domain.user.User
 import rl.http.model.Problem
-import rl.jdbi.JdbiUsersRepository
+import rl.http.model.user.UserOutputModel
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -19,7 +20,7 @@ import kotlin.test.assertTrue
 
 class UsersControllerTests {
     @Test
-    fun `create user test`() {
+    fun `create user test and get by Id and Email`() {
         // given: a test client
         val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl).build()
 
@@ -49,16 +50,47 @@ class UsersControllerTests {
         val userId = responseUserId.responseBody!!
         assertTrue(userId >= 0)
 
-        httpUtils.repoUtils.runWithHandle { handle ->
-            val userRepo = JdbiUsersRepository(handle)
+        // when: doing a GET by id
+        // then: the response is an 200 OK
+        testClient
+            .get()
+            .uri(Uris.Users.GET, userId)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserOutputModel>()
+            .consumeWith { result ->
+                val user = result.responseBody
+                assertNotNull(user)
+                assertEquals(userId.toString(), user.id)
+                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
+                assertEquals(role.char, user.role)
+                assertEquals(username.usernameInfo, user.username)
+                assertEquals(email.emailInfo, user.email)
+            }
 
-            val user = userRepo.getUserById(userId)
-            assertNotNull(user)
-            assertEquals(oAuthId, user.oauthId)
-            assertEquals(role, user.role)
-            assertEquals(username, user.username)
-            assertEquals(email, user.email)
-        }
+        // when: doing a GET by email
+        // then: the response is an 200 OK
+        testClient
+            .get()
+            .uri { builder ->
+                builder
+                    .path(Uris.Users.GET_BY_EMAIL)
+                    .queryParam("email", email.emailInfo)
+                    .build()
+            }
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserOutputModel>()
+            .consumeWith { result ->
+                val user = result.responseBody
+                assertNotNull(user)
+                assertEquals(userId.toString(), user.id)
+                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
+                assertEquals(role.char, user.role)
+                assertEquals(username.usernameInfo, user.username)
+                assertEquals(email.emailInfo, user.email)
+            }
+
     }
 
     @Test

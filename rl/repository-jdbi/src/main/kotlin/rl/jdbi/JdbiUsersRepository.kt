@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import rl.domain.user.*
 import rl.domain.user.User
 import rl.domain.user.ValidatedUser
+import rl.domain.user.props.*
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
 import rl.repository.UsersRepository

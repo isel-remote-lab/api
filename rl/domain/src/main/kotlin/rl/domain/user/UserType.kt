@@ -1,6 +1,10 @@
 package rl.domain.user
 
 import kotlinx.datetime.Instant
+import rl.domain.user.props.Email
+import rl.domain.user.props.OAuthId
+import rl.domain.user.props.Role
+import rl.domain.user.props.Username
 
 sealed class UserType(
     val oauthId: OAuthId,
@@ -9,13 +13,3 @@ sealed class UserType(
     val email: Email,
     val createdAt: Instant
 )
-
-data class Email(val emailInfo: String)
-data class OAuthId(val oAuthIdInfo: String)
-data class Username(val usernameInfo: String)
-
-enum class Role(val char: String) {
-    STUDENT("S"),
-    TEACHER("T"),
-    ADMIN("A");
-}

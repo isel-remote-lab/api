@@ -22,15 +22,15 @@ import rl.jdbi.mappers.hardware.HardwareStatusMapper
 import rl.jdbi.mappers.laboratory.LabDescriptionMapper
 import rl.jdbi.mappers.laboratory.LabNameMapper
 import rl.jdbi.mappers.laboratory.LabSessionStateMapper
-import rl.jdbi.mappers.UserMapper
+import rl.jdbi.mappers.user.UserMapper
 
 fun Jdbi.configureWithAppRequirements(): Jdbi {
     installPlugin(KotlinPlugin())
     installPlugin(PostgresPlugin())
 
     // User Mappers
-    registerColumnMapper(TokenValidationInfo::class.java, TokenValidationInfoMapper())
     registerRowMapper(User::class.java, UserMapper())
+    registerColumnMapper(TokenValidationInfo::class.java, TokenValidationInfoMapper())
 
     // Group Mappers
     registerColumnMapper(GroupName::class.java, GroupNameMapper())

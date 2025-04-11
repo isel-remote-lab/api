@@ -13,6 +13,7 @@ import rl.domain.laboratory.LabDescription
 import rl.domain.laboratory.LabName
 import rl.domain.laboratory.LabSessionState
 import rl.domain.user.*
+import rl.domain.user.props.*
 import rl.jdbi.*
 import kotlin.math.abs
 import kotlin.random.Random
