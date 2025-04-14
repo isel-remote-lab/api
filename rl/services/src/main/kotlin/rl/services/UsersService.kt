@@ -76,6 +76,22 @@ data class UsersService(
         }
     }
 
-}
+    override fun getUserByOAuthId(oauthId: String): GetUserResult {
+        try {
+            val validatedOAuthId = usersDomain.checkOAuthId(oauthId)
 
+            return transactionManager.run {
+                val usersRepo = it.usersRepository
+                return@run usersRepo.getUserByOAuthId(validatedOAuthId)
+                    ?.let { user -> success(user) }
+                    ?: failure(ServicesExceptions.Users.UserNotFound)
+            }
+        } catch (e: Exception) {
+            return when (e) {
+                is ServicesExceptions -> failure(e)
+                else -> failure(ServicesExceptions.UnexpectedError)
+            }
+        }
+    }
+}
 

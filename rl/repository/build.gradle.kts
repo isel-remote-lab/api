@@ -1,11 +1,9 @@
 plugins {
     kotlin("jvm")
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
 }
 
-group = "rl"
-version = "1.0-SNAPSHOT"
+group = "rl.isel.pt"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -13,9 +11,9 @@ repositories {
 
 dependencies {
     // Module dependencies
-    implementation(project(":rl:domain"))
+    api(project(":domain"))
 
-    // Kotlin specific date and time functions
+    // To use Kotlin specific date and time functions
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }
 

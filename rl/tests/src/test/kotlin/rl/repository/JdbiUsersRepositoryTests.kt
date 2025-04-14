@@ -7,7 +7,7 @@ import kotlin.test.*
 
 class JdbiUsersRepositoryTests {
     @Test
-    fun `store student and retrieve`() {
+    fun `store student and retrieve by id, email and oauthid`() {
         repoUtils.runWithHandle { handle ->
             // given: a user repo
             val userRepo = JdbiUsersRepository(handle)
@@ -49,6 +49,18 @@ class JdbiUsersRepositoryTests {
             assertEquals(userRole, userByEmail.role)
             assertEquals(oAuthId, userByEmail.oauthId)
             assertTrue(userByEmail.id >= 0)
+
+            //when: retrieving a user by oauthid
+            val userByOAuthId = userRepo.getUserByOAuthId(oAuthId)
+
+            // then: verify the retrieved user details
+            assertNotNull(userByOAuthId) { "No user retrieved from database" }
+            assertEquals(username, userByOAuthId.username)
+            assertEquals(email, userByOAuthId.email)
+            assertEquals(createdAt, userByOAuthId.createdAt)
+            assertEquals(userRole, userByOAuthId.role)
+            assertEquals(oAuthId, userByOAuthId.oauthId)
+            assertTrue(userByOAuthId.id >= 0)
         }
     }
 

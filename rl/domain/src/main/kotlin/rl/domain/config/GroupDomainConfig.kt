@@ -1,5 +1,6 @@
 package rl.domain.config
 
+
 data class GroupDomainConfig(
     val groupNameSizeInBytes: Int,
     val groupDescriptionSizeInBytes: Int,

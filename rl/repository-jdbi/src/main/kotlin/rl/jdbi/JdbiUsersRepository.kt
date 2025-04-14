@@ -47,6 +47,12 @@ data class JdbiUsersRepository(
             .mapTo<User>()
             .singleOrNull()
 
+    override fun getUserByOAuthId(oauthId: OAuthId): User? =
+        handle.createQuery("SELECT * FROM rl.user WHERE o_auth_id = :o_auth_id")
+            .bind("o_auth_id", oauthId.oAuthIdInfo)
+            .mapTo<User>()
+            .singleOrNull()
+
     override fun createToken(token: Token, maxTokens: Int) {
         val deletions = handle.createUpdate(
             """

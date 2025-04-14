@@ -7,8 +7,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import rl.RemoteLabApp
-import rl.domain.user.User
+import rl.host.RemoteLabApp
 import rl.http.model.Problem
 import rl.http.model.user.UserOutputModel
 import java.net.InetAddress
@@ -20,7 +19,7 @@ import kotlin.test.assertTrue
 
 class UsersControllerTests {
     @Test
-    fun `create user test and get by Id and Email`() {
+    fun `create user test and get by Id, Email and Id`() {
         // given: a test client
         val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl).build()
 
@@ -78,6 +77,24 @@ class UsersControllerTests {
                     .queryParam("email", email.emailInfo)
                     .build()
             }
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserOutputModel>()
+            .consumeWith { result ->
+                val user = result.responseBody
+                assertNotNull(user)
+                assertEquals(userId.toString(), user.id)
+                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
+                assertEquals(role.char, user.role)
+                assertEquals(username.usernameInfo, user.username)
+                assertEquals(email.emailInfo, user.email)
+            }
+
+        // when: doing a GET by oathid
+        // then: the response is an 200 OK
+        testClient
+            .get()
+            .uri(Uris.Users.GET_BY_OAUTHID, oAuthId.oAuthIdInfo)
             .exchange()
             .expectStatus().isOk
             .expectBody<UserOutputModel>()

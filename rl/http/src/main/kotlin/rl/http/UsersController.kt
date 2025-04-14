@@ -11,8 +11,8 @@ import rl.domain.exceptions.ServicesExceptions
 import rl.http.model.Problem
 import rl.http.model.user.UserCreateInputModel
 import rl.http.model.user.UserOutputModel
-import rl.services.utils.Failure
 import rl.services.interfaces.IUsersServices
+import rl.services.utils.Failure
 import rl.services.utils.Success
 
 @RestController
@@ -22,8 +22,9 @@ data class UsersController(
     @PostMapping(Uris.Users.CREATE)
     fun create(
         @RequestBody input: UserCreateInputModel,
-    ): ResponseEntity<*> {
-        return when (val result = usersService.createUser(input.oauthId, input.role, input.username, input.email)) {
+    ): ResponseEntity<*> =
+        when (
+            val result = usersService.createUser(input.oauthId, input.role, input.username, input.email)) {
             is Success -> {
                 ResponseEntity.status(201).body(result.value)
             }
@@ -38,13 +39,13 @@ data class UsersController(
                 }
             }
         }
-    }
+
 
     @GetMapping(Uris.Users.GET)
     fun getById(
         @PathVariable id: String,
-    ): ResponseEntity<*> {
-        return when (val result = usersService.getUserById(id)) {
+    ): ResponseEntity<*> =
+        when (val result = usersService.getUserById(id)) {
             is Success -> {
                 ResponseEntity.status(200).body(
                     UserOutputModel(
@@ -66,13 +67,13 @@ data class UsersController(
                 }
             }
         }
-    }
+
 
     @GetMapping(Uris.Users.GET_BY_EMAIL)
     fun getByEmail(
         @RequestParam email: String,
-    ): ResponseEntity<*> {
-        return when (val result = usersService.getUserByEmail(email)) {
+    ): ResponseEntity<*> =
+        when (val result = usersService.getUserByEmail(email)) {
             is Success -> {
                 ResponseEntity.status(200).body(
                     UserOutputModel(
@@ -94,5 +95,31 @@ data class UsersController(
                 }
             }
         }
-    }
+
+    @GetMapping(Uris.Users.GET_BY_OAUTHID)
+    fun getByOauthId(
+        @PathVariable oauthid: String,
+    ): ResponseEntity<*> =
+        when(val result = usersService.getUserByOAuthId(oauthid)) {
+            is Success -> {
+                ResponseEntity.status(200).body(
+                    UserOutputModel(
+                        id = result.value.id.toString(),
+                        oauthId = result.value.oauthId.oAuthIdInfo,
+                        role = result.value.role.char,
+                        username = result.value.username.usernameInfo,
+                        email = result.value.email.emailInfo,
+                        createdAt = result.value.createdAt.toString(),
+                    )
+                )
+            }
+
+            is Failure -> {
+                when (result.value) {
+                    ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidOauthId)
+                    ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)
+                    else -> Problem.response(500, Problem.unexpectedBehaviour)
+                }
+            }
+        }
 }

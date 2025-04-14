@@ -22,4 +22,8 @@ interface IUsersServices {
     fun getUserByEmail(
         email: String
     ): GetUserResult
+
+    fun getUserByOAuthId(
+        oauthId: String,
+    ): GetUserResult
 }

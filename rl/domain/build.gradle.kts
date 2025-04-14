@@ -1,11 +1,9 @@
 plugins {
     kotlin("jvm")
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
 }
 
-group = "rl"
-version = "1.0-SNAPSHOT"
+group = "rl.isel.pt"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -15,11 +13,8 @@ dependencies {
     // Kotlin date and time functions
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
-    // To use Spring Boot Web
-    implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // To get the DI annotation
-    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
+    // To get dependency annotations
+    api("org.springframework:spring-context:6.2.4")
 }
 
 kotlin {

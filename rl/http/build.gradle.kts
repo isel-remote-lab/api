@@ -1,12 +1,10 @@
 plugins {
     kotlin("jvm")
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
     kotlin("plugin.spring")
 }
 
-group = "rl"
-version = "1.0-SNAPSHOT"
+group = "rl.isel.pt"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -14,19 +12,20 @@ repositories {
 
 dependencies {
     // Module dependencies
-    implementation(project(":rl:domain"))
-    implementation(project(":rl:services"))
+    implementation(project(":domain"))
+    implementation(project(":services"))
 
-    // Spring dependencies
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    // To use Spring MVC and the Servlet API
+    implementation("org.springframework:spring-webmvc:6.1.14")
+    compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
 
-    // SLF4J
-    implementation("org.slf4j:slf4j-api:2.0.16")
-
-    // Kotlin specific date and time functions
+    // To use Kotlin specific date and time functions
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
 kotlin {
     jvmToolchain(21)
 }

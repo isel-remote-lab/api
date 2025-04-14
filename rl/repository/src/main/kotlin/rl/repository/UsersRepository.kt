@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import rl.domain.user.User
 import rl.domain.user.ValidatedUser
 import rl.domain.user.props.Email
+import rl.domain.user.props.OAuthId
 import rl.domain.user.props.Username
 import rl.domain.user.token.Token
 import rl.domain.user.token.TokenValidationInfo
@@ -19,6 +20,8 @@ interface UsersRepository {
     fun getUserById(userId: Int): User?
 
     fun getUserByEmail(email: Email): User?
+
+    fun getUserByOAuthId(oauthId: OAuthId): User?
 
     /**
      * Creates a new token for a user.

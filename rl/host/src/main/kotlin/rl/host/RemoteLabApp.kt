@@ -1,11 +1,11 @@
-package rl
+package rl.host
 
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import kotlinx.datetime.Clock
 import rl.jdbi.configureWithAppRequirements
 
 @SpringBootApplication

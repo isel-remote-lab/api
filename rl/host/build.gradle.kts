@@ -5,8 +5,8 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-group = "rl"
-version = "1.0-SNAPSHOT"
+group = "rl.isel.pt"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -14,14 +14,11 @@ repositories {
 
 dependencies {
     // Module dependencies
-    implementation(project(":rl:domain"))
-    implementation(project(":rl:http"))
-    implementation(project(":rl:services"))
-    implementation(project(":rl:repository-jdbi"))
-    implementation(project(":rl:repository"))
-
-    // dotenv
-    //implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation(project(":domain"))
+    implementation(project(":http"))
+    implementation(project(":services"))
+    implementation(project(":repository-jdbi"))
+    implementation(project(":repository"))
 
     // Spring dependencies
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -40,6 +37,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
 kotlin {
     jvmToolchain(21)
 }
