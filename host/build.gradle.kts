@@ -5,6 +5,9 @@ dependencies {
     implementation(project(":services"))
     implementation(project(":repository-jdbi"))
 
+    // Dotenv dependency
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
     // Spring dependencies
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

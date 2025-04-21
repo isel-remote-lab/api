@@ -1,7 +1,6 @@
 package isel.rl.core.repository.jdbi.mappers.user
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.UserFactory
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
@@ -19,7 +18,7 @@ class UserMapper : RowMapper<User> {
     ): User {
         val roleChar = rs.getString("role")
 
-        return UserFactory.createUser(
+        return User(
             id = rs.getInt("id"),
             oauthId = OAuthId(rs.getString("o_auth_id")),
             role =

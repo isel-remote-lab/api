@@ -17,6 +17,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // For the domain configs
+    testImplementation(project(":host"))
 }
 
 tasks.test {

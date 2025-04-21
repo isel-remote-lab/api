@@ -3,19 +3,21 @@ import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.tasks.run.BootRun
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
+repositories {
+    mavenCentral()
 }
 
-// Declare plugins with versions; 'apply false' means they are not applied to the root project
+// Declared plugins with versions; 'apply false' means they are not applied to the root project
 plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1" // Ktlint for code formatting
     id("org.springframework.boot") version "3.3.3" apply false // Spring Boot plugin
     id("io.spring.dependency-management") version "1.1.6" apply false // Dependency management
-    kotlin("jvm") version "2.0.10" apply false // Kotlin JVM plugin
+    kotlin("jvm") version "2.0.10" // Kotlin JVM plugin
     kotlin("plugin.spring") version "1.9.25" apply false // Kotlin Spring plugin
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Define a custom task to bring down Docker Compose services
@@ -42,9 +44,9 @@ subprojects {
     // Define common dependencies for all subprojects
     dependencies {
         // Kotlinx datetime library
-        add("implementation", "org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
-        add("testImplementation", (kotlin("test")))
+        testImplementation(kotlin("test"))
     }
 
     // Configure test tasks to use JUnit Platform

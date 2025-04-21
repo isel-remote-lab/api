@@ -1,26 +1,20 @@
 package isel.rl.core.repository.jdbi
 
-import isel.rl.core.domain.laboratory.LabDescription
-import isel.rl.core.domain.laboratory.LabName
+import isel.rl.core.domain.laboratory.props.LabDescription
+import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.repository.LaboratoryRepository
-import kotlinx.datetime.Instant
+import isel.rl.core.domain.laboratory.ValidatedLaboratory
+import isel.rl.core.repository.LaboratoriesRepository
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
-data class JdbiLaboratoryRepository(
+data class JdbiLaboratoriesRepository(
     val handle: Handle,
-) : LaboratoryRepository {
+) : LaboratoriesRepository {
     override fun createLaboratory(
-        labName: LabName,
-        labDescription: LabDescription,
-        labDuration: Duration,
-        labQueueLimit: Int,
-        createdAt: Instant,
-        ownerId: Int,
+        validatedLaboratory: ValidatedLaboratory
     ): Int =
         handle.createUpdate(
             """
@@ -28,12 +22,12 @@ data class JdbiLaboratoryRepository(
             VALUES (:lab_name, :lab_description, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
         """,
         )
-            .bind("lab_name", labName.labNameInfo)
-            .bind("lab_description", labDescription.labDescriptionInfo)
-            .bind("lab_duration", labDuration.toInt(DurationUnit.MINUTES))
-            .bind("lab_queue_limit", labQueueLimit)
-            .bind("created_at", createdAt.toJavaInstant())
-            .bind("owner_id", ownerId)
+            .bind("lab_name", validatedLaboratory.labName.labNameInfo)
+            .bind("lab_description", validatedLaboratory.labDescription.labDescriptionInfo)
+            .bind("lab_duration", validatedLaboratory.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES))
+            .bind("lab_queue_limit", validatedLaboratory.labQueueLimit.labQueueLimitInfo)
+            .bind("created_at", validatedLaboratory.createdAt.toJavaInstant())
+            .bind("owner_id", validatedLaboratory.ownerId)
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()

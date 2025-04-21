@@ -1,7 +1,6 @@
 package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.UserFactory
 import isel.rl.core.domain.user.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
@@ -178,7 +177,7 @@ data class JdbiUsersRepository(
         val userAndToken: Pair<User, Token>
             get() =
                 Pair(
-                    UserFactory.createUser(id, oAuthId, role, username, email, userCreatedAt),
+                    User(id, oAuthId, role, username, email, userCreatedAt),
                     Token(
                         tokenValidation,
                         id,

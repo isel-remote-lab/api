@@ -11,68 +11,57 @@ import org.springframework.stereotype.Component
 import java.util.Locale
 
 @Component
-class UsersDomain(
-    // private val usersDomainConfig: UsersDomainConfig
-) {
+class UsersDomain {
     fun validateCreateUser(
         oauthId: String,
         role: String,
         username: String,
         email: String,
         createdAt: Instant,
-    ): ValidatedUser {
-        val checkedRole = checkRole(role)
-        val checkedUsername = checkUsername(username)
-        val checkedEmail = checkEmail(email)
-        val checkedOauthId = checkOAuthId(oauthId)
+    ): ValidatedUser = ValidatedUser(
+        checkOAuthId(oauthId),
+        checkRole(role),
+        checkUsername(username),
+        checkEmail(email),
+        createdAt,
+    )
 
-        return ValidatedUser(
-            checkedOauthId,
-            checkedRole,
-            checkedUsername,
-            checkedEmail,
-            createdAt,
-        )
-    }
-
-    fun validateUserId(userId: String): Int {
+    fun validateUserId(userId: String): Int =
         try {
-            return userId.toInt()
+            userId.toInt()
         } catch (e: Exception) {
             throw ServicesExceptions.Users.InvalidUserId
         }
-    }
 
-    fun checkUsername(username: String): Username {
-        return if (username.isBlank()) {
+    fun checkUsername(username: String): Username =
+        if (username.isBlank()) {
             throw ServicesExceptions.Users.InvalidUsername
         } else {
             Username(username)
         }
-    }
 
-    fun checkEmail(email: String): Email {
-        return if (email.isBlank()) {
+    fun checkEmail(email: String): Email =
+        if (email.isBlank()) {
             throw ServicesExceptions.Users.InvalidEmail
         } else {
             Email(email)
         }
-    }
 
-    fun checkOAuthId(oauthId: String): OAuthId {
-        return if (oauthId.isBlank()) {
+
+    fun checkOAuthId(oauthId: String): OAuthId =
+        if (oauthId.isBlank()) {
             throw ServicesExceptions.Users.InvalidOauthId
         } else {
             OAuthId(oauthId)
         }
-    }
 
-    fun checkRole(role: String): Role {
-        return when (role.uppercase(Locale.getDefault())) {
+
+    fun checkRole(role: String): Role =
+        when (role.uppercase(Locale.getDefault())) {
             "S" -> Role.STUDENT
             "T" -> Role.TEACHER
             "A" -> Role.ADMIN
             else -> throw ServicesExceptions.Users.InvalidRole
         }
-    }
+
 }

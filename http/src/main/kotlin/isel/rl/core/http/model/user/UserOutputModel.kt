@@ -1,7 +1,7 @@
 package isel.rl.core.http.model.user
 
 data class UserOutputModel(
-    val id: String,
+    val id: Int,
     val oauthId: String,
     val role: String,
     val username: String,

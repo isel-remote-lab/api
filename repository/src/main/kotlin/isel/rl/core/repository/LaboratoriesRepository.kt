@@ -1,19 +1,13 @@
 package isel.rl.core.repository
 
-import isel.rl.core.domain.laboratory.LabDescription
-import isel.rl.core.domain.laboratory.LabName
+import isel.rl.core.domain.laboratory.props.LabDescription
+import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.Laboratory
-import kotlinx.datetime.Instant
-import kotlin.time.Duration
+import isel.rl.core.domain.laboratory.ValidatedLaboratory
 
-interface LaboratoryRepository {
+interface LaboratoriesRepository {
     fun createLaboratory(
-        labName: LabName,
-        labDescription: LabDescription,
-        labDuration: Duration,
-        labQueueLimit: Int,
-        createdAt: Instant,
-        ownerId: Int,
+        validatedLaboratory: ValidatedLaboratory
     ): Int
 
     fun getLaboratoryById(labId: Int): Laboratory?

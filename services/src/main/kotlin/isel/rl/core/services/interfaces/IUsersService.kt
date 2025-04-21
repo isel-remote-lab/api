@@ -7,7 +7,7 @@ import isel.rl.core.utils.Either
 typealias CreateUserResult = Either<ServicesExceptions, Int>
 typealias GetUserResult = Either<ServicesExceptions, User>
 
-interface IUsersServices {
+interface IUsersService {
     fun createUser(
         oauthId: String,
         role: String,
@@ -17,7 +17,5 @@ interface IUsersServices {
 
     fun getUserById(id: String): GetUserResult
 
-    fun getUserByEmail(email: String): GetUserResult
-
-    fun getUserByOAuthId(oauthId: String): GetUserResult
+    fun getUserByEmailOrAuthId(oAuthId: String? = null, email: String? = null): GetUserResult
 }

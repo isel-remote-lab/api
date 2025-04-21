@@ -6,10 +6,10 @@ import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import kotlinx.datetime.Instant
 
-class ValidatedUser internal constructor(
-    oauthId: OAuthId,
-    role: Role,
-    username: Username,
-    email: Email,
-    createdAt: Instant,
-) : UserType(oauthId, role, username, email, createdAt)
+data class ValidatedUser internal constructor(
+    val oauthId: OAuthId,
+    val role: Role,
+    val username: Username,
+    val email: Email,
+    val createdAt: Instant,
+)

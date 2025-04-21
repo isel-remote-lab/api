@@ -5,7 +5,7 @@ import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.user.UserCreateInputModel
 import isel.rl.core.http.model.user.UserOutputModel
-import isel.rl.core.services.UsersService
+import isel.rl.core.services.interfaces.IUsersService
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
 import org.springframework.http.ResponseEntity
@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 data class UsersController(
-    private val usersService: UsersService
+    private val usersService: IUsersService
 ) {
+    @RequireApiKey
     @PostMapping(Uris.Users.CREATE)
     fun create(
         @RequestBody input: UserCreateInputModel,
@@ -50,7 +51,7 @@ data class UsersController(
             is Success -> {
                 ResponseEntity.status(200).body(
                     UserOutputModel(
-                        id = result.value.id.toString(),
+                        id = result.value.id,
                         oauthId = result.value.oauthId.oAuthIdInfo,
                         role = result.value.role.char,
                         username = result.value.username.usernameInfo,
@@ -69,15 +70,44 @@ data class UsersController(
             }
         }
 
+    @RequireApiKey
+    @GetMapping(Uris.Users.GET_BY_OAUTHID)
+    fun getByOAuthID(
+        @RequestParam oauthid: String,
+    ): ResponseEntity<*> =
+        when (val result = usersService.getUserByEmailOrAuthId(oauthid)) {
+            is Success -> {
+                ResponseEntity.status(200).body(
+                    UserOutputModel(
+                        id = result.value.id,
+                        oauthId = result.value.oauthId.oAuthIdInfo,
+                        role = result.value.role.char,
+                        username = result.value.username.usernameInfo,
+                        email = result.value.email.emailInfo,
+                        createdAt = result.value.createdAt.toString(),
+                    ),
+                )
+            }
+
+            is Failure -> {
+                when (result.value) {
+                    ServicesExceptions.Users.InvalidOauthId -> Problem.response(400, Problem.invalidOauthId)
+                    ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidEmail)
+                    ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)
+                    else -> Problem.response(500, Problem.unexpectedBehaviour)
+                }
+            }
+        }
+
     @GetMapping(Uris.Users.GET_BY_EMAIL)
     fun getByEmail(
         @RequestParam email: String,
     ): ResponseEntity<*> =
-        when (val result = usersService.getUserByEmail(email)) {
+        when (val result = usersService.getUserByEmailOrAuthId(email = email)) {
             is Success -> {
                 ResponseEntity.status(200).body(
                     UserOutputModel(
-                        id = result.value.id.toString(),
+                        id = result.value.id,
                         oauthId = result.value.oauthId.oAuthIdInfo,
                         role = result.value.role.char,
                         username = result.value.username.usernameInfo,
@@ -90,33 +120,6 @@ data class UsersController(
             is Failure -> {
                 when (result.value) {
                     ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidEmail)
-                    ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)
-                    else -> Problem.response(500, Problem.unexpectedBehaviour)
-                }
-            }
-        }
-
-    @GetMapping(Uris.Users.GET_BY_OAUTHID)
-    fun getByOauthId(
-        @PathVariable oauthid: String,
-    ): ResponseEntity<*> =
-        when (val result = usersService.getUserByOAuthId(oauthid)) {
-            is Success -> {
-                ResponseEntity.status(200).body(
-                    UserOutputModel(
-                        id = result.value.id.toString(),
-                        oauthId = result.value.oauthId.oAuthIdInfo,
-                        role = result.value.role.char,
-                        username = result.value.username.usernameInfo,
-                        email = result.value.email.emailInfo,
-                        createdAt = result.value.createdAt.toString(),
-                    ),
-                )
-            }
-
-            is Failure -> {
-                when (result.value) {
-                    ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidOauthId)
                     ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)
                     else -> Problem.response(500, Problem.unexpectedBehaviour)
                 }

@@ -4,7 +4,7 @@ package isel.rl.core.domain.exceptions
  * This file contains the definition of the ServicesExceptions class and its subclasses.
  * The ServicesExceptions class is a sealed class that represents various exceptions that can occur in the services layer.
  * Each subclass represents a specific type of exception.
- * The data object subclasses implement the readResolve method to ensure that they are singleton instances, since Java Serizalization calls this method.
+ * The data object subclasses implement the readResolve method to ensure that they are singleton instances, since Java Serialization calls this method.
  * The UnexpectedError subclass represents an unexpected error that may occur.
  */
 sealed class ServicesExceptions(message: String) : Exception(message) {
@@ -32,6 +32,17 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
         data object UserNotFound : ServicesExceptions("User not found") {
             private fun readResolve(): Any = UserNotFound
         }
+
+        data object InvalidQueryParams : ServicesExceptions("Invalid query params") {
+            private fun readResolve(): Any = InvalidQueryParams
+        }
+    }
+
+    data object Laboratories {
+        class InvalidLaboratoryName(message: String) : ServicesExceptions(message)
+        class InvalidLaboratoryDescription(message: String) : ServicesExceptions(message)
+        class InvalidLaboratoryDuration(message: String) : ServicesExceptions(message)
+        class InvalidLaboratoryQueueLimit(message: String) : ServicesExceptions(message)
     }
 
     data object UnexpectedError : ServicesExceptions("Unexpected error") {

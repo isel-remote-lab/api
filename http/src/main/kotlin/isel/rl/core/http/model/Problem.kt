@@ -79,7 +79,7 @@ class Problem(
                     "TODO",
                 ).toASCIIString(),
                 "User not found",
-                "The user with the provided id was not found.",
+                "The user with the provided information was not found.",
             )
     }
 }

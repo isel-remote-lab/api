@@ -4,9 +4,8 @@ import isel.rl.core.domain.group.GroupDescription
 import isel.rl.core.domain.group.GroupName
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
-import isel.rl.core.domain.laboratory.LabDescription
-import isel.rl.core.domain.laboratory.LabName
 import isel.rl.core.domain.laboratory.LabSessionState
+import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.jdbi.mappers.InstantMapper
@@ -15,8 +14,7 @@ import isel.rl.core.repository.jdbi.mappers.group.GroupDescriptionMapper
 import isel.rl.core.repository.jdbi.mappers.group.GroupNameMapper
 import isel.rl.core.repository.jdbi.mappers.hardware.HardwareNameMapper
 import isel.rl.core.repository.jdbi.mappers.hardware.HardwareStatusMapper
-import isel.rl.core.repository.jdbi.mappers.laboratory.LabDescriptionMapper
-import isel.rl.core.repository.jdbi.mappers.laboratory.LabNameMapper
+import isel.rl.core.repository.jdbi.mappers.laboratory.LabMapper
 import isel.rl.core.repository.jdbi.mappers.laboratory.LabSessionStateMapper
 import isel.rl.core.repository.jdbi.mappers.user.UserMapper
 import kotlinx.datetime.Instant
@@ -37,8 +35,7 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
     registerColumnMapper(GroupDescription::class.java, GroupDescriptionMapper())
 
     // Laboratory Mappers
-    registerColumnMapper(LabName::class.java, LabNameMapper())
-    registerColumnMapper(LabDescription::class.java, LabDescriptionMapper())
+    registerRowMapper(Laboratory::class.java, LabMapper())
     registerColumnMapper(LabSessionState::class.java, LabSessionStateMapper())
 
     // Hardware Mappers
