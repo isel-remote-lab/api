@@ -43,6 +43,11 @@ object Uris {
         const val GET = "$BASE/{id}"
 
         /**
+         * URI for updating a laboratory by ID
+         */
+        const val UPDATE = "$BASE/{id}"
+
+        /**
          * URI for getting all laboratories
          */
         const val GET_ALL = BASE

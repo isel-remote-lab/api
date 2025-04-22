@@ -3,7 +3,8 @@ package isel.rl.core.repository.jdbi
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.ValidatedLaboratory
+import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
+import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
 import isel.rl.core.repository.LaboratoriesRepository
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
@@ -14,7 +15,7 @@ data class JdbiLaboratoriesRepository(
     val handle: Handle,
 ) : LaboratoriesRepository {
     override fun createLaboratory(
-        validatedLaboratory: ValidatedLaboratory
+        validatedCreateLaboratory: ValidatedCreateLaboratory
     ): Int =
         handle.createUpdate(
             """
@@ -22,12 +23,12 @@ data class JdbiLaboratoriesRepository(
             VALUES (:lab_name, :lab_description, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
         """,
         )
-            .bind("lab_name", validatedLaboratory.labName.labNameInfo)
-            .bind("lab_description", validatedLaboratory.labDescription.labDescriptionInfo)
-            .bind("lab_duration", validatedLaboratory.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES))
-            .bind("lab_queue_limit", validatedLaboratory.labQueueLimit.labQueueLimitInfo)
-            .bind("created_at", validatedLaboratory.createdAt.toJavaInstant())
-            .bind("owner_id", validatedLaboratory.ownerId)
+            .bind("lab_name", validatedCreateLaboratory.labName.labNameInfo)
+            .bind("lab_description", validatedCreateLaboratory.labDescription.labDescriptionInfo)
+            .bind("lab_duration", validatedCreateLaboratory.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES))
+            .bind("lab_queue_limit", validatedCreateLaboratory.labQueueLimit.labQueueLimitInfo)
+            .bind("created_at", validatedCreateLaboratory.createdAt.toJavaInstant())
+            .bind("owner_id", validatedCreateLaboratory.ownerId)
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
@@ -55,31 +56,68 @@ data class JdbiLaboratoriesRepository(
             .singleOrNull()
 
     override fun updateLaboratory(
-        labId: Int,
-        labName: LabName?,
-        labDescription: LabDescription?,
+        validatedUpdateLaboratory: ValidatedUpdateLaboratory
     ): Boolean {
-        val updateQuery = StringBuilder("UPDATE rl.laboratory SET ")
-        val params = mutableMapOf<String, Any>()
+        val updateQuery = StringBuilder(
+            """
+            UPDATE rl.laboratory 
+            SET 
+        """,
+        )
+        val params = mutableMapOf<String, Any?>()
 
-        if (labName != null) {
+        validatedUpdateLaboratory.labName?.let {
             updateQuery.append("lab_name = :lab_name, ")
-            params["lab_name"] = labName.labNameInfo
+            params["lab_name"] = it.labNameInfo
         }
-
-        if (labDescription != null) {
+        validatedUpdateLaboratory.labDescription?.let {
             updateQuery.append("lab_description = :lab_description, ")
-            params["lab_description"] = labDescription.labDescriptionInfo
+            params["lab_description"] = it.labDescriptionInfo
+        }
+        validatedUpdateLaboratory.labDuration?.let {
+            updateQuery.append("lab_duration = :lab_duration, ")
+            params["lab_duration"] = it.labDurationInfo.toInt(DurationUnit.MINUTES)
+        }
+        validatedUpdateLaboratory.labQueueLimit?.let {
+            updateQuery.append("lab_queue_limit = :lab_queue_limit, ")
+            params["lab_queue_limit"] = it.labQueueLimitInfo
         }
 
-        updateQuery.delete(updateQuery.length - 2, updateQuery.length)
+        // Remove the last comma and space
+        if (params.isNotEmpty()) {
+            updateQuery.setLength(updateQuery.length - 2)
+        }
+
         updateQuery.append(" WHERE id = :id")
-        params["id"] = labId
+        params["id"] = validatedUpdateLaboratory.labId
 
         return handle.createUpdate(updateQuery.toString())
             .bindMap(params)
             .execute() == 1
     }
+
+    override fun checkIfLaboratoryExists(
+        labId: Int,
+    ): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS(SELECT 1 FROM rl.laboratory WHERE id = :id)
+        """,
+        )
+            .bind("id", labId)
+            .mapTo<Boolean>()
+            .one()
+
+    override fun getLaboratoryOwnerId(labId: Int): Int =
+        handle.createQuery(
+            """
+            SELECT owner_id FROM rl.laboratory 
+            WHERE id = :id
+        """,
+        )
+            .bind("id", labId)
+            .mapTo<Int>()
+            .one()
 
     override fun deleteLaboratory(labId: Int): Boolean =
         handle.createUpdate(

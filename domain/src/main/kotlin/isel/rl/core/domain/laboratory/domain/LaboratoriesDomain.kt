@@ -23,7 +23,7 @@ data class LaboratoriesDomain(
         labQueueLimit: Int,
         createdAt: Instant,
         ownerId: Int
-    ): ValidatedLaboratory = ValidatedLaboratory(
+    ): ValidatedCreateLaboratory = ValidatedCreateLaboratory(
         checkLaboratoryName(labName),
         checkLabDescription(labDescription),
         checkLabDuration(labDuration),
@@ -32,6 +32,26 @@ data class LaboratoriesDomain(
         ownerId
     )
 
+    fun validateUpdateLaboratory(
+        labId: Int,
+        labName: String? = null,
+        labDescription: String? = null,
+        labDuration: Int? = null,
+        labQueueLimit: Int? = null,
+    ): ValidatedUpdateLaboratory = ValidatedUpdateLaboratory(
+        labId,
+        labName?.let { checkLaboratoryName(labName) },
+        labDescription?.let { checkLabDescription(labDescription) },
+        labDuration?.let { checkLabDuration(labDuration) },
+        labQueueLimit?.let { checkLabQueueLimit(labQueueLimit) }
+    )
+
+    fun validateLaboratoryId(labId: String): Int =
+        try {
+            labId.toInt()
+        } catch (e: Exception) {
+            throw ServicesExceptions.Laboratories.InvalidLaboratoryId
+        }
 
     fun checkLaboratoryName(
         labName: String,

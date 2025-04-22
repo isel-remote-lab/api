@@ -6,7 +6,6 @@ import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.user.UserOutputModel
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,7 +25,7 @@ class UsersTests {
     @Test
     fun `create user test and get by Id, Email and OAuthId`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = httpUtils.randomUserRole()
@@ -38,7 +37,7 @@ class UsersTests {
         val responseUserId = testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId.oAuthIdInfo,
@@ -62,9 +61,10 @@ class UsersTests {
             .uri(Uris.Users.GET, userId)
             .exchange()
             .expectStatus().isOk
-            .expectBody<UserOutputModel>()
+            .expectBody<Map<String, UserOutputModel>>()
             .consumeWith { result ->
-                val user = result.responseBody
+                assertNotNull(result)
+                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
                 assertNotNull(user)
                 assertEquals(userId, user.id)
                 assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
@@ -85,9 +85,10 @@ class UsersTests {
             }
             .exchange()
             .expectStatus().isOk
-            .expectBody<UserOutputModel>()
+            .expectBody<Map<String, UserOutputModel>>()
             .consumeWith { result ->
-                val user = result.responseBody
+                assertNotNull(result)
+                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
                 assertNotNull(user)
                 assertEquals(userId, user.id)
                 assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
@@ -106,12 +107,13 @@ class UsersTests {
                     .queryParam("oauthid", oAuthId.oAuthIdInfo)
                     .build()
             }
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .exchange()
             .expectStatus().isOk
-            .expectBody<UserOutputModel>()
+            .expectBody<Map<String, UserOutputModel>>()
             .consumeWith { result ->
-                val user = result.responseBody
+                assertNotNull(result)
+                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
                 assertNotNull(user)
                 assertEquals(userId, user.id)
                 assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
@@ -124,7 +126,7 @@ class UsersTests {
     @Test
     fun `create user with invalid email`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = httpUtils.randomUserRole()
@@ -136,7 +138,7 @@ class UsersTests {
         testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId.oAuthIdInfo,
@@ -160,7 +162,7 @@ class UsersTests {
     @Test
     fun `create user with invalid role`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = "invalidRole"
@@ -172,7 +174,7 @@ class UsersTests {
         testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId.oAuthIdInfo,
@@ -196,7 +198,7 @@ class UsersTests {
     @Test
     fun `create user with invalid username`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = httpUtils.randomUserRole()
@@ -208,7 +210,7 @@ class UsersTests {
         testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId.oAuthIdInfo,
@@ -232,7 +234,7 @@ class UsersTests {
     @Test
     fun `create user with invalid oauthId`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = ""
         val role = httpUtils.randomUserRole()
@@ -244,7 +246,7 @@ class UsersTests {
         testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, httpUtils.apiKey.apiKeyInfo)
+            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId,
@@ -268,7 +270,7 @@ class UsersTests {
     @Test
     fun `create user without api key`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = httpUtils.randomUserRole()
@@ -295,7 +297,7 @@ class UsersTests {
     @Test
     fun `create user with invalid api key`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
         val role = httpUtils.randomUserRole()
@@ -307,7 +309,7 @@ class UsersTests {
         testClient
             .post()
             .uri(Uris.Users.CREATE)
-            .header(API_HEADER, "invalid-api-key")
+            .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
                 mapOf(
                     "oauthId" to oAuthId.oAuthIdInfo,
@@ -323,7 +325,7 @@ class UsersTests {
     @Test
     fun `get user by oAuthId with invalid api key`() {
         // given: a test client
-        val testClient = WebTestClient.bindToServer().baseUrl(httpUtils.baseUrl(port)).build()
+        val testClient = httpUtils.buildTestClient(port)
 
         val oAuthId = httpUtils.newTestOauthId()
 
@@ -337,13 +339,13 @@ class UsersTests {
                     .queryParam("oauthid", oAuthId.oAuthIdInfo)
                     .build()
             }
-            .header(API_HEADER, "invalid-api-key")
+            .header(httpUtils.apiHeader, "invalid-api-key")
             .exchange()
             .expectStatus().isForbidden
     }
 
     companion object {
         private val httpUtils = HttpUtils()
-        private const val API_HEADER = "X-API-Key"
+        const val USER_OUTPUT_MAP_KEY = "user"
     }
 }

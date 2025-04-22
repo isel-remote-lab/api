@@ -81,5 +81,73 @@ class Problem(
                 "User not found",
                 "The user with the provided information was not found.",
             )
+
+        // Laboratory Related
+        val invalidLaboratoryId =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid laboratory id",
+                "The laboratory id provided is invalid. It should be a number.",
+            )
+
+        val laboratoryNotFound =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Laboratory not found",
+                "The laboratory with the provided information was not found.",
+            )
+
+        val laboratoryNotOwned =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Laboratory not owned",
+                "The laboratory with the provided information is not owned by the user.",
+            )
+
+        fun invalidLaboratoryName(
+            message: String,
+        ) = Problem(
+            URI(
+                "TODO",
+            ).toASCIIString(),
+            "Invalid laboratory name",
+            message,
+        )
+
+        fun invalidLaboratoryDescription(
+            message: String,
+        ) = Problem(
+            URI(
+                "TODO",
+            ).toASCIIString(),
+            "Invalid laboratory description",
+            message,
+        )
+
+        fun invalidLaboratoryDuration(
+            message: String,
+        ) = Problem(
+            URI(
+                "TODO",
+            ).toASCIIString(),
+            "Invalid laboratory duration",
+            message,
+        )
+
+        fun invalidLaboratoryQueueLimit(
+            message: String,
+        ) = Problem(
+            URI(
+                "TODO",
+            ).toASCIIString(),
+            "Invalid laboratory queue limit",
+            message,
+        )
     }
 }

@@ -26,7 +26,6 @@ class ApiKeyInterceptor(
                 true
             } else {
                 response.status = 403
-                response.writer.write("Unauthorized")
                 false
             }
         } else {

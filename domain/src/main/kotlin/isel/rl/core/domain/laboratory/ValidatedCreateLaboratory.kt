@@ -6,7 +6,7 @@ import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import kotlinx.datetime.Instant
 
-data class ValidatedLaboratory(
+data class ValidatedCreateLaboratory internal constructor(
     val labName: LabName,
     val labDescription: LabDescription,
     val labDuration: LabDuration,

@@ -36,7 +36,7 @@ class RemoteLabApp {
      */
     val domainConfigs =
         dotenv {
-            directory = "../../internal/shared/domain"
+            directory = "../../private/shared/domain"
             filename = ".env"
         }
 
@@ -44,7 +44,7 @@ class RemoteLabApp {
     fun apiKeyInfo() =
         ApiKey(
             dotenv {
-                directory = "../../internal/shared/secrets"
+                directory = "../../private/shared/secrets"
                 filename = ".env"
             }[API_KEY]!!
         )

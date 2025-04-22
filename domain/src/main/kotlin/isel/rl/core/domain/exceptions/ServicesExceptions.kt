@@ -39,6 +39,17 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
     }
 
     data object Laboratories {
+        data object InvalidLaboratoryId : ServicesExceptions("Invalid laboratory id") {
+            private fun readResolve(): Any = InvalidLaboratoryId
+        }
+
+        data object LaboratoryNotFound : ServicesExceptions("Laboratory not found") {
+            private fun readResolve(): Any = LaboratoryNotFound
+        }
+
+        data object LaboratoryNotOwned : ServicesExceptions("Laboratory not owned") {
+            private fun readResolve(): Any = LaboratoryNotOwned
+        }
         class InvalidLaboratoryName(message: String) : ServicesExceptions(message)
         class InvalidLaboratoryDescription(message: String) : ServicesExceptions(message)
         class InvalidLaboratoryDuration(message: String) : ServicesExceptions(message)

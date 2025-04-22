@@ -92,7 +92,14 @@ class JdbiLaboratoriesRepositoryTests {
 
             // when: updating the laboratory name
             val newLabName = repoUtils.newTestLabName()
-            assertTrue(laboratoryRepo.updateLaboratory(labId, newLabName))
+            assertTrue(
+                laboratoryRepo.updateLaboratory(
+                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
+                        labId,
+                        newLabName.labNameInfo
+                    )
+                )
+            )
 
             // then: retrieving the updated laboratory by name
             val updatedLabByName = laboratoryRepo.getLaboratoryByName(newLabName)
@@ -137,7 +144,14 @@ class JdbiLaboratoriesRepositoryTests {
 
             // when: updating the laboratory description
             val newLabDescription = repoUtils.newTestLabDescription()
-            assertTrue(laboratoryRepo.updateLaboratory(labId, labDescription = newLabDescription))
+            assertTrue(
+                laboratoryRepo.updateLaboratory(
+                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
+                        labId,
+                        labDescription = newLabDescription.labDescriptionInfo
+                    )
+                )
+            )
 
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
@@ -177,7 +191,15 @@ class JdbiLaboratoriesRepositoryTests {
             // when: updating the laboratory name and description
             val newLabName = repoUtils.newTestLabName()
             val newLabDescription = repoUtils.newTestLabDescription()
-            assertTrue(laboratoryRepo.updateLaboratory(labId, newLabName, newLabDescription))
+            assertTrue(
+                laboratoryRepo.updateLaboratory(
+                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
+                        labId,
+                        newLabName.labNameInfo,
+                        newLabDescription.labDescriptionInfo
+                    )
+                )
+            )
 
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)

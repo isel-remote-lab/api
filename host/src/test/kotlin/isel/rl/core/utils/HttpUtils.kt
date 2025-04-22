@@ -1,5 +1,6 @@
 package isel.rl.core.utils
 
+import isel.rl.core.domain.Uris
 import isel.rl.core.domain.group.GroupDescription
 import isel.rl.core.domain.group.GroupName
 import isel.rl.core.domain.hardware.HardwareName
@@ -12,6 +13,8 @@ import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.time.DurationUnit
@@ -19,25 +22,62 @@ import kotlin.time.toDuration
 
 
 class HttpUtils {
-    val apiKey = RemoteLabApp().apiKeyInfo()
+    private val remoteLab = RemoteLabApp()
+    val apiKey = remoteLab.apiKeyInfo()
 
-    fun baseUrl(port: Int) = "http://localhost:$port"
+    val apiHeader = "X-API-Key"
+
+    fun buildTestClient(port: Int): WebTestClient = WebTestClient.bindToServer().baseUrl(baseUrl(port)).build()
+
+    private fun baseUrl(port: Int) = "http://localhost:$port"
 
     // User functions
     fun newTestUsername() = Username("user-${abs(Random.nextLong())}")
     fun newTestEmail() = Email("email-${abs(Random.nextLong())}")
     fun randomUserRole() = Role.entries.random()
     fun newTestOauthId() = OAuthId("oauth-${abs(Random.nextLong())}")
+    fun createTestUser(testClient: WebTestClient): Int {
+        val oAuthId = newTestOauthId()
+        val role = randomUserRole()
+        val username = newTestUsername()
+        val email = newTestEmail()
+
+        // when: doing a POST
+        // then: the response is an 201 Created
+        return testClient
+            .post()
+            .uri(Uris.Users.CREATE)
+            .header(apiHeader, apiKey.apiKeyInfo)
+            .bodyValue(
+                mapOf(
+                    "oauthId" to oAuthId.oAuthIdInfo,
+                    "role" to role.char,
+                    "username" to username.usernameInfo,
+                    "email" to email.emailInfo
+                ),
+            )
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody<Int>()
+            .returnResult().responseBody!!
+    }
+
 
     // Group functions
     fun newTestGroupName() = GroupName("group-${abs(Random.nextLong())}")
     fun newTestGroupDescription() = GroupDescription("description-${abs(Random.nextLong())}")
 
     // Lab functions
-    fun newTestLabName() = LabName("lab-${abs(Random.nextLong())}")
-    fun newTestLabDescription() = LabDescription("description-${abs(Random.nextLong())}")
-    fun newTestLabDuration() = abs(Random.nextInt()).toDuration(DurationUnit.MINUTES)
-    fun randomLabQueueLimit() = (1..50).random()
+    val labDomainConfig = remoteLab.laboratoryDomainConfig()
+    fun newTestLabName() = "lab-${abs(Random.nextLong())}"
+    fun newTestLabDescription() = "description-${abs(Random.nextLong())}"
+    fun newTestLabDuration() =
+        (labDomainConfig.minLabDuration.toInt(DurationUnit.MINUTES)..labDomainConfig.maxLabDuration.toInt(
+            DurationUnit.MINUTES
+        ))
+            .random()
+
+    fun randomLabQueueLimit() = (labDomainConfig.minLabQueueLimit .. labDomainConfig.maxLabQueueLimit).random()
     fun randomLabSessionState() = LabSessionState.entries.random()
 
     // Hardware functions

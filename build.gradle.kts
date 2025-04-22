@@ -113,7 +113,7 @@ data class DockerImages(
     val jvm: String,
     val nodeDev: String,
     val nodeProd: String,
-    //val nginx: String,
+    // val nginx: String,
 )
 
 val dockerImages =
@@ -124,7 +124,7 @@ val dockerImages =
         jvm = "rl-jvm",
         nodeDev = "rl-node-dev",
         nodeProd = "rl-node-prod",
-        //nginx = "rl-nginx",
+        // nginx = "rl-nginx",
     )
 
 object DockerFiles {
@@ -139,7 +139,6 @@ object DockerFiles {
     const val NODE_DEV = "$DOCKER_FOLDER/Dockerfile-node-dev"
     const val NODE_PROD = "$DOCKER_FOLDER/Dockerfile-node-prod"
 }
-
 
 /**
  * Build tasks
@@ -229,7 +228,7 @@ task("buildImageAllDev") {
     dependsOn("buildImageJvm")
     dependsOn("buildImagePostgresDev")
     dependsOn("buildImageNodeDev")
-    //dependsOn("buildImageNginx")
+    // dependsOn("buildImageNginx")
 }
 
 task("buildBackendImageAll") {
@@ -284,9 +283,11 @@ task<Exec>("dbTestsDown") {
  * Ngrok tasks
  */
 task<Exec>("ngrokUp") {
-    commandLine("docker", "run", "-d", "--net=host", "-e",
+    commandLine(
+        "docker", "run", "-d", "--net=host", "-e",
         "NGROK_AUTHTOKEN=2qV7kqaFqYEKQCDmV939PgrdsT3_2Mq2EbxAvtRHc8L28DM9w", "ngrok/ngrok:latest", "http",
-        "--url=awaited-louse-elegant.ngrok-free.app", "8080")
+        "--url=awaited-louse-elegant.ngrok-free.app", "8080",
+    )
 }
 
 task<Exec>("ngrokDown") {
@@ -309,4 +310,3 @@ task<Exec>("testBackend") {
 task<Exec>("showLogs") {
     commandLine("docker", "compose", "logs", "-f")
 }
-

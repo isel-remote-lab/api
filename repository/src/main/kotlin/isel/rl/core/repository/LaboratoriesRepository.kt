@@ -1,13 +1,13 @@
 package isel.rl.core.repository
 
-import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.ValidatedLaboratory
+import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
+import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
 
 interface LaboratoriesRepository {
     fun createLaboratory(
-        validatedLaboratory: ValidatedLaboratory
+        validatedCreateLaboratory: ValidatedCreateLaboratory
     ): Int
 
     fun getLaboratoryById(labId: Int): Laboratory?
@@ -15,10 +15,16 @@ interface LaboratoriesRepository {
     fun getLaboratoryByName(labName: LabName): Laboratory?
 
     fun updateLaboratory(
-        labId: Int,
-        labName: LabName? = null,
-        labDescription: LabDescription? = null,
+        validatedUpdateLaboratory: ValidatedUpdateLaboratory
     ): Boolean
+
+    fun checkIfLaboratoryExists(
+        labId: Int,
+    ): Boolean
+
+    fun getLaboratoryOwnerId(
+        labId: Int,
+    ): Int
 
     fun deleteLaboratory(labId: Int): Boolean
 
