@@ -146,6 +146,9 @@ class JdbiUsersRepositoryTests {
     companion object {
         private val repoUtils = RepoUtils()
 
+        /**
+         * This class represents the initial user information used for testing.
+         */
         private data class InitialUserInfo(
             val clock: TestClock,
             val username: Username = repoUtils.newTestUsername(),
@@ -155,6 +158,11 @@ class JdbiUsersRepositoryTests {
             val oAuthId: OAuthId = repoUtils.newTestOauthId(),
         )
 
+        /**
+         * Asserts that the given user matches the initial user information.
+         *
+         * @param user The user to assert against.
+         */
         private fun InitialUserInfo.assertUserWith(user: User?) {
             assertNotNull(user) { "No user retrieved" }
             assertEquals(username, user.username, "Usernames do not match")
@@ -165,6 +173,12 @@ class JdbiUsersRepositoryTests {
             assertTrue(user.id >= 0, "UserId must be >= 0")
         }
 
+        /**
+         * Creates a [user] in the [JdbiUsersRepository].
+         *
+         * @param user The initial user information.
+         * @return The ID of the created user.
+         */
         private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int {
             val usersDomain = UsersDomain()
 

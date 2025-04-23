@@ -12,6 +12,15 @@ import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
 import org.springframework.stereotype.Service
 
+/**
+ * Service class for managing laboratories.
+ * This class provides methods to create, update, and retrieve laboratories from the database.
+ * It uses the LaboratoriesDomain class for validation and the TransactionManager for database transactions.
+ *
+ * @property transactionManager The TransactionManager instance for managing database transactions.
+ * @property clock The Clock instance for getting the current time.
+ * @property laboratoriesDomain The LaboratoriesDomain instance for validating laboratory data.
+ */
 @Service
 data class LaboratoriesService(
     private val transactionManager: TransactionManager,
@@ -26,6 +35,7 @@ data class LaboratoriesService(
         ownerId: Int,
     ): CreateLaboratoryResult =
         try {
+            // Validate the laboratory data
             val laboratory =
                 laboratoriesDomain.validateCreateLaboratory(
                     labName = labName,
@@ -36,24 +46,30 @@ data class LaboratoriesService(
                     ownerId = ownerId
                 )
             transactionManager.run {
+                // Create the laboratory in the database and return the result as success
                 success(
                     it.laboratoriesRepository.createLaboratory(laboratory),
                 )
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the creation process
             handleException(e)
         }
 
     override fun getLaboratoryById(id: String): GetLaboratoryResult =
         try {
+            // Validate the laboratory ID
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(id)
 
             transactionManager.run {
+                // Retrieve the laboratory by ID from the database and return the result as success
+                // If the laboratory is not found, return failure with LaboratoryNotFound exception
                 it.laboratoriesRepository.getLaboratoryById(validatedLabId)
                     ?.let(::success)
                     ?: failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the retrieval process
             handleException(e)
         }
 
@@ -66,11 +82,13 @@ data class LaboratoriesService(
         ownerId: Int
     ): UpdateLaboratoryResult =
         try {
+            // Validate the laboratory ID
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
 
             transactionManager.run {
                 val laboratoriesRepo = it.laboratoriesRepository
 
+                // Check if the laboratory exists
                 if (!laboratoriesRepo.checkIfLaboratoryExists(validatedLabId))
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
@@ -78,6 +96,7 @@ data class LaboratoriesService(
                 if (laboratoriesRepo.getLaboratoryOwnerId(validatedLabId) != ownerId)
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotOwned)
 
+                // Validate the laboratory update data
                 val validatedUpdateLaboratory = laboratoriesDomain.validateUpdateLaboratory(
                     labId = validatedLabId,
                     labName = labName,
@@ -95,6 +114,7 @@ data class LaboratoriesService(
 
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the update process
             handleException(e)
         }
 }

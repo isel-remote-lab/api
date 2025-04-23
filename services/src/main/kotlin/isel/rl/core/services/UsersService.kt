@@ -11,6 +11,9 @@ import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
 import org.springframework.stereotype.Service
 
+/**
+ * This class is responsible for managing user-related operations.
+ */
 @Service
 data class UsersService(
     private val transactionManager: TransactionManager,
@@ -24,6 +27,7 @@ data class UsersService(
         email: String,
     ): CreateUserResult =
         try {
+            // Validate the user data
             val user =
                 usersDomain.validateCreateUser(
                     oauthId,
@@ -33,52 +37,81 @@ data class UsersService(
                     clock.now(),
                 )
             transactionManager.run {
+                // Create the user in the database and return the result as success
                 success(
                     it.usersRepository.createUser(user),
                 )
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the creation process
             handleException(e)
         }
 
 
     override fun getUserById(id: String): GetUserResult =
         try {
+            // Validate the user ID
             val validatedId = usersDomain.validateUserId(id)
 
             transactionManager.run {
+                // Retrieve the user from the database and return the result as success
+                // or failure if the user is not found
                 it.usersRepository.getUserById(validatedId)
                     ?.let(::success)
                     ?: failure(ServicesExceptions.Users.UserNotFound)
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the retrieval process
             handleException(e)
         }
 
     override fun getUserByEmailOrAuthId(oAuthId: String?, email: String?): GetUserResult {
-        // Check for oauthId first, then email
-        // If both are provided, prefer oauthId
+        // Validate the input parameters
         if (oAuthId == null && email == null) {
             return failure(ServicesExceptions.Users.InvalidQueryParams)
         }
 
+        // Check if the OAuth ID is provided and retrieve the user by OAuth ID
+        // Otherwise, retrieve the user by email
         return if(oAuthId != null)
             getUserByOAuthId(oAuthId)
         else
             getUserByEmail(email!!)
     }
 
+    /**
+     * This function retrieves a user by their email address.
+     * It validates the email and checks if the user exists in the database.
+     * If the user is found, it returns a [success] result with the user data.
+     * If the user is not found, it returns a [failure] result with a [ServicesExceptions.Users.UserNotFound] exception.
+     *
+     * @param email The email address of the user to be retrieved.
+     * @return A result containing either the user data or an error.
+     */
     private fun getUserByEmail(email: String): GetUserResult =
         try {
+            // Validate the email
             val validatedEmail = usersDomain.checkEmail(email)
+
             transactionManager.run {
+                // Retrieve the user by email from the database and return the result as success
                 it.usersRepository.getUserByEmail(validatedEmail)
                     ?.let(::success) ?: failure(ServicesExceptions.Users.UserNotFound)
             }
         } catch (e: Exception) {
+            // Handle exceptions that may occur during the retrieval process
             handleException(e)
         }
 
+    /**
+     * This function retrieves a user by their OAuthID.
+     * It validates the OAuth ID and checks if the user exists in the database.
+     * If the user is found, it returns a [success] result with the user data.
+     * If the user is not found, it returns a [failure] result with a [ServicesExceptions.Users.UserNotFound] exception.
+     *
+     * @param oauthId The OAuth ID of the user to be retrieved.
+     * @return A result containing either the user data or an error.
+     */
     private fun getUserByOAuthId(oauthId: String): GetUserResult =
         try {
             val validatedOAuthId = usersDomain.checkOAuthId(oauthId)

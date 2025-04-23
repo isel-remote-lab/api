@@ -8,7 +8,6 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class UsersServiceTests {
-
     @Test
     fun `create user and get by id, email and oauthId`() {
         // given: a user service

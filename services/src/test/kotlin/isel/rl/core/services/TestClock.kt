@@ -8,6 +8,9 @@ class TestClock : Clock {
     // Initialized this way to reduce precision to seconds
     private var testNow: Instant = Instant.fromEpochSeconds(Clock.System.now().epochSeconds)
 
+    /**
+     * Advances the clock by the specified [duration].
+     */
     fun advance(duration: Duration) {
         testNow = testNow.plus(duration)
     }
