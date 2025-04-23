@@ -63,7 +63,7 @@ data class LaboratoriesService(
         labDescription: String?,
         labDuration: Int?,
         labQueueLimit: Int?,
-        userId: Int
+        ownerId: Int
     ): UpdateLaboratoryResult =
         try {
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
@@ -75,8 +75,7 @@ data class LaboratoriesService(
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
                 // Check if the laboratory belongs to the user
-                val ownerId = laboratoriesRepo.getLaboratoryOwnerId(validatedLabId)
-                if (ownerId != userId)
+                if (laboratoriesRepo.getLaboratoryOwnerId(validatedLabId) != ownerId)
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotOwned)
 
                 val validatedUpdateLaboratory = laboratoriesDomain.validateUpdateLaboratory(

@@ -1,56 +1,48 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.user.User
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.domain.user.domain.UsersDomain
+import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.OAuthId
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.domain.user.props.Username
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
 import isel.rl.core.repository.utils.TestClock
+import kotlinx.datetime.Instant
 import kotlin.test.*
 
 class JdbiUsersRepositoryTests {
     @Test
-    fun `store student and retrieve`() {
+    fun `store student and retrieve it by id, email and oauthId`() {
         repoUtils.runWithHandle { handle ->
             // given: a user repo
             val userRepo = JdbiUsersRepository(handle)
-            val usersDomain = UsersDomain()
+
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val createdAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val oAuthId = repoUtils.newTestOauthId()
-            val userId = userRepo.createUser(
-                usersDomain.validateCreateUser(
-                    oAuthId.oAuthIdInfo, userRole.char, username.usernameInfo, email.emailInfo, createdAt
-                )
-            )
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
 
             // when: retrieving a user by Id
             val userById = userRepo.getUserById(userId)
 
             // then: verify the retrieved user details
-            assertNotNull(userById) { "No user retrieved from database" }
-            assertEquals(username, userById.username)
-            assertEquals(email, userById.email)
-            assertEquals(createdAt, userById.createdAt)
-            assertEquals(userRole, userById.role)
-            assertEquals(oAuthId, userById.oauthId)
-            assertTrue(userById.id >= 0)
+            initialUser.assertUserWith(userById)
 
             // when: retrieving a user by email
-            val userByEmail = userRepo.getUserByEmail(email)
+            val userByEmail = userRepo.getUserByEmail(initialUser.email)
 
             // then: verify the retrieved user details
-            assertNotNull(userByEmail) { "No user retrieved from database" }
-            assertEquals(username, userByEmail.username)
-            assertEquals(email, userByEmail.email)
-            assertEquals(createdAt, userByEmail.createdAt)
-            assertEquals(userRole, userByEmail.role)
-            assertEquals(oAuthId, userByEmail.oauthId)
-            assertTrue(userByEmail.id >= 0)
+            initialUser.assertUserWith(userByEmail)
+
+            // when: retrieving a user by oauthId
+            val userByOauthId = userRepo.getUserByOAuthId(initialUser.oAuthId)
+
+            // then: verify the retrieved user details
+            initialUser.assertUserWith(userByOauthId)
         }
     }
 
@@ -59,29 +51,21 @@ class JdbiUsersRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a user repo and user domain
             val userRepo = JdbiUsersRepository(handle)
-            val usersDomain = UsersDomain()
+
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val createdAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val oAuthId = repoUtils.newTestOauthId()
-            val userId = userRepo.createUser(
-                usersDomain.validateCreateUser(
-                    oAuthId.oAuthIdInfo, userRole.char, username.usernameInfo, email.emailInfo, createdAt
-                )
-            )
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
 
             // when: updating username
             val newUsername = repoUtils.newTestUsername()
             val userWithNewUsername = userRepo.updateUserUsername(userId, newUsername)
 
             // then: verify the updated username
-            assertEquals(newUsername, userWithNewUsername.username)
-            assertNotEquals(username, userWithNewUsername.username)
+            assertEquals(newUsername, userWithNewUsername.username, "Usernames do not match")
+            assertNotEquals(initialUser.username, userWithNewUsername.username, "Usernames should be different")
         }
     }
 
@@ -90,28 +74,20 @@ class JdbiUsersRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a user repo and user domain
             val userRepo = JdbiUsersRepository(handle)
-            val usersDomain = UsersDomain()
+
             // and: a test clock
             val clock = TestClock()
 
             // when: storing a user
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val createdAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val oAuthId = repoUtils.newTestOauthId()
-            val userId = userRepo.createUser(
-                usersDomain.validateCreateUser(
-                    oAuthId.oAuthIdInfo, userRole.char, username.usernameInfo, email.emailInfo, createdAt
-                )
-            )
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
 
             // when: deleting a user
             userRepo.deleteUser(userId)
 
             // then: try to get the user
             val deletedUser = userRepo.getUserById(userId)
-            assertNull(deletedUser)
+            assertNull(deletedUser, "User should be deleted")
         }
     }
 
@@ -166,7 +142,41 @@ class JdbiUsersRepositoryTests {
     }
     */
 
+
     companion object {
         private val repoUtils = RepoUtils()
+
+        private data class InitialUserInfo(
+            val clock: TestClock,
+            val username: Username = repoUtils.newTestUsername(),
+            val email: Email = repoUtils.newTestEmail(),
+            val createdAt: Instant = clock.now(),
+            val userRole: Role = repoUtils.randomUserRole(),
+            val oAuthId: OAuthId = repoUtils.newTestOauthId(),
+        )
+
+        private fun InitialUserInfo.assertUserWith(user: User?) {
+            assertNotNull(user) { "No user retrieved" }
+            assertEquals(username, user.username, "Usernames do not match")
+            assertEquals(email, user.email, "Emails do not match")
+            assertEquals(createdAt, user.createdAt, "CreatedAt do not match")
+            assertEquals(userRole, user.role, "Roles do not match")
+            assertEquals(oAuthId, user.oauthId, "OAuthIds do not match")
+            assertTrue(user.id >= 0, "UserId must be >= 0")
+        }
+
+        private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int {
+            val usersDomain = UsersDomain()
+
+            return createUser(
+                usersDomain.validateCreateUser(
+                    user.oAuthId.oAuthIdInfo,
+                    user.userRole.char,
+                    user.username.usernameInfo,
+                    user.email.emailInfo,
+                    user.createdAt
+                )
+            )
+        }
     }
 }

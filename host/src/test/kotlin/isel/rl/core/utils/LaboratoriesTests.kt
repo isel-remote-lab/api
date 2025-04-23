@@ -7,7 +7,6 @@ import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import org.junit.jupiter.api.Nested
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
@@ -32,53 +31,11 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
+            val (labId, initialLab) = testClient.createTestLaboratory()
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(labId, initialLab)
         }
 
         @Test
@@ -117,28 +74,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = "" // Invalid labName
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labName = ""
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabNameProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -149,28 +91,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1) // Invalid labName
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1)
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabNameProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -181,28 +108,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = "" // Invalid labDescription
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labDescription = ""
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDescriptionProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -213,28 +125,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1) // Invalid labDescription
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1)
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDescriptionProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -245,28 +142,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid labDuration
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labDuration = (httpUtils.labDomainConfig.minLabDuration.inWholeMinutes - 1).toInt()
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDurationProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -277,28 +159,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt() // Invalid labDuration
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt()
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDurationProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -309,28 +176,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid labQueueLimit
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabQueueLimitProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabQueueLimitProblem)
         }
 
         @Test
@@ -341,28 +193,13 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1 // Invalid labQueueLimit
+            val invalidLaboratory = InitialLaboratory(
+                ownerId,
+                labQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1
+            )
 
             // when: creating a laboratory
-            testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabQueueLimitProblem) }
+            testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabQueueLimitProblem)
         }
     }
 
@@ -374,51 +211,35 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
+            val (labId, initialLab) = testClient.createTestLaboratory()
 
-            // when: updating the laboratory
             val newLabName = httpUtils.newTestLabName()
             val newLabDescription = httpUtils.newTestLabDescription()
             val newLabDuration = httpUtils.newTestLabDuration()
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labName" to newLabName,
-                        "labDescription" to newLabDescription,
-                        "labDuration" to newLabDuration,
-                        "labQueueLimit" to newLabQueueLimit,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                newLabName,
+                newLabDescription,
+                newLabDuration,
+                newLabQueueLimit
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(newLabName, lab.labName)
-                    assertEquals(newLabDescription, lab.labDescription)
-                    assertEquals(newLabDuration, lab.labDuration)
-                    assertEquals(newLabQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(
+                labId,
+                initialLab.copy(
+                    labName = newLabName,
+                    labDescription = newLabDescription,
+                    labDuration = newLabDuration,
+                    labQueueLimit = newLabQueueLimit
+                )
+            )
         }
 
         @Test
@@ -426,73 +247,22 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
+            val (labId, initialLab) = testClient.createTestLaboratory()
 
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory name
             val newLabName = httpUtils.newTestLabName()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labName" to newLabName,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory name
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                newLabName,
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(newLabName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(labId, initialLab.copy(labName = newLabName))
         }
 
         @Test
@@ -500,73 +270,21 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory description
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDescription = httpUtils.newTestLabDescription()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDescription" to newLabDescription,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory description
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDescription = newLabDescription
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(newLabDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(labId, initialLab.copy(labDescription = newLabDescription))
         }
 
         @Test
@@ -574,73 +292,21 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory duration
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDuration = httpUtils.newTestLabDuration()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDuration" to newLabDuration,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory duration
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDuration = newLabDuration
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(newLabDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(labId, initialLab.copy(labDuration = newLabDuration))
         }
 
         @Test
@@ -648,73 +314,21 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory queue limit
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labQueueLimit" to newLabQueueLimit,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory queue limit
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labQueueLimit = newLabQueueLimit
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(newLabQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(labId, initialLab.copy(labQueueLimit = newLabQueueLimit))
         }
 
         @Test
@@ -722,75 +336,29 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory name and description
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabName = httpUtils.newTestLabName()
             val newLabDescription = httpUtils.newTestLabDescription()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labName" to newLabName,
-                        "labDescription" to newLabDescription,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory name and description
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                newLabName,
+                newLabDescription
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(newLabName, lab.labName)
-                    assertEquals(newLabDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(
+                labId,
+                initialLab.copy(
+                    labName = newLabName,
+                    labDescription = newLabDescription
+                )
+            )
         }
 
         @Test
@@ -798,75 +366,29 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory description and duration
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDescription = httpUtils.newTestLabDescription()
             val newLabDuration = httpUtils.newTestLabDuration()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDescription" to newLabDescription,
-                        "labDuration" to newLabDuration,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory description and duration
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDescription = newLabDescription,
+                labDuration = newLabDuration
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(newLabDescription, lab.labDescription)
-                    assertEquals(newLabDuration, lab.labDuration)
-                    assertEquals(labQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(
+                labId,
+                initialLab.copy(
+                    labDescription = newLabDescription,
+                    labDuration = newLabDuration
+                )
+            )
         }
 
         @Test
@@ -874,75 +396,29 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
-
-            // when: updating the laboratory duration and queue limit
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDuration = httpUtils.newTestLabDuration()
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDuration" to newLabDuration,
-                        "labQueueLimit" to newLabQueueLimit,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory duration and queue limit
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDuration = newLabDuration,
+                labQueueLimit = newLabQueueLimit
+            )
+
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(labName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(newLabDuration, lab.labDuration)
-                    assertEquals(newLabQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(
+                labId,
+                initialLab.copy(
+                    labDuration = newLabDuration,
+                    labQueueLimit = newLabQueueLimit
+                )
+            )
         }
 
         @Test
@@ -950,75 +426,29 @@ class LaboratoriesTests {
             // given: a test client
             val testClient = httpUtils.buildTestClient(port)
 
-            // when: creating a user to be the owner of the laboratory
-            val ownerId = httpUtils.createTestUser(testClient)
-
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
-
             // when: creating a laboratory
-            val responseLabId = testClient
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
-                        "ownerId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
-
-            // then: check the labId
-            val labId = responseLabId.responseBody!!
-            assertTrue(labId >= 0)
+            val (labId, initialLab) = testClient.createTestLaboratory()
+            val newLabName = httpUtils.newTestLabName()
+            val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
             // when: updating the laboratory queue limit and name
-            val newLabQueueLimit = httpUtils.randomLabQueueLimit()
-            val newLabName = httpUtils.newTestLabName()
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labName = newLabName,
+                labQueueLimit = newLabQueueLimit
+            )
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labQueueLimit" to newLabQueueLimit,
-                        "labName" to newLabName,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<String>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
-                }
+            // when: updating the laboratory
+            testClient.updateLab(labId, updateLab)
 
             // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, labId)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(newLabName, lab.labName)
-                    assertEquals(labDescription, lab.labDescription)
-                    assertEquals(labDuration, lab.labDuration)
-                    assertEquals(newLabQueueLimit, lab.labQueueLimit)
-                    assertEquals(ownerId, lab.ownerId)
-                }
+            testClient.getLabByIdAndVerify(
+                labId,
+                initialLab.copy(
+                    labName = newLabName,
+                    labQueueLimit = newLabQueueLimit
+                )
+            )
         }
 
         @Test
@@ -1027,24 +457,17 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid name
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabName = "" // Invalid name
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labName" to newLabName,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabNameProblem) }
+            // when: updating the laboratory with invalid name
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labName = newLabName
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -1053,24 +476,17 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid name
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1) // Invalid name
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labName" to newLabName,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabNameProblem) }
+            // when: updating the laboratory with invalid name
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labName = newLabName
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -1079,24 +495,17 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid description
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDescription = "" // Invalid description
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDescription" to newLabDescription,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDescriptionProblem) }
+            // when: updating the laboratory with invalid description
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDescription = newLabDescription
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -1105,24 +514,18 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
+            val (labId, initialLab) = testClient.createTestLaboratory()
+            val newLabDescription =
+                "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1) // Invalid description
 
             // when: updating the laboratory with invalid description
-            val newLabDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1) // Invalid description
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDescription = newLabDescription
+            )
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDescription" to newLabDescription,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDescriptionProblem) }
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -1131,24 +534,17 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid duration
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabDuration = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid duration
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDuration" to newLabDuration,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDurationProblem) }
+            // when: updating the laboratory with invalid duration
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDuration = newLabDuration
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -1157,24 +553,18 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
+            val (labId, initialLab) = testClient.createTestLaboratory()
+            val newLabDuration =
+                (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt() // Invalid duration
 
             // when: updating the laboratory with invalid duration
-            val newLabDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt() // Invalid duration
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labDuration = newLabDuration
+            )
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labDuration" to newLabDuration,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabDurationProblem) }
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -1183,24 +573,17 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid queue limit
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid queue limit
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labQueueLimit" to newLabQueueLimit,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabQueueLimitProblem) }
+            // when: updating the laboratory with invalid queue limit
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labQueueLimit = newLabQueueLimit
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabQueueLimitProblem)
         }
 
         @Test
@@ -1209,49 +592,46 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a laboratory
-            val (ownerId, labId) = testClient.createTestLaboratory()
-
-            // when: updating the laboratory with invalid queue limit
+            val (labId, initialLab) = testClient.createTestLaboratory()
             val newLabQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1 // Invalid queue limit
 
-            testClient
-                .patch()
-                .uri(Uris.Laboratories.UPDATE, labId)
-                .bodyValue(
-                    mapOf(
-                        "labQueueLimit" to newLabQueueLimit,
-                        "userId" to ownerId
-                    ),
-                )
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { it.assertProblem(expectedInvalidLabQueueLimitProblem) }
+            // when: updating the laboratory with invalid queue limit
+            val updateLab = UpdateLaboratory(
+                initialLab.ownerId,
+                labQueueLimit = newLabQueueLimit
+            )
+
+            // when: updating the laboratory
+            testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabQueueLimitProblem)
         }
     }
 
     companion object {
         private val httpUtils = HttpUtils()
-        const val LAB_OUTPUT_MAP_KEY = "laboratory"
-        const val UPDATED_SUCCESSFULLY_MSG = "Laboratory updated successfully"
+        private const val LAB_OUTPUT_MAP_KEY = "laboratory"
+        private const val UPDATED_SUCCESSFULLY_MSG = "Laboratory updated successfully"
 
-        fun EntityExchangeResult<Problem>.assertProblem(expectedProblem: Problem) {
-            assertNotNull(this)
-            val problem = this.responseBody
-            assertNotNull(problem)
-            assertEquals(expectedProblem.type, problem.type)
-            assertEquals(expectedProblem.title, problem.title)
-            assertEquals(expectedProblem.details, problem.details)
-        }
+        private data class InitialLaboratory(
+            val ownerId: Int,
+            val labName: String? = httpUtils.newTestLabName(),
+            val labDescription: String? = httpUtils.newTestLabDescription(),
+            val labDuration: Int? = httpUtils.newTestLabDuration(),
+            val labQueueLimit: Int? = httpUtils.randomLabQueueLimit(),
+        )
 
-        fun WebTestClient.createTestLaboratory(): Pair<Int, Int> {
+        private data class UpdateLaboratory(
+            val ownerId: Int,
+            val labName: String? = null,
+            val labDescription: String? = null,
+            val labDuration: Int? = null,
+            val labQueueLimit: Int? = null,
+        )
+
+        private fun WebTestClient.createTestLaboratory(): Pair<Int, InitialLaboratory> {
             // create a owner user
             val ownerId = httpUtils.createTestUser(this)
 
-            val labName = httpUtils.newTestLabName()
-            val labDescription = httpUtils.newTestLabDescription()
-            val labDuration = httpUtils.newTestLabDuration()
-            val labQueueLimit = httpUtils.randomLabQueueLimit()
+            val initialLaboratory = InitialLaboratory(ownerId)
 
             // when: creating a laboratory
             val responseLabId = this
@@ -1259,12 +639,12 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.CREATE)
                 .bodyValue(
                     mapOf(
-                        "labName" to labName,
-                        "labDescription" to labDescription,
-                        "labDuration" to labDuration,
-                        "labQueueLimit" to labQueueLimit,
+                        "labName" to initialLaboratory.labName,
+                        "labDescription" to initialLaboratory.labDescription,
+                        "labDuration" to initialLaboratory.labDuration,
+                        "labQueueLimit" to initialLaboratory.labQueueLimit,
                         "ownerId" to ownerId
-                    ),
+                    )
                 )
                 .exchange()
                 .expectStatus().isCreated
@@ -1274,8 +654,91 @@ class LaboratoriesTests {
             // then: check the labId
             val labId = responseLabId.responseBody!!
             assertTrue(labId >= 0)
-            return Pair(ownerId, labId)
+            return Pair(labId, initialLaboratory)
         }
+
+        private fun WebTestClient.createInvalidLab(initialLaboratory: InitialLaboratory, expectedProblem: Problem) {
+            this
+                .post()
+                .uri(Uris.Laboratories.CREATE)
+                .bodyValue(
+                    initialLaboratory
+                )
+                .exchange()
+                .expectStatus().isBadRequest
+                .expectBody<Problem>()
+                .consumeWith { it.assertProblem(expectedProblem) }
+        }
+
+        private fun WebTestClient.getLabByIdAndVerify(
+            labId: Int,
+            expectedLab: InitialLaboratory
+        ) {
+            this.get()
+                .uri(Uris.Laboratories.GET, labId)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<Map<String, LaboratoryOutputModel>>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
+                    assertNotNull(lab)
+                    assertEquals(expectedLab.labName, lab.labName)
+                    assertEquals(expectedLab.labDescription, lab.labDescription)
+                    assertEquals(expectedLab.labDuration, lab.labDuration)
+                    assertEquals(expectedLab.labQueueLimit, lab.labQueueLimit)
+                    assertEquals(expectedLab.ownerId, lab.ownerId)
+                }
+        }
+
+        private fun WebTestClient.updateLab(
+            labId: Int,
+            updateLab: UpdateLaboratory
+        ) {
+            this
+                .patch()
+                .uri(Uris.Laboratories.UPDATE, labId)
+                .bodyValue(
+                    mapOf(
+                        "labName" to updateLab.labName,
+                        "labDescription" to updateLab.labDescription,
+                        "labDuration" to updateLab.labDuration,
+                        "labQueueLimit" to updateLab.labQueueLimit,
+                        "ownerId" to updateLab.ownerId
+                    )
+                )
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<String>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
+                }
+        }
+
+        private fun WebTestClient.updateInvalidLab(
+            labId: Int,
+            updateLab: UpdateLaboratory,
+            expectedProblem: Problem
+        ) {
+            this
+                .patch()
+                .uri(Uris.Laboratories.UPDATE, labId)
+                .bodyValue(
+                    mapOf(
+                        "labName" to updateLab.labName,
+                        "labDescription" to updateLab.labDescription,
+                        "labDuration" to updateLab.labDuration,
+                        "labQueueLimit" to updateLab.labQueueLimit,
+                        "ownerId" to updateLab.ownerId
+                    )
+                )
+                .exchange()
+                .expectStatus().isBadRequest
+                .expectBody<Problem>()
+                .consumeWith { it.assertProblem(expectedProblem) }
+        }
+
 
         private val INVALID_LAB_NAME_MSG =
             "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and ${httpUtils.labDomainConfig.maxLengthLabName} characters"

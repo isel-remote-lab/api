@@ -8,6 +8,8 @@ import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
+import isel.rl.core.domain.laboratory.props.LabDuration
+import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
@@ -25,7 +27,6 @@ import kotlin.time.toDuration
 
 
 class RepoUtils {
-    val usersDomain = UsersDomain()
     val laboratoriesDomain = LaboratoriesDomain(
         RemoteLabApp().laboratoryDomainConfig()
     )
@@ -85,8 +86,8 @@ class RepoUtils {
     // Lab functions
     fun newTestLabName() = LabName("lab-${abs(Random.nextLong())}")
     fun newTestLabDescription() = LabDescription("description-${abs(Random.nextLong())}")
-    fun newTestLabDuration() = (1..100).random().toDuration(DurationUnit.MINUTES)
-    fun randomLabQueueLimit() = (1..50).random()
+    fun newTestLabDuration() = LabDuration((1..100).random().toDuration(DurationUnit.MINUTES))
+    fun randomLabQueueLimit() = LabQueueLimit((1..50).random())
     fun randomLabSessionState() = LabSessionState.entries.random()
 
     fun createTestLab(handle: Handle): Int {
@@ -108,8 +109,8 @@ class RepoUtils {
             labDomain.validateCreateLaboratory(
                 labName.labNameInfo,
                 labDescription.labDescriptionInfo,
-                labDuration.toInt(DurationUnit.MINUTES),
-                randomLabQueueLimit,
+                labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                randomLabQueueLimit.labQueueLimitInfo,
                 labCreatedAt,
                 userId
             )

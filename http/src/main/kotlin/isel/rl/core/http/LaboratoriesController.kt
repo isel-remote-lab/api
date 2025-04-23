@@ -65,7 +65,7 @@ data class LaboratoriesController(
             labDescription = input.labDescription,
             labDuration = input.labDuration,
             labQueueLimit = input.labQueueLimit,
-            userId = input.userId,
+            ownerId = input.ownerId,
         )) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.OK).body(

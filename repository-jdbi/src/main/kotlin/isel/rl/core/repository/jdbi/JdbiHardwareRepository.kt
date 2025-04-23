@@ -58,65 +58,50 @@ data class JdbiHardwareRepository(
             .mapTo<Hardware>()
             .list()
 
-    override fun updateHardwareName(
+    override fun updateHardware(
         hwId: Int,
-        hwName: HardwareName,
-    ): Boolean =
-        handle.createUpdate(
+        hwName: HardwareName?,
+        hwStatus: HardwareStatus?,
+        ipAddress: String?,
+        macAddress: String?
+    ): Boolean {
+        val updateQuery = StringBuilder(
             """
             UPDATE rl.hardware 
-            SET hw_name = :hw_name
-            WHERE id = :id
+            SET 
         """,
         )
-            .bind("hw_name", hwName.hardwareNameInfo)
-            .bind("id", hwId)
-            .execute() == 1
+        val params = mutableMapOf<String, Any?>()
 
-    override fun updateHardwareStatus(
-        hwId: Int,
-        hwStatus: HardwareStatus,
-    ): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.hardware 
-            SET status = :status
-            WHERE id = :id
-        """,
-        )
-            .bind("status", hwStatus.char)
-            .bind("id", hwId)
-            .execute() == 1
+        hwName?.let {
+            updateQuery.append("hw_name = :hw_name, ")
+            params["hw_name"] = it.hardwareNameInfo
+        }
+        hwStatus?.let {
+            updateQuery.append("status = :status, ")
+            params["status"] = it.char
+        }
+        ipAddress?.let {
+            updateQuery.append("ip_address = :ip_address, ")
+            params["ip_address"] = it
+        }
+        macAddress?.let {
+            updateQuery.append("mac_address = :mac_address, ")
+            params["mac_address"] = it
+        }
 
-    override fun updateHardwareIpAddress(
-        hwId: Int,
-        ipAddress: String,
-    ): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.hardware 
-            SET ip_address = :ip_address
-            WHERE id = :id
-        """,
-        )
-            .bind("ip_address", ipAddress)
-            .bind("id", hwId)
-            .execute() == 1
+        // Remove the last comma and space
+        if (params.isNotEmpty()) {
+            updateQuery.setLength(updateQuery.length - 2)
+        }
 
-    override fun updateHardwareMacAddress(
-        hwId: Int,
-        macAddress: String,
-    ): Boolean =
-        handle.createUpdate(
-            """
-            UPDATE rl.hardware 
-            SET mac_address = :mac_address
-            WHERE id = :id
-        """,
-        )
-            .bind("mac_address", macAddress)
-            .bind("id", hwId)
+        updateQuery.append(" WHERE id = :id")
+        params["id"] = hwId
+
+        return handle.createUpdate(updateQuery.toString())
+            .bindMap(params)
             .execute() == 1
+    }
 
     override fun deleteHardware(hwId: Int): Boolean =
         handle.createUpdate(

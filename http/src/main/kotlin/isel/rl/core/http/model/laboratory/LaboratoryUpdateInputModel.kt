@@ -5,5 +5,5 @@ data class LaboratoryUpdateInputModel(
     val labDescription: String?,
     val labDuration: Int?,
     val labQueueLimit: Int?,
-    val userId: Int
+    val ownerId: Int
 )

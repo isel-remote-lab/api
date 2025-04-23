@@ -1,8 +1,14 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.laboratory.Laboratory
+import isel.rl.core.domain.laboratory.props.LabDescription
+import isel.rl.core.domain.laboratory.props.LabDuration
+import isel.rl.core.domain.laboratory.props.LabName
+import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.utils.TestClock
+import kotlinx.datetime.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -15,6 +21,7 @@ class JdbiLaboratoriesRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -22,43 +29,16 @@ class JdbiLaboratoriesRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
-            //then: retrieve laboratory by Id
+            //then: retrieve laboratory by Id and verify it
             val labById = laboratoryRepo.getLaboratoryById(labId)
-            assertNotNull(labById) { "No laboratory retrieved from database" }
-            assertEquals(labName, labById.labName)
-            assertEquals(labDescription, labById.labDescription)
-            assertEquals(labDuration, labById.labDuration.labDurationInfo)
-            assertEquals(randomLabQueueLimit, labById.labQueueLimit.labQueueLimitInfo)
-            assertEquals(labCreatedAt, labById.createdAt)
-            assertEquals(userId, labById.ownerId)
-            assertTrue(labById.id >= 0)
+            initialLaboratory.assertLabWith(labById)
 
-            // then: retrieving a laboratory by name
-            val labByName = laboratoryRepo.getLaboratoryByName(labName)
-            assertNotNull(labByName) { "No laboratory retrieved from database" }
-            assertEquals(labName, labByName.labName)
-            assertEquals(labDescription, labByName.labDescription)
-            assertEquals(labDuration, labByName.labDuration.labDurationInfo)
-            assertEquals(randomLabQueueLimit, labByName.labQueueLimit.labQueueLimitInfo)
-            assertEquals(labCreatedAt, labByName.createdAt)
-            assertEquals(userId, labByName.ownerId)
-            assertTrue(labByName.id >= 0)
+            // then: retrieving a laboratory by name and verify it
+            val labByName = laboratoryRepo.getLaboratoryByName(initialLaboratory.labName)
+            initialLaboratory.assertLabWith(labByName)
         }
     }
 
@@ -67,6 +47,7 @@ class JdbiLaboratoriesRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -74,21 +55,8 @@ class JdbiLaboratoriesRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
             // when: updating the laboratory name
             val newLabName = repoUtils.newTestLabName()
@@ -104,13 +72,13 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by name
             val updatedLabByName = laboratoryRepo.getLaboratoryByName(newLabName)
             assertNotNull(updatedLabByName) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabName, updatedLabByName.labName)
+            assertEquals(newLabName, updatedLabByName.labName, "Lab names do not match")
 
             // when: deleting the laboratory
-            assertTrue(laboratoryRepo.deleteLaboratory(labId))
+            assertTrue(laboratoryRepo.deleteLaboratory(labId), "Laboratory not deleted")
 
             // then: retrieving the deleted laboratory by Id should return null
-            assertEquals(null, laboratoryRepo.getLaboratoryById(labId))
+            assertEquals(null, laboratoryRepo.getLaboratoryById(labId), "Deleted laboratory not found")
         }
     }
 
@@ -119,6 +87,7 @@ class JdbiLaboratoriesRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory and user repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -126,21 +95,8 @@ class JdbiLaboratoriesRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
             // when: updating the laboratory description
             val newLabDescription = repoUtils.newTestLabDescription()
@@ -156,7 +112,75 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabDescription, updatedLabById.labDescription)
+            assertEquals(newLabDescription, updatedLabById.labDescription, "Lab descriptions do not match")
+        }
+    }
+
+    @Test
+    fun `update laboratory duration`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory and user repo
+            val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a laboratory
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
+
+            // when: updating the laboratory duration
+            val newLabDuration = repoUtils.newTestLabDuration()
+            assertTrue(
+                laboratoryRepo.updateLaboratory(
+                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
+                        labId,
+                        labDuration = newLabDuration.labDurationInfo.toInt(DurationUnit.MINUTES)
+                    )
+                )
+            )
+
+            // then: retrieving the updated laboratory by Id
+            val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
+            assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
+            assertEquals(newLabDuration, updatedLabById.labDuration, "Lab durations do not match")
+        }
+    }
+
+    @Test
+    fun `update laboratory queue limit`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory and user repo
+            val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a laboratory
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
+
+            // when: updating the laboratory queue limit
+            val newLabQueueLimit = repoUtils.randomLabQueueLimit()
+            assertTrue(
+                laboratoryRepo.updateLaboratory(
+                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
+                        labId,
+                        labQueueLimit = newLabQueueLimit.labQueueLimitInfo
+                    )
+                )
+            )
+
+            // then: retrieving the updated laboratory by Id
+            val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
+            assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
+            assertEquals(newLabQueueLimit, updatedLabById.labQueueLimit, "Lab queue limits do not match")
         }
     }
 
@@ -172,21 +196,8 @@ class JdbiLaboratoriesRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
             // when: updating the laboratory name and description
             val newLabName = repoUtils.newTestLabName()
@@ -204,8 +215,8 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabName, updatedLabById.labName)
-            assertEquals(newLabDescription, updatedLabById.labDescription)
+            assertEquals(newLabName, updatedLabById.labName, "Lab names do not match")
+            assertEquals(newLabDescription, updatedLabById.labDescription, "Lab descriptions do not match")
         }
     }
 
@@ -214,6 +225,7 @@ class JdbiLaboratoriesRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory, user repo and group repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -221,21 +233,8 @@ class JdbiLaboratoriesRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
             // when: storing a group
             val groupId = repoUtils.createTestGroup(userId, handle)
@@ -264,6 +263,7 @@ class JdbiLaboratoriesRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory, user repo and hardware repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -274,21 +274,8 @@ class JdbiLaboratoriesRepositoryTests {
             val hwId = repoUtils.createTestHardware(handle)
 
             // when: storing a laboratory
-            val labName = repoUtils.newTestLabName()
-            val labDescription = repoUtils.newTestLabDescription()
-            val labDuration = repoUtils.newTestLabDuration()
-            val labCreatedAt = clock.now()
-            val randomLabQueueLimit = repoUtils.randomLabQueueLimit()
-            val labId = laboratoryRepo.createLaboratory(
-                repoUtils.laboratoriesDomain.validateCreateLaboratory(
-                    labName.labNameInfo,
-                    labDescription.labDescriptionInfo,
-                    labDuration.toInt(DurationUnit.MINUTES),
-                    randomLabQueueLimit,
-                    labCreatedAt,
-                    userId
-                )
-            )
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
             // when: adding a hardware to the laboratory
             assertTrue(laboratoryRepo.addHardwareToLaboratory(labId, hwId))
@@ -311,5 +298,41 @@ class JdbiLaboratoriesRepositoryTests {
 
     companion object {
         private val repoUtils = RepoUtils()
+
+        private data class InitialLaboratoryInfo(
+            val clock: TestClock,
+            val userId: Int,
+            val labName: LabName = repoUtils.newTestLabName(),
+            val labDescription: LabDescription = repoUtils.newTestLabDescription(),
+            val labDuration: LabDuration = repoUtils.newTestLabDuration(),
+            val labCreatedAt: Instant = clock.now(),
+            val labQueueLimit: LabQueueLimit = repoUtils.randomLabQueueLimit(),
+        )
+
+        private fun JdbiLaboratoriesRepository.createLaboratory(
+            initialLaboratoryInfo: InitialLaboratoryInfo,
+        ): Int {
+            return createLaboratory(
+                repoUtils.laboratoriesDomain.validateCreateLaboratory(
+                    initialLaboratoryInfo.labName.labNameInfo,
+                    initialLaboratoryInfo.labDescription.labDescriptionInfo,
+                    initialLaboratoryInfo.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                    initialLaboratoryInfo.labQueueLimit.labQueueLimitInfo,
+                    initialLaboratoryInfo.labCreatedAt,
+                    initialLaboratoryInfo.userId
+                )
+            )
+        }
+
+        private fun InitialLaboratoryInfo.assertLabWith(lab: Laboratory?) {
+            assertNotNull(lab) { "No laboratory retrieved" }
+            assertEquals(labName, lab.labName, "Lab names do not match")
+            assertEquals(labDescription, lab.labDescription, "Lab descriptions do not match")
+            assertEquals(labDuration, lab.labDuration, "Lab durations do not match")
+            assertEquals(labQueueLimit, lab.labQueueLimit, "Lab queue limits do not match")
+            assertEquals(labCreatedAt, lab.createdAt, "Lab createdAt do not match")
+            assertEquals(userId, lab.ownerId, "Lab ownerId do not match")
+            assertTrue(lab.id >= 0, "Lab id must be >= 0")
+        }
     }
 }

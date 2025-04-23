@@ -1,8 +1,11 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.laboratory.LabSession
+import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiLabSessionRepository
 import isel.rl.core.repository.utils.TestClock
+import kotlinx.datetime.Instant
 import kotlin.test.*
 
 class JdbiLabSessionRepositoryTests {
@@ -11,6 +14,7 @@ class JdbiLabSessionRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a lab session and user repo
             val labSessionRepo = JdbiLabSessionRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -21,42 +25,30 @@ class JdbiLabSessionRepositoryTests {
             val labId = repoUtils.createTestLab(handle)
 
             // when: storing a lab session
-            val startTime = clock.now()
-            val endTime = startTime.plus(repoUtils.newTestLabDuration())
-            val labSessionState = repoUtils.randomLabSessionState()
-            val labSessionId = labSessionRepo.createLabSession(labId, userId, startTime, endTime, labSessionState)
+            val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
+            val labSessionId = labSessionRepo.createLabSession(
+                labId,
+                userId,
+                initialLabSession.startTime,
+                initialLabSession.endTime,
+                initialLabSession.labSessionState
+            )
 
             // then: retrieve lab session by Id
             val labSessionById = labSessionRepo.getLabSessionById(labSessionId)
-            assertNotNull(labSessionById) { "No lab session retrieved from database" }
-            assertEquals(labId, labSessionById.labId)
-            assertEquals(userId, labSessionById.ownerId)
-            assertEquals(startTime, labSessionById.startTime)
-            assertEquals(endTime, labSessionById.endTime)
-            assertEquals(labSessionState, labSessionById.state)
-            assertTrue(labSessionById.id >= 0)
+            initialLabSession.assertLabSessionWith(labSessionById)
 
             // then: retrieving the lab session by labId
             val labSessionByLabId = labSessionRepo.getLabSessionsByLabId(labId)
             assertNotNull(labSessionByLabId) { "No lab session retrieved from database" }
-            assertTrue(labSessionByLabId.size == 1)
-            assertEquals(labId, labSessionByLabId[0].labId)
-            assertEquals(userId, labSessionByLabId[0].ownerId)
-            assertEquals(startTime, labSessionByLabId[0].startTime)
-            assertEquals(endTime, labSessionByLabId[0].endTime)
-            assertEquals(labSessionState, labSessionByLabId[0].state)
-            assertTrue(labSessionByLabId[0].id >= 0)
+            assertTrue(labSessionByLabId.size == 1, "Expected 1 lab session but got ${labSessionByLabId.size}")
+            initialLabSession.assertLabSessionWith(labSessionByLabId[0])
 
             // then: retrieving the lab session by userId
             val labSessionByUserId = labSessionRepo.getLabSessionsByUserId(userId)
             assertNotNull(labSessionByUserId) { "No lab session retrieved from database" }
-            assertTrue(labSessionByUserId.size == 1)
-            assertEquals(labId, labSessionByUserId[0].labId)
-            assertEquals(userId, labSessionByUserId[0].ownerId)
-            assertEquals(startTime, labSessionByUserId[0].startTime)
-            assertEquals(endTime, labSessionByUserId[0].endTime)
-            assertEquals(labSessionState, labSessionByUserId[0].state)
-            assertTrue(labSessionByUserId[0].id >= 0)
+            assertTrue(labSessionByUserId.size == 1, "Expected 1 lab session but got ${labSessionByUserId.size}")
+            initialLabSession.assertLabSessionWith(labSessionByUserId[0])
 
             // when: deleting the lab session
             assertTrue(labSessionRepo.removeLabSessionById(labSessionId))
@@ -80,30 +72,32 @@ class JdbiLabSessionRepositoryTests {
             val labId = repoUtils.createTestLab(handle)
 
             // when: storing a lab session
-            val startTime = clock.now()
-            val endTime = startTime.plus(repoUtils.newTestLabDuration())
-            val labSessionState = repoUtils.randomLabSessionState()
-            val labSessionId = labSessionRepo.createLabSession(labId, userId, startTime, endTime, labSessionState)
+            val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
+            val labSessionId = labSessionRepo.createLabSession(
+                labId,
+                userId,
+                initialLabSession.startTime,
+                initialLabSession.endTime,
+                initialLabSession.labSessionState
+            )
 
             // when: updating the lab session
-            val newStartTime = startTime.plus(repoUtils.newTestLabDuration())
-            val newEndTime = newStartTime.plus(repoUtils.newTestLabDuration())
+            val newStartTime = initialLabSession.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo)
+            val newEndTime = newStartTime.plus(repoUtils.newTestLabDuration().labDurationInfo)
             val newLabSessionState = repoUtils.randomLabSessionState()
             labSessionRepo.updateLabSession(labSessionId, newStartTime, newEndTime, newLabSessionState)
 
             // then: retrieve updated lab session by Id
             val updatedLabSessionById = labSessionRepo.getLabSessionById(labSessionId)
             assertNotNull(updatedLabSessionById) { "No updated lab session retrieved from database" }
-            assertEquals(labId, updatedLabSessionById.labId)
-            assertEquals(userId, updatedLabSessionById.ownerId)
-            assertEquals(newStartTime, updatedLabSessionById.startTime)
-            assertEquals(newEndTime, updatedLabSessionById.endTime)
-            assertEquals(newLabSessionState, updatedLabSessionById.state)
+            assertEquals(newStartTime, updatedLabSessionById.startTime, "Start times do not match")
+            assertEquals(newEndTime, updatedLabSessionById.endTime, "End times do not match")
+            assertEquals(newLabSessionState, updatedLabSessionById.state, "Lab session states do not match")
 
             // then: delete the lab session
             assertTrue(labSessionRepo.removeLabSessionById(labSessionId))
             val deletedLabSession = labSessionRepo.getLabSessionById(labSessionId)
-            assertNull(deletedLabSession)
+            assertNull(deletedLabSession, "Lab session should be deleted")
         }
     }
 
@@ -112,6 +106,7 @@ class JdbiLabSessionRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a lab session and user repo
             val labSessionRepo = JdbiLabSessionRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -122,10 +117,14 @@ class JdbiLabSessionRepositoryTests {
             val labId = repoUtils.createTestLab(handle)
 
             // when: storing a lab session
-            val startTime = clock.now()
-            val endTime = startTime.plus(repoUtils.newTestLabDuration())
-            val labSessionState = repoUtils.randomLabSessionState()
-            val labSessionId = labSessionRepo.createLabSession(labId, userId, startTime, endTime, labSessionState)
+            val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
+            val labSessionId = labSessionRepo.createLabSession(
+                labId,
+                userId,
+                initialLabSession.startTime,
+                initialLabSession.endTime,
+                initialLabSession.labSessionState
+            )
 
             // when: updating the lab session state
             val newLabSessionState = repoUtils.randomLabSessionState()
@@ -134,14 +133,12 @@ class JdbiLabSessionRepositoryTests {
             // then: retrieve updated lab session by Id
             val updatedLabSessionById = labSessionRepo.getLabSessionById(labSessionId)
             assertNotNull(updatedLabSessionById) { "No updated lab session retrieved from database" }
-            assertEquals(labId, updatedLabSessionById.labId)
-            assertEquals(userId, updatedLabSessionById.ownerId)
-            assertEquals(startTime, updatedLabSessionById.startTime)
-            assertEquals(endTime, updatedLabSessionById.endTime)
-            assertEquals(newLabSessionState, updatedLabSessionById.state)
+            assertEquals(initialLabSession.startTime, updatedLabSessionById.startTime, "Start times do not match")
+            assertEquals(initialLabSession.endTime, updatedLabSessionById.endTime, "End times do not match")
+            assertEquals(newLabSessionState, updatedLabSessionById.state, "Lab session states do not match")
 
             // then: delete the lab session
-            assertTrue(labSessionRepo.removeLabSessionById(labSessionId))
+            assertTrue(labSessionRepo.removeLabSessionById(labSessionId), "Lab session should be deleted")
         }
     }
 
@@ -150,6 +147,7 @@ class JdbiLabSessionRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a lab session and user repo
             val labSessionRepo = JdbiLabSessionRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -160,60 +158,74 @@ class JdbiLabSessionRepositoryTests {
             val labId = repoUtils.createTestLab(handle)
 
             // when: storing two lab sessions
-            val startTime1 = clock.now()
-            val endTime1 = startTime1.plus(repoUtils.newTestLabDuration())
-            val labSessionState1 = repoUtils.randomLabSessionState()
-            val labSessionId1 = labSessionRepo.createLabSession(labId, userId, startTime1, endTime1, labSessionState1)
-
-            val startTime2 = startTime1.plus(repoUtils.newTestLabDuration())
-            val endTime2 = startTime2.plus(repoUtils.newTestLabDuration())
-            val labSessionState2 = repoUtils.randomLabSessionState()
-            val labSessionId2 = labSessionRepo.createLabSession(labId, userId, startTime2, endTime2, labSessionState2)
+            val initialLabSession1 = InitialLabSessionInfo(clock, labId, userId)
+            val labSessionId1 = labSessionRepo.createLabSession(
+                labId,
+                userId,
+                initialLabSession1.startTime,
+                initialLabSession1.endTime,
+                initialLabSession1.labSessionState
+            )
+            val initialLabSession2 = InitialLabSessionInfo(
+                clock,
+                labId,
+                userId,
+                initialLabSession1.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+                initialLabSession1.endTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+                repoUtils.randomLabSessionState()
+            )
+            val labSessionId2 = labSessionRepo.createLabSession(
+                labId,
+                userId,
+                initialLabSession2.startTime,
+                initialLabSession2.endTime,
+                initialLabSession2.labSessionState
+            )
 
             // then: retrieve both lab sessions by lab Id
             val labSessionsByLabId = labSessionRepo.getLabSessionsByLabId(labId)
             assertNotNull(labSessionsByLabId) { "No lab sessions retrieved from database" }
-            assertTrue(labSessionsByLabId.size == 2)
-            assertEquals(labId, labSessionsByLabId[0].labId)
-            assertEquals(userId, labSessionsByLabId[0].ownerId)
-            assertEquals(startTime1, labSessionsByLabId[0].startTime)
-            assertEquals(endTime1, labSessionsByLabId[0].endTime)
-            assertEquals(labSessionState1, labSessionsByLabId[0].state)
-            assertTrue(labSessionsByLabId[0].id >= 0)
+            assertTrue(labSessionsByLabId.size == 2, "Expected 2 lab sessions but got ${labSessionsByLabId.size}")
 
-            // check the second lab session
-            assertEquals(labId, labSessionsByLabId[1].labId)
-            assertEquals(userId, labSessionsByLabId[1].ownerId)
-            assertEquals(startTime2, labSessionsByLabId[1].startTime)
-            assertEquals(endTime2, labSessionsByLabId[1].endTime)
-            assertTrue(labSessionsByLabId[1].id >= 0)
+            // check both lab sessions
+            initialLabSession1.assertLabSessionWith(labSessionsByLabId[0])
+            initialLabSession2.assertLabSessionWith(labSessionsByLabId[1])
 
             // then: retrieve both lab sessions by user Id
             val labSessionsByUserId = labSessionRepo.getLabSessionsByUserId(userId)
             assertNotNull(labSessionsByUserId) { "No lab sessions retrieved from database" }
-            assertTrue(labSessionsByUserId.size == 2)
-            assertEquals(labId, labSessionsByUserId[0].labId)
-            assertEquals(userId, labSessionsByUserId[0].ownerId)
-            assertEquals(startTime1, labSessionsByUserId[0].startTime)
-            assertEquals(endTime1, labSessionsByUserId[0].endTime)
-            assertEquals(labSessionState1, labSessionsByUserId[0].state)
-            assertTrue(labSessionsByUserId[0].id >= 0)
+            assertTrue(labSessionsByUserId.size == 2, "Expected 2 lab sessions but got ${labSessionsByUserId.size}")
 
-            // check the second lab session
-            assertEquals(labId, labSessionsByUserId[1].labId)
-            assertEquals(userId, labSessionsByUserId[1].ownerId)
-            assertEquals(startTime2, labSessionsByUserId[1].startTime)
-            assertEquals(endTime2, labSessionsByUserId[1].endTime)
-            assertEquals(labSessionState2, labSessionsByUserId[1].state)
-            assertTrue(labSessionsByUserId[1].id >= 0)
+            // check both lab sessions
+            initialLabSession1.assertLabSessionWith(labSessionsByUserId[0])
+            initialLabSession2.assertLabSessionWith(labSessionsByUserId[1])
 
             // when: deleting the lab sessions
-            assertTrue(labSessionRepo.removeLabSessionById(labSessionId1))
-            assertTrue(labSessionRepo.removeLabSessionById(labSessionId2))
+            assertTrue(labSessionRepo.removeLabSessionById(labSessionId1), "Lab session should be deleted")
+            assertTrue(labSessionRepo.removeLabSessionById(labSessionId2), "Lab session should be deleted")
         }
     }
 
-    companion object{
+    companion object {
         private val repoUtils = RepoUtils()
+
+        private data class InitialLabSessionInfo(
+            val clock: TestClock,
+            val labId: Int,
+            val userId: Int,
+            val startTime: Instant = clock.now(),
+            val endTime: Instant = startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+            val labSessionState: LabSessionState = repoUtils.randomLabSessionState()
+        )
+
+        private fun InitialLabSessionInfo.assertLabSessionWith(labSession: LabSession?) {
+            assertNotNull(labSession) { "No lab session retrieved" }
+            assertEquals(labId, labSession.labId, "Lab IDs do not match")
+            assertEquals(userId, labSession.ownerId, "User IDs do not match")
+            assertEquals(startTime, labSession.startTime, "Start times do not match")
+            assertEquals(endTime, labSession.endTime, "End times do not match")
+            assertEquals(labSessionState, labSession.state, "Lab session states do not match")
+            assertTrue(labSession.id >= 0, "Lab session ID must be >= 0")
+        }
     }
 }

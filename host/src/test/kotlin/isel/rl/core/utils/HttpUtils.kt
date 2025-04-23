@@ -13,10 +13,14 @@ import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
+import isel.rl.core.http.model.Problem
+import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.math.abs
 import kotlin.random.Random
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -32,10 +36,10 @@ class HttpUtils {
     private fun baseUrl(port: Int) = "http://localhost:$port"
 
     // User functions
-    fun newTestUsername() = Username("user-${abs(Random.nextLong())}")
-    fun newTestEmail() = Email("email-${abs(Random.nextLong())}")
-    fun randomUserRole() = Role.entries.random()
-    fun newTestOauthId() = OAuthId("oauth-${abs(Random.nextLong())}")
+    fun newTestUsername() = "user-${abs(Random.nextLong())}"
+    fun newTestEmail() = "email-${abs(Random.nextLong())}"
+    fun randomUserRole() = Role.entries.random().char
+    fun newTestOauthId() = "oauth-${abs(Random.nextLong())}"
     fun createTestUser(testClient: WebTestClient): Int {
         val oAuthId = newTestOauthId()
         val role = randomUserRole()
@@ -50,10 +54,10 @@ class HttpUtils {
             .header(apiHeader, apiKey.apiKeyInfo)
             .bodyValue(
                 mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
+                    "oauthId" to oAuthId,
+                    "role" to role,
+                    "username" to username,
+                    "email" to email
                 ),
             )
             .exchange()
@@ -88,4 +92,13 @@ class HttpUtils {
     fun newTestHardwareIpAddress() = "ip-${abs(Random.nextLong())}"
 
     fun newTokenValidationData() = "token-${abs(Random.nextLong())}"
+}
+
+fun EntityExchangeResult<Problem>.assertProblem(expectedProblem: Problem) {
+    assertNotNull(this)
+    val problem = this.responseBody
+    assertNotNull(problem)
+    assertEquals(expectedProblem.type, problem.type)
+    assertEquals(expectedProblem.title, problem.title)
+    assertEquals(expectedProblem.details, problem.details)
 }

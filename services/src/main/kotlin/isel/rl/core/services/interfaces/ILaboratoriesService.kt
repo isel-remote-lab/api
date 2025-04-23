@@ -27,6 +27,6 @@ interface ILaboratoriesService {
         labDescription: String? = null,
         labDuration: Int? = null,
         labQueueLimit: Int? = null,
-        userId: Int
+        ownerId: Int
     ): UpdateLaboratoryResult
 }

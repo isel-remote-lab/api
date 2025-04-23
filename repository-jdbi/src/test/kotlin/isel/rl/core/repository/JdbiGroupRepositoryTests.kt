@@ -1,8 +1,12 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.group.Group
+import isel.rl.core.domain.group.GroupDescription
+import isel.rl.core.domain.group.GroupName
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiGroupRepository
 import isel.rl.core.repository.utils.TestClock
+import kotlinx.datetime.Instant
 import kotlin.test.*
 
 class JdbiGroupRepositoryTests {
@@ -11,6 +15,7 @@ class JdbiGroupRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -18,36 +23,25 @@ class JdbiGroupRepositoryTests {
             val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
             // when: retrieving a group by Id
             val groupById = groupRepo.getGroupById(groupId)
 
             // then: verify the retrieved group details
-            assertNotNull(groupById) { "No group retrieved from database" }
-            assertEquals(groupName, groupById.groupName)
-            assertEquals(groupDescription, groupById.groupDescription)
-            assertEquals(groupCreatedAt, groupById.createdAt)
-            assertTrue(groupById.id >= 0)
+            initialGroup.assertGroupWith(groupById)
 
             // when: retrieving a group by name
-            val groupByName = groupRepo.getGroupByName(groupName)
+            val groupByName = groupRepo.getGroupByName(initialGroup.groupName)
 
             // then: verify the retrieved group details
-            assertNotNull(groupByName) { "No group retrieved from database" }
-            assertEquals(groupName, groupByName.groupName)
-            assertEquals(groupDescription, groupByName.groupDescription)
-            assertEquals(groupCreatedAt, groupByName.createdAt)
-            assertTrue(groupByName.id >= 0)
+            initialGroup.assertGroupWith(groupByName)
 
             // then: verify if user is in user_group relation
             val groupUsers = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers.size == 1)
-            assertTrue(groupUsers.contains(ownerId))
+            assertTrue(groupUsers.size == 1, "Expected group to have 1 user but had ${groupUsers.size}")
+            assertTrue(groupUsers.contains(ownerId), "Expected group to have user $ownerId but it didn't")
         }
     }
 
@@ -56,6 +50,7 @@ class JdbiGroupRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -66,27 +61,28 @@ class JdbiGroupRepositoryTests {
             val userId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
-            // when: Adding a user to group
+            // when: Adding a user to the group
             assertTrue(groupRepo.addUserToGroup(userId, groupId))
 
-            // then:
+            // then: verify the user is in the group
             val groupUsers = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers.size == 2)
-            assertTrue(groupUsers.contains(ownerId))
-            assertTrue(groupUsers.contains(userId))
+            assertTrue(groupUsers.size == 2, "Expected group to have 2 users but had ${groupUsers.size}")
+            assertTrue(groupUsers.contains(ownerId), "Expected group to have user $ownerId but it didn't")
+            assertTrue(groupUsers.contains(userId), "Expected group to have user $userId but it didn't")
 
             // when: Removing user from group
-            assertTrue(groupRepo.removeUserFromGroup(userId, groupId))
+            assertTrue(
+                groupRepo.removeUserFromGroup(userId, groupId),
+                "Failed to remove user $userId from group $groupId"
+            )
 
-            //then:
+            //then: verify the user is not in the group anymore
             val groupUsers2 = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers2.size == 1)
-            assertTrue(groupUsers2.contains(ownerId))
+            assertTrue(groupUsers2.size == 1, "Expected group to have 1 user but had ${groupUsers2.size}")
+            assertTrue(groupUsers2.contains(ownerId), "Expected group to have user $ownerId but it didn't")
         }
     }
 
@@ -102,19 +98,17 @@ class JdbiGroupRepositoryTests {
             val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
             // then: update group name
             val newGroupName = repoUtils.newTestGroupName()
-            assertTrue(groupRepo.updateGroup(groupId, newGroupName))
+            assertTrue(groupRepo.updateGroup(groupId, newGroupName), "Failed to update group name")
 
             // then: check for the new name
             val group = groupRepo.getGroupById(groupId)
-            assertNotNull(group)
-            assertEquals(newGroupName, group.groupName)
+            assertNotNull(group, "No group retrieved")
+            assertEquals(newGroupName, group.groupName, "Group name does not match")
         }
     }
 
@@ -130,19 +124,17 @@ class JdbiGroupRepositoryTests {
             val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
             // then: update group description
             val newGroupDescription = repoUtils.newTestGroupDescription()
-            assertTrue(groupRepo.updateGroup(groupId, null, newGroupDescription))
+            assertTrue(groupRepo.updateGroup(groupId, null, newGroupDescription), "Failed to update group description")
 
             // then: check for the new description
             val group = groupRepo.getGroupById(groupId)
-            assertNotNull(group)
-            assertEquals(newGroupDescription, group.groupDescription)
+            assertNotNull(group, "No group retrieved")
+            assertEquals(newGroupDescription, group.groupDescription, "Group description does not match")
         }
     }
 
@@ -151,6 +143,7 @@ class JdbiGroupRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -158,21 +151,22 @@ class JdbiGroupRepositoryTests {
             val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
             // then: update group name and description
             val newGroupName = repoUtils.newTestGroupName()
             val newGroupDescription = repoUtils.newTestGroupDescription()
-            assertTrue(groupRepo.updateGroup(groupId, newGroupName, newGroupDescription))
+            assertTrue(
+                groupRepo.updateGroup(groupId, newGroupName, newGroupDescription),
+                "Failed to update group name and description"
+            )
 
             // then: check for the new name and description
             val group = groupRepo.getGroupById(groupId)
-            assertNotNull(group)
-            assertEquals(newGroupName, group.groupName)
-            assertEquals(newGroupDescription, group.groupDescription)
+            assertNotNull(group, "No group retrieved")
+            assertEquals(newGroupName, group.groupName, "Group name does not match")
+            assertEquals(newGroupDescription, group.groupDescription, "Group description does not match")
         }
     }
 
@@ -181,6 +175,7 @@ class JdbiGroupRepositoryTests {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupRepository(handle)
+
             // and: a test clock
             val clock = TestClock()
 
@@ -188,25 +183,50 @@ class JdbiGroupRepositoryTests {
             val ownerId = repoUtils.createTestUser(handle)
 
             // when: storing a group
-            val groupName = repoUtils.newTestGroupName()
-            val groupDescription = repoUtils.newTestGroupDescription()
-            val groupCreatedAt = clock.now()
-            val groupId = groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, ownerId)
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
 
-            assertTrue(groupRepo.getGroupUsers(groupId).size == 1)
+            assertTrue(groupRepo.getGroupUsers(groupId).size == 1, "Expected group to have 1 user")
 
             // when: removing the only user in the group
-            assertTrue(groupRepo.removeUserFromGroup(ownerId, groupId))
+            assertTrue(
+                groupRepo.removeUserFromGroup(ownerId, groupId),
+                "Failed to remove user $ownerId from group $groupId"
+            )
 
             // then: delete group
-            assertTrue(groupRepo.deleteGroup(groupId))
+            assertTrue(groupRepo.deleteGroup(groupId), "Failed to delete group $groupId")
 
             // then: try to retrieve it
-            assertNull(groupRepo.getGroupById(groupId))
+            assertNull(groupRepo.getGroupById(groupId), "Group $groupId was not deleted")
         }
     }
 
     companion object {
         private val repoUtils = RepoUtils()
+
+        private data class InitialGroup(
+            val clock: TestClock,
+            val ownerId: Int,
+            val groupName: GroupName = repoUtils.newTestGroupName(),
+            val groupDescription: GroupDescription = repoUtils.newTestGroupDescription(),
+            val createdAt: Instant = clock.now(),
+        )
+
+        private fun JdbiGroupRepository.createGroup(group: InitialGroup): Int =
+            createGroup(
+                group.groupName,
+                group.groupDescription,
+                group.createdAt,
+                group.ownerId
+            )
+
+        private fun InitialGroup.assertGroupWith(group: Group?) {
+            assertNotNull(group) { "No group retrieved" }
+            assertEquals(groupName, group.groupName)
+            assertEquals(groupDescription, group.groupDescription)
+            assertEquals(createdAt, group.createdAt)
+            assertTrue(group.id >= 0)
+        }
     }
 }

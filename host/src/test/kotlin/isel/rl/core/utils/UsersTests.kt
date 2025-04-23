@@ -6,6 +6,7 @@ import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.user.UserOutputModel
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,100 +28,17 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = httpUtils.randomUserRole()
-        val username = httpUtils.newTestUsername()
-        val email = httpUtils.newTestEmail()
-
-        // when: doing a POST
-        // then: the response is an 201 Created
-        val responseUserId = testClient
-            .post()
-            .uri(Uris.Users.CREATE)
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .bodyValue(
-                mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
-                ),
-            )
-            .exchange()
-            .expectStatus().isCreated
-            .expectBody<Int>()
-            .returnResult()
-
-        val userId = responseUserId.responseBody!!
-        assertTrue(userId >= 0)
+        // when: creating a user
+        val (userId, initialUser) = testClient.createUser()
 
         // when: doing a GET by id
-        // then: the response is an 200 OK
-        testClient
-            .get()
-            .uri(Uris.Users.GET, userId)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<Map<String, UserOutputModel>>()
-            .consumeWith { result ->
-                assertNotNull(result)
-                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                assertNotNull(user)
-                assertEquals(userId, user.id)
-                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
-                assertEquals(role.char, user.role)
-                assertEquals(username.usernameInfo, user.username)
-                assertEquals(email.emailInfo, user.email)
-            }
+        testClient.getUserByIdAndVerify(userId, initialUser)
 
         // when: doing a GET by email
-        // then: the response is an 200 OK
-        testClient
-            .get()
-            .uri { builder ->
-                builder
-                    .path(Uris.Users.GET_BY_EMAIL)
-                    .queryParam("email", email.emailInfo)
-                    .build()
-            }
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<Map<String, UserOutputModel>>()
-            .consumeWith { result ->
-                assertNotNull(result)
-                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                assertNotNull(user)
-                assertEquals(userId, user.id)
-                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
-                assertEquals(role.char, user.role)
-                assertEquals(username.usernameInfo, user.username)
-                assertEquals(email.emailInfo, user.email)
-            }
+        testClient.getUserByEmailAndVerify(initialUser.email, initialUser)
 
         // when: doing a GET by oauthId
-        // then: the response is an 200 OK
-        testClient
-            .get()
-            .uri { builder ->
-                builder
-                    .path(Uris.Users.GET_BY_OAUTHID)
-                    .queryParam("oauthid", oAuthId.oAuthIdInfo)
-                    .build()
-            }
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<Map<String, UserOutputModel>>()
-            .consumeWith { result ->
-                assertNotNull(result)
-                val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                assertNotNull(user)
-                assertEquals(userId, user.id)
-                assertEquals(oAuthId.oAuthIdInfo, user.oauthId)
-                assertEquals(role.char, user.role)
-                assertEquals(username.usernameInfo, user.username)
-                assertEquals(email.emailInfo, user.email)
-            }
+        testClient.getUserByOAuthIdAndVerify(initialUser.oAuthId, initialUser)
     }
 
     @Test
@@ -128,35 +46,12 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = httpUtils.randomUserRole()
-        val username = httpUtils.newTestUsername()
-        val email = ""
+        val initialUser = InitialUser(
+            email = ""
+        )
 
         // when: doing a POST
-        // then: the response is an 400 Bad Request
-        testClient
-            .post()
-            .uri(Uris.Users.CREATE)
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .bodyValue(
-                mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email
-                ),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { result ->
-                val problem = result.responseBody
-                assertNotNull(problem)
-                assertEquals(Problem.invalidEmail.type, problem.type)
-                assertEquals(Problem.invalidEmail.title, problem.title)
-                assertEquals(Problem.invalidEmail.details, problem.details)
-            }
+        testClient.createInvalidUser(initialUser, Problem.invalidEmail)
     }
 
     @Test
@@ -164,35 +59,12 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = "invalidRole"
-        val username = httpUtils.newTestUsername()
-        val email = httpUtils.newTestEmail()
+        val initialUser = InitialUser(
+            role = "invalid-role"
+        )
 
         // when: doing a POST
-        // then: the response is an 400 Bad Request
-        testClient
-            .post()
-            .uri(Uris.Users.CREATE)
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .bodyValue(
-                mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
-                ),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { result ->
-                val problem = result.responseBody
-                assertNotNull(problem)
-                assertEquals(Problem.invalidRole.type, problem.type)
-                assertEquals(Problem.invalidRole.title, problem.title)
-                assertEquals(Problem.invalidRole.details, problem.details)
-            }
+        testClient.createInvalidUser(initialUser, Problem.invalidRole)
     }
 
     @Test
@@ -200,35 +72,12 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = httpUtils.randomUserRole()
-        val username = ""
-        val email = httpUtils.newTestEmail()
+        val initialUser = InitialUser(
+            username = ""
+        )
 
         // when: doing a POST
-        // then: the response is an 400 Bad Request
-        testClient
-            .post()
-            .uri(Uris.Users.CREATE)
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .bodyValue(
-                mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username,
-                    "email" to email.emailInfo
-                ),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { result ->
-                val problem = result.responseBody
-                assertNotNull(problem)
-                assertEquals(Problem.invalidUsername.type, problem.type)
-                assertEquals(Problem.invalidUsername.title, problem.title)
-                assertEquals(Problem.invalidUsername.details, problem.details)
-            }
+        testClient.createInvalidUser(initialUser, Problem.invalidUsername)
     }
 
     @Test
@@ -236,35 +85,12 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = ""
-        val role = httpUtils.randomUserRole()
-        val username = httpUtils.newTestUsername()
-        val email = httpUtils.newTestEmail()
+        val initialUser = InitialUser(
+            oAuthId = ""
+        )
 
         // when: doing a POST
-        // then: the response is an 400 Bad Request
-        testClient
-            .post()
-            .uri(Uris.Users.CREATE)
-            .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-            .bodyValue(
-                mapOf(
-                    "oauthId" to oAuthId,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
-                ),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { result ->
-                val problem = result.responseBody
-                assertNotNull(problem)
-                assertEquals(Problem.invalidOauthId.type, problem.type)
-                assertEquals(Problem.invalidOauthId.title, problem.title)
-                assertEquals(Problem.invalidOauthId.details, problem.details)
-            }
+        testClient.createInvalidUser(initialUser, Problem.invalidOauthId)
     }
 
     @Test
@@ -272,10 +98,7 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = httpUtils.randomUserRole()
-        val username = httpUtils.newTestUsername()
-        val email = httpUtils.newTestEmail()
+        val initialUser = InitialUser()
 
         // when: doing a POST
         // then: the response is an 403 Forbidden
@@ -284,10 +107,10 @@ class UsersTests {
             .uri(Uris.Users.CREATE)
             .bodyValue(
                 mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
+                    "oauthId" to initialUser.oAuthId,
+                    "role" to initialUser.role,
+                    "username" to initialUser.username,
+                    "email" to initialUser.email
                 ),
             )
             .exchange()
@@ -299,10 +122,7 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val oAuthId = httpUtils.newTestOauthId()
-        val role = httpUtils.randomUserRole()
-        val username = httpUtils.newTestUsername()
-        val email = httpUtils.newTestEmail()
+        val initialUser = InitialUser()
 
         // when: doing a POST
         // then: the response is an 403 Forbidden
@@ -312,10 +132,10 @@ class UsersTests {
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
                 mapOf(
-                    "oauthId" to oAuthId.oAuthIdInfo,
-                    "role" to role.char,
-                    "username" to username.usernameInfo,
-                    "email" to email.emailInfo
+                    "oauthId" to initialUser.oAuthId,
+                    "role" to initialUser.role,
+                    "username" to initialUser.username,
+                    "email" to initialUser.email
                 ),
             )
             .exchange()
@@ -336,7 +156,7 @@ class UsersTests {
             .uri { builder ->
                 builder
                     .path(Uris.Users.GET_BY_OAUTHID)
-                    .queryParam("oauthid", oAuthId.oAuthIdInfo)
+                    .queryParam("oauthid", oAuthId)
                     .build()
             }
             .header(httpUtils.apiHeader, "invalid-api-key")
@@ -346,6 +166,124 @@ class UsersTests {
 
     companion object {
         private val httpUtils = HttpUtils()
-        const val USER_OUTPUT_MAP_KEY = "user"
+        private const val USER_OUTPUT_MAP_KEY = "user"
+
+        private data class InitialUser(
+            val oAuthId: String = httpUtils.newTestOauthId(),
+            val role: String = httpUtils.randomUserRole(),
+            val username: String = httpUtils.newTestUsername(),
+            val email: String = httpUtils.newTestEmail()
+        )
+
+        private fun WebTestClient.createUser(): Pair<Int, InitialUser> {
+            val user = InitialUser()
+
+            val responseUserId = post()
+                .uri(Uris.Users.CREATE)
+                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
+                .bodyValue(
+                    mapOf(
+                        "oauthId" to user.oAuthId,
+                        "role" to user.role,
+                        "username" to user.username,
+                        "email" to user.email
+                    ),
+                )
+                .exchange()
+                .expectStatus().isCreated
+                .expectBody<Int>()
+                .returnResult()
+
+            val userId = responseUserId.responseBody!!
+            assertTrue(userId >= 0)
+            return Pair(userId, user)
+        }
+
+        private fun WebTestClient.createInvalidUser(initialUser: InitialUser, expectedProblem: Problem) {
+            post()
+                .uri(Uris.Users.CREATE)
+                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
+                .bodyValue(
+                    mapOf(
+                        "oauthId" to initialUser.oAuthId,
+                        "role" to initialUser.role,
+                        "username" to initialUser.username,
+                        "email" to initialUser.email
+                    ),
+                )
+                .exchange()
+                .expectStatus().isBadRequest
+                .expectBody<Problem>()
+                .consumeWith { result ->
+                    val problem = result.responseBody
+                    assertNotNull(problem)
+                    assertEquals(expectedProblem.type, problem.type)
+                    assertEquals(expectedProblem.title, problem.title)
+                    assertEquals(expectedProblem.details, problem.details)
+                }
+        }
+
+        private fun WebTestClient.getUserByIdAndVerify(userId: Int, expectedUser: InitialUser) {
+            get()
+                .uri(Uris.Users.GET, userId)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<Map<String, UserOutputModel>>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
+                    assertNotNull(user)
+                    assertEquals(userId, user.id)
+                    assertEquals(expectedUser.oAuthId, user.oauthId)
+                    assertEquals(expectedUser.role, user.role)
+                    assertEquals(expectedUser.username, user.username)
+                    assertEquals(expectedUser.email, user.email)
+                }
+        }
+
+        private fun WebTestClient.getUserByEmailAndVerify(userEmail: String, expectedUser: InitialUser) {
+            get()
+                .uri { builder ->
+                    builder
+                        .path(Uris.Users.GET_BY_EMAIL)
+                        .queryParam("email", userEmail)
+                        .build()
+                }
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<Map<String, UserOutputModel>>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
+                    assertNotNull(user)
+                    assertEquals(expectedUser.oAuthId, user.oauthId)
+                    assertEquals(expectedUser.role, user.role)
+                    assertEquals(expectedUser.username, user.username)
+                    assertEquals(expectedUser.email, user.email)
+                }
+        }
+
+        private fun WebTestClient.getUserByOAuthIdAndVerify(oAuthId: String, expectedUser: InitialUser) {
+            get()
+                .uri { builder ->
+                    builder
+                        .path(Uris.Users.GET_BY_OAUTHID)
+                        .queryParam("oauthid", oAuthId)
+                        .build()
+                }
+                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<Map<String, UserOutputModel>>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
+                    assertNotNull(user)
+                    assertEquals(expectedUser.oAuthId, user.oauthId)
+                    assertEquals(expectedUser.role, user.role)
+                    assertEquals(expectedUser.username, user.username)
+                    assertEquals(expectedUser.email, user.email)
+                }
+        }
     }
 }

@@ -19,24 +19,12 @@ interface HardwareRepository {
 
     fun getHardwareByName(hwName: HardwareName): List<Hardware>
 
-    fun updateHardwareName(
+    fun updateHardware(
         hwId: Int,
-        hwName: HardwareName,
-    ): Boolean
-
-    fun updateHardwareStatus(
-        hwId: Int,
-        hwStatus: HardwareStatus,
-    ): Boolean
-
-    fun updateHardwareIpAddress(
-        hwId: Int,
-        ipAddress: String,
-    ): Boolean
-
-    fun updateHardwareMacAddress(
-        hwId: Int,
-        macAddress: String,
+        hwName: HardwareName? = null,
+        hwStatus: HardwareStatus? = null,
+        ipAddress: String? = null,
+        macAddress: String? = null,
     ): Boolean
 
     fun deleteHardware(hwId: Int): Boolean
