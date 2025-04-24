@@ -11,7 +11,12 @@ import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import kotlin.time.DurationUnit
 
 @RestController
@@ -22,13 +27,16 @@ data class LaboratoriesController(
     fun createLaboratory(
         @RequestBody input: LaboratoryCreateInputModel,
     ): ResponseEntity<*> =
-        when (val result = laboratoriesService.createLaboratory(
-            labName = input.labName,
-            labDescription = input.labDescription,
-            labDuration = input.labDuration,
-            labQueueLimit = input.labQueueLimit,
-            ownerId = input.ownerId,
-        )) {
+        when (
+            val result =
+                laboratoriesService.createLaboratory(
+                    labName = input.labName,
+                    labDescription = input.labDescription,
+                    labDuration = input.labDuration,
+                    labQueueLimit = input.labQueueLimit,
+                    ownerId = input.ownerId,
+                )
+        ) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.CREATED).body(result.value)
             }
@@ -46,8 +54,8 @@ data class LaboratoriesController(
 
                 ResponseEntity.status(HttpStatus.OK).body(
                     mapOf(
-                        "laboratory" to laboratory.toLaboratoryOutput()
-                    )
+                        "laboratory" to laboratory.toLaboratoryOutput(),
+                    ),
                 )
             }
 
@@ -59,17 +67,20 @@ data class LaboratoriesController(
         @PathVariable id: String,
         @RequestBody input: LaboratoryUpdateInputModel,
     ): ResponseEntity<*> =
-        when (val result = laboratoriesService.updateLaboratory(
-            labId = id,
-            labName = input.labName,
-            labDescription = input.labDescription,
-            labDuration = input.labDuration,
-            labQueueLimit = input.labQueueLimit,
-            ownerId = input.ownerId,
-        )) {
+        when (
+            val result =
+                laboratoriesService.updateLaboratory(
+                    labId = id,
+                    labName = input.labName,
+                    labDescription = input.labDescription,
+                    labDuration = input.labDuration,
+                    labQueueLimit = input.labQueueLimit,
+                    ownerId = input.ownerId,
+                )
+        ) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.OK).body(
-                    "Laboratory updated successfully"
+                    "Laboratory updated successfully",
                 )
             }
 

@@ -19,20 +19,22 @@ class UsersServiceTests {
         val email = servicesUtils.newTestEmail()
         val userRole = servicesUtils.randomUserRole()
         val oAuthId = servicesUtils.newTestOauthId()
-        val createdUserResult = service.createUser(
-            oAuthId,
-            userRole,
-            username,
-            email,
-        )
+        val createdUserResult =
+            service.createUser(
+                oAuthId,
+                userRole,
+                username,
+                email,
+            )
 
-        //then: Verify if the user was created
+        // then: Verify if the user was created
         when (createdUserResult) {
             is Either.Left -> fail("User creation failed: ${createdUserResult.value}")
-            is Either.Right -> assertTrue(
-                createdUserResult.value >= 0,
-                CREATE_ID_ERROR
-            )
+            is Either.Right ->
+                assertTrue(
+                    createdUserResult.value >= 0,
+                    CREATE_ID_ERROR,
+                )
         }
 
         val userId = createdUserResult.value
@@ -125,70 +127,77 @@ class UsersServiceTests {
 
         // when: getting a user by a invalid email email
         when (val result = service.getUserByEmailOrAuthId(email = invalidEmail)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.InvalidEmail,
-                EXPECT_INVALID_EMAIL + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.InvalidEmail,
+                    EXPECT_INVALID_EMAIL + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: getting a user by a non existent email
         when (val result = service.getUserByEmailOrAuthId(email = nonExistentEmail)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.UserNotFound,
-                EXPECTED_USER_NOT_FOUND + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.UserNotFound,
+                    EXPECTED_USER_NOT_FOUND + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: getting a user by a invalid oauth id
         when (val result = service.getUserByEmailOrAuthId(oAuthId = invalidOauthId)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.InvalidOauthId,
-                EXPECTED_INVALID_OAUTHID + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.InvalidOauthId,
+                    EXPECTED_INVALID_OAUTHID + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: getting a user by a non existent oauth id
         when (val result = service.getUserByEmailOrAuthId(oAuthId = nonExistentOauthId)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.UserNotFound,
-                EXPECTED_USER_NOT_FOUND + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.UserNotFound,
+                    EXPECTED_USER_NOT_FOUND + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: getting a user by a non existent email and oauth id
         when (val result = service.getUserByEmailOrAuthId(oAuthId = nonExistentOauthId, email = nonExistentEmail)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.UserNotFound,
-                EXPECTED_USER_NOT_FOUND + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.UserNotFound,
+                    EXPECTED_USER_NOT_FOUND + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: getting a user by a invalid email and oauth id
         when (val result = service.getUserByEmailOrAuthId(oAuthId = invalidOauthId, email = invalidEmail)) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.InvalidOauthId,
-                EXPECTED_INVALID_OAUTHID + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.InvalidOauthId,
+                    EXPECTED_INVALID_OAUTHID + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }
 
         // when: passing null in both email and oauth id
         when (val result = service.getUserByEmailOrAuthId()) {
-            is Either.Left -> assertTrue(
-                result.value is ServicesExceptions.Users.InvalidQueryParams,
-                EXPECTED_INVALID_QUERY_PARAMS + result.value
-            )
+            is Either.Left ->
+                assertTrue(
+                    result.value is ServicesExceptions.Users.InvalidQueryParams,
+                    EXPECTED_INVALID_QUERY_PARAMS + result.value,
+                )
 
             is Either.Right -> fail(EXPECTED_ERROR_BUT_GOT_USER + result.value)
         }

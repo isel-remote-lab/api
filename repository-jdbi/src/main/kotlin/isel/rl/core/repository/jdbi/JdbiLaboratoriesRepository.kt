@@ -1,10 +1,9 @@
 package isel.rl.core.repository.jdbi
 
-import isel.rl.core.domain.laboratory.props.LabDescription
-import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
 import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
+import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.repository.LaboratoriesRepository
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
@@ -14,9 +13,7 @@ import kotlin.time.DurationUnit
 data class JdbiLaboratoriesRepository(
     val handle: Handle,
 ) : LaboratoriesRepository {
-    override fun createLaboratory(
-        validatedCreateLaboratory: ValidatedCreateLaboratory
-    ): Int =
+    override fun createLaboratory(validatedCreateLaboratory: ValidatedCreateLaboratory): Int =
         handle.createUpdate(
             """
             INSERT INTO rl.laboratory (lab_name, lab_description, lab_duration, lab_queue_limit, created_at, owner_id)
@@ -55,15 +52,14 @@ data class JdbiLaboratoriesRepository(
             .mapTo<Laboratory>()
             .singleOrNull()
 
-    override fun updateLaboratory(
-        validatedUpdateLaboratory: ValidatedUpdateLaboratory
-    ): Boolean {
-        val updateQuery = StringBuilder(
-            """
+    override fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean {
+        val updateQuery =
+            StringBuilder(
+                """
             UPDATE rl.laboratory 
             SET 
         """,
-        )
+            )
         val params = mutableMapOf<String, Any?>()
 
         validatedUpdateLaboratory.labName?.let {
@@ -96,9 +92,7 @@ data class JdbiLaboratoriesRepository(
             .execute() == 1
     }
 
-    override fun checkIfLaboratoryExists(
-        labId: Int,
-    ): Boolean =
+    override fun checkIfLaboratoryExists(labId: Int): Boolean =
         handle.createQuery(
             """
             SELECT EXISTS(SELECT 1 FROM rl.laboratory WHERE id = :id)

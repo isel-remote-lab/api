@@ -43,7 +43,7 @@ interface ILaboratoriesService {
         labDescription: String,
         labDuration: Int,
         labQueueLimit: Int,
-        ownerId: Int
+        ownerId: Int,
     ): CreateLaboratoryResult
 
     /**
@@ -55,9 +55,7 @@ interface ILaboratoriesService {
      * @param id The ID of the laboratory.
      * @return A result containing the laboratory or an exception.
      */
-    fun getLaboratoryById(
-        id: String
-    ): GetLaboratoryResult
+    fun getLaboratoryById(id: String): GetLaboratoryResult
 
     /**
      * Updates an existing laboratory.
@@ -78,6 +76,6 @@ interface ILaboratoriesService {
         labDescription: String? = null,
         labDuration: Int? = null,
         labQueueLimit: Int? = null,
-        ownerId: Int
+        ownerId: Int,
     ): UpdateLaboratoryResult
 }

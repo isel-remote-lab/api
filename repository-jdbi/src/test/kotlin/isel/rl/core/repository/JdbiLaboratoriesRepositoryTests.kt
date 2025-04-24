@@ -5,8 +5,8 @@ import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
+import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
 import kotlin.test.Test
@@ -32,7 +32,7 @@ class JdbiLaboratoriesRepositoryTests {
             val initialLaboratory = InitialLaboratoryInfo(clock, userId)
             val labId = laboratoryRepo.createLaboratory(initialLaboratory)
 
-            //then: retrieve laboratory by Id and verify it
+            // then: retrieve laboratory by Id and verify it
             val labById = laboratoryRepo.getLaboratoryById(labId)
             initialLaboratory.assertLabWith(labById)
 
@@ -64,9 +64,9 @@ class JdbiLaboratoriesRepositoryTests {
                 laboratoryRepo.updateLaboratory(
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
-                        newLabName.labNameInfo
-                    )
-                )
+                        newLabName.labNameInfo,
+                    ),
+                ),
             )
 
             // then: retrieving the updated laboratory by name
@@ -104,9 +104,9 @@ class JdbiLaboratoriesRepositoryTests {
                 laboratoryRepo.updateLaboratory(
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
-                        labDescription = newLabDescription.labDescriptionInfo
-                    )
-                )
+                        labDescription = newLabDescription.labDescriptionInfo,
+                    ),
+                ),
             )
 
             // then: retrieving the updated laboratory by Id
@@ -138,9 +138,9 @@ class JdbiLaboratoriesRepositoryTests {
                 laboratoryRepo.updateLaboratory(
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
-                        labDuration = newLabDuration.labDurationInfo.toInt(DurationUnit.MINUTES)
-                    )
-                )
+                        labDuration = newLabDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                    ),
+                ),
             )
 
             // then: retrieving the updated laboratory by Id
@@ -172,9 +172,9 @@ class JdbiLaboratoriesRepositoryTests {
                 laboratoryRepo.updateLaboratory(
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
-                        labQueueLimit = newLabQueueLimit.labQueueLimitInfo
-                    )
-                )
+                        labQueueLimit = newLabQueueLimit.labQueueLimitInfo,
+                    ),
+                ),
             )
 
             // then: retrieving the updated laboratory by Id
@@ -207,9 +207,9 @@ class JdbiLaboratoriesRepositoryTests {
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
                         newLabName.labNameInfo,
-                        newLabDescription.labDescriptionInfo
-                    )
-                )
+                        newLabDescription.labDescriptionInfo,
+                    ),
+                ),
             )
 
             // then: retrieving the updated laboratory by Id
@@ -309,9 +309,7 @@ class JdbiLaboratoriesRepositoryTests {
             val labQueueLimit: LabQueueLimit = repoUtils.randomLabQueueLimit(),
         )
 
-        private fun JdbiLaboratoriesRepository.createLaboratory(
-            initialLaboratoryInfo: InitialLaboratoryInfo,
-        ): Int {
+        private fun JdbiLaboratoriesRepository.createLaboratory(initialLaboratoryInfo: InitialLaboratoryInfo): Int {
             return createLaboratory(
                 repoUtils.laboratoriesDomain.validateCreateLaboratory(
                     initialLaboratoryInfo.labName.labNameInfo,
@@ -319,8 +317,8 @@ class JdbiLaboratoriesRepositoryTests {
                     initialLaboratoryInfo.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
                     initialLaboratoryInfo.labQueueLimit.labQueueLimitInfo,
                     initialLaboratoryInfo.labCreatedAt,
-                    initialLaboratoryInfo.userId
-                )
+                    initialLaboratoryInfo.userId,
+                ),
             )
         }
 

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service
 data class LaboratoriesService(
     private val transactionManager: TransactionManager,
     private val clock: Clock,
-    private val laboratoriesDomain: LaboratoriesDomain
+    private val laboratoriesDomain: LaboratoriesDomain,
 ) : ILaboratoriesService {
     override fun createLaboratory(
         labName: String,
@@ -43,7 +43,7 @@ data class LaboratoriesService(
                     labDuration = labDuration,
                     labQueueLimit = labQueueLimit,
                     createdAt = clock.now(),
-                    ownerId = ownerId
+                    ownerId = ownerId,
                 )
             transactionManager.run {
                 // Create the laboratory in the database and return the result as success
@@ -79,7 +79,7 @@ data class LaboratoriesService(
         labDescription: String?,
         labDuration: Int?,
         labQueueLimit: Int?,
-        ownerId: Int
+        ownerId: Int,
     ): UpdateLaboratoryResult =
         try {
             // Validate the laboratory ID
@@ -89,29 +89,32 @@ data class LaboratoriesService(
                 val laboratoriesRepo = it.laboratoriesRepository
 
                 // Check if the laboratory exists
-                if (!laboratoriesRepo.checkIfLaboratoryExists(validatedLabId))
+                if (!laboratoriesRepo.checkIfLaboratoryExists(validatedLabId)) {
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                }
 
                 // Check if the laboratory belongs to the user
-                if (laboratoriesRepo.getLaboratoryOwnerId(validatedLabId) != ownerId)
+                if (laboratoriesRepo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotOwned)
+                }
 
                 // Validate the laboratory update data
-                val validatedUpdateLaboratory = laboratoriesDomain.validateUpdateLaboratory(
-                    labId = validatedLabId,
-                    labName = labName,
-                    labDescription = labDescription,
-                    labDuration = labDuration,
-                    labQueueLimit = labQueueLimit
-                )
+                val validatedUpdateLaboratory =
+                    laboratoriesDomain.validateUpdateLaboratory(
+                        labId = validatedLabId,
+                        labName = labName,
+                        labDescription = labDescription,
+                        labDuration = labDuration,
+                        labQueueLimit = labQueueLimit,
+                    )
 
                 // If update is successful, return success
                 // Otherwise, return failure with unexpected error
-                if (laboratoriesRepo.updateLaboratory(validatedUpdateLaboratory))
+                if (laboratoriesRepo.updateLaboratory(validatedUpdateLaboratory)) {
                     success(Unit)
-                else
+                } else {
                     failure(ServicesExceptions.UnexpectedError)
-
+                }
             }
         } catch (e: Exception) {
             // Handle exceptions that may occur during the update process

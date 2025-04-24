@@ -63,14 +63,15 @@ data class JdbiHardwareRepository(
         hwName: HardwareName?,
         hwStatus: HardwareStatus?,
         ipAddress: String?,
-        macAddress: String?
+        macAddress: String?,
     ): Boolean {
-        val updateQuery = StringBuilder(
-            """
+        val updateQuery =
+            StringBuilder(
+                """
             UPDATE rl.hardware 
             SET 
         """,
-        )
+            )
         val params = mutableMapOf<String, Any?>()
 
         hwName?.let {

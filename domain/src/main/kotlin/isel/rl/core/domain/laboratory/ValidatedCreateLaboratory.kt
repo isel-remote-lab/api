@@ -12,5 +12,5 @@ data class ValidatedCreateLaboratory internal constructor(
     val labDuration: LabDuration,
     val labQueueLimit: LabQueueLimit,
     val createdAt: Instant,
-    val ownerId: Int
+    val ownerId: Int,
 )

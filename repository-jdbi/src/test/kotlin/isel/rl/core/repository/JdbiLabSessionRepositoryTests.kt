@@ -2,11 +2,15 @@ package isel.rl.core.repository
 
 import isel.rl.core.domain.laboratory.LabSession
 import isel.rl.core.domain.laboratory.LabSessionState
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiLabSessionRepository
+import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.*
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class JdbiLabSessionRepositoryTests {
     @Test
@@ -26,13 +30,14 @@ class JdbiLabSessionRepositoryTests {
 
             // when: storing a lab session
             val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
-            val labSessionId = labSessionRepo.createLabSession(
-                labId,
-                userId,
-                initialLabSession.startTime,
-                initialLabSession.endTime,
-                initialLabSession.labSessionState
-            )
+            val labSessionId =
+                labSessionRepo.createLabSession(
+                    labId,
+                    userId,
+                    initialLabSession.startTime,
+                    initialLabSession.endTime,
+                    initialLabSession.labSessionState,
+                )
 
             // then: retrieve lab session by Id
             val labSessionById = labSessionRepo.getLabSessionById(labSessionId)
@@ -73,13 +78,14 @@ class JdbiLabSessionRepositoryTests {
 
             // when: storing a lab session
             val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
-            val labSessionId = labSessionRepo.createLabSession(
-                labId,
-                userId,
-                initialLabSession.startTime,
-                initialLabSession.endTime,
-                initialLabSession.labSessionState
-            )
+            val labSessionId =
+                labSessionRepo.createLabSession(
+                    labId,
+                    userId,
+                    initialLabSession.startTime,
+                    initialLabSession.endTime,
+                    initialLabSession.labSessionState,
+                )
 
             // when: updating the lab session
             val newStartTime = initialLabSession.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo)
@@ -118,13 +124,14 @@ class JdbiLabSessionRepositoryTests {
 
             // when: storing a lab session
             val initialLabSession = InitialLabSessionInfo(clock, labId, userId)
-            val labSessionId = labSessionRepo.createLabSession(
-                labId,
-                userId,
-                initialLabSession.startTime,
-                initialLabSession.endTime,
-                initialLabSession.labSessionState
-            )
+            val labSessionId =
+                labSessionRepo.createLabSession(
+                    labId,
+                    userId,
+                    initialLabSession.startTime,
+                    initialLabSession.endTime,
+                    initialLabSession.labSessionState,
+                )
 
             // when: updating the lab session state
             val newLabSessionState = repoUtils.randomLabSessionState()
@@ -159,28 +166,31 @@ class JdbiLabSessionRepositoryTests {
 
             // when: storing two lab sessions
             val initialLabSession1 = InitialLabSessionInfo(clock, labId, userId)
-            val labSessionId1 = labSessionRepo.createLabSession(
-                labId,
-                userId,
-                initialLabSession1.startTime,
-                initialLabSession1.endTime,
-                initialLabSession1.labSessionState
-            )
-            val initialLabSession2 = InitialLabSessionInfo(
-                clock,
-                labId,
-                userId,
-                initialLabSession1.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
-                initialLabSession1.endTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
-                repoUtils.randomLabSessionState()
-            )
-            val labSessionId2 = labSessionRepo.createLabSession(
-                labId,
-                userId,
-                initialLabSession2.startTime,
-                initialLabSession2.endTime,
-                initialLabSession2.labSessionState
-            )
+            val labSessionId1 =
+                labSessionRepo.createLabSession(
+                    labId,
+                    userId,
+                    initialLabSession1.startTime,
+                    initialLabSession1.endTime,
+                    initialLabSession1.labSessionState,
+                )
+            val initialLabSession2 =
+                InitialLabSessionInfo(
+                    clock,
+                    labId,
+                    userId,
+                    initialLabSession1.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+                    initialLabSession1.endTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+                    repoUtils.randomLabSessionState(),
+                )
+            val labSessionId2 =
+                labSessionRepo.createLabSession(
+                    labId,
+                    userId,
+                    initialLabSession2.startTime,
+                    initialLabSession2.endTime,
+                    initialLabSession2.labSessionState,
+                )
 
             // then: retrieve both lab sessions by lab Id
             val labSessionsByLabId = labSessionRepo.getLabSessionsByLabId(labId)
@@ -215,7 +225,7 @@ class JdbiLabSessionRepositoryTests {
             val userId: Int,
             val startTime: Instant = clock.now(),
             val endTime: Instant = startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
-            val labSessionState: LabSessionState = repoUtils.randomLabSessionState()
+            val labSessionState: LabSessionState = repoUtils.randomLabSessionState(),
         )
 
         private fun InitialLabSessionInfo.assertLabSessionWith(labSession: LabSession?) {

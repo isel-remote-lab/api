@@ -2,12 +2,16 @@ package isel.rl.core.repository
 
 import isel.rl.core.domain.hardware.Hardware
 import isel.rl.core.domain.hardware.HardwareName
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
+import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.*
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class JdbiHardwareRepositoryTests {
     @Test
@@ -49,11 +53,12 @@ class JdbiHardwareRepositoryTests {
             val clock = TestClock()
 
             // when: storing a hardware
-            val initialHardware = InitialHardware(
-                clock,
-                macAddress = null,
-                ipAddress = null
-            )
+            val initialHardware =
+                InitialHardware(
+                    clock,
+                    macAddress = null,
+                    ipAddress = null,
+                )
             val hardwareId = hardwareRepo.createHardware(initialHardware)
 
             // then: retrieve hardware by Id and verify it
@@ -152,7 +157,7 @@ class JdbiHardwareRepositoryTests {
             // when: trying to retrieve updated hardware by old name
             assertTrue(
                 hardwareRepo.getHardwareByName(initialHardware.hardwareName).isEmpty(),
-                "Old name should not retrieve hardware"
+                "Old name should not retrieve hardware",
             )
 
             // when: retrieving updated hardware by new name
@@ -175,9 +180,10 @@ class JdbiHardwareRepositoryTests {
 
             // when: updating the status
             // Guarantee to be different from initial status
-            val newStatus = HardwareStatus.entries
-                .filter { it != initialHardware.status }
-                .random()
+            val newStatus =
+                HardwareStatus.entries
+                    .filter { it != initialHardware.status }
+                    .random()
 
             assertTrue(hardwareRepo.updateHardware(hardwareId, hwStatus = newStatus), "Hardware status was not updated")
 
@@ -206,9 +212,9 @@ class JdbiHardwareRepositoryTests {
                 hardwareRepo.updateHardware(
                     hardwareId,
                     ipAddress = newIpAddress,
-                    macAddress = newMacAddress
+                    macAddress = newMacAddress,
                 ),
-                "Hardware ip_address and mac_address were not updated"
+                "Hardware ip_address and mac_address were not updated",
             )
 
             // then: retrieve updated hardware by Id
@@ -236,9 +242,9 @@ class JdbiHardwareRepositoryTests {
                 hardwareRepo.updateHardware(
                     hardwareId,
                     ipAddress = newIpAddress,
-                    macAddress = null
+                    macAddress = null,
                 ),
-                "Hardware ip_address was not updated"
+                "Hardware ip_address was not updated",
             )
 
             // then: retrieve updated hardware by Id
@@ -265,9 +271,9 @@ class JdbiHardwareRepositoryTests {
                 hardwareRepo.updateHardware(
                     hardwareId,
                     ipAddress = null,
-                    macAddress = newMacAddress
+                    macAddress = newMacAddress,
                 ),
-                "Hardware mac_address was not updated"
+                "Hardware mac_address was not updated",
             )
 
             // then: retrieve updated hardware by Id
@@ -290,16 +296,14 @@ class JdbiHardwareRepositoryTests {
             val createdAt: Instant = clock.now(),
         )
 
-        private fun JdbiHardwareRepository.createHardware(
-            hardware: InitialHardware,
-        ): Int {
+        private fun JdbiHardwareRepository.createHardware(hardware: InitialHardware): Int {
             return createHardware(
                 name = hardware.hardwareName,
                 serialNum = hardware.serialNum,
                 status = hardware.status,
                 macAddress = hardware.macAddress,
                 ipAddress = hardware.ipAddress,
-                createdAt = hardware.createdAt
+                createdAt = hardware.createdAt,
             )
         }
 

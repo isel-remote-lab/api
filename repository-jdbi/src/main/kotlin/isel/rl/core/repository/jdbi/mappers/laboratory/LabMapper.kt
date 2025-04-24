@@ -16,13 +16,14 @@ class LabMapper : RowMapper<Laboratory> {
     override fun map(
         rs: ResultSet,
         ctx: StatementContext,
-    ): Laboratory = Laboratory(
-        id = rs.getInt("id"),
-        labName = LabName(rs.getString("lab_name")),
-        labDescription = LabDescription(rs.getString("lab_description")),
-        labDuration = LabDuration(rs.getInt("lab_duration").toDuration(DurationUnit.MINUTES)),
-        labQueueLimit = LabQueueLimit(rs.getInt("lab_queue_limit")),
-        createdAt = rs.getTimestamp("created_at").toInstant().toKotlinInstant(),
-        ownerId = rs.getInt("owner_id"),
-    )
+    ): Laboratory =
+        Laboratory(
+            id = rs.getInt("id"),
+            labName = LabName(rs.getString("lab_name")),
+            labDescription = LabDescription(rs.getString("lab_description")),
+            labDuration = LabDuration(rs.getInt("lab_duration").toDuration(DurationUnit.MINUTES)),
+            labQueueLimit = LabQueueLimit(rs.getInt("lab_queue_limit")),
+            createdAt = rs.getTimestamp("created_at").toInstant().toKotlinInstant(),
+            ownerId = rs.getInt("owner_id"),
+        )
 }

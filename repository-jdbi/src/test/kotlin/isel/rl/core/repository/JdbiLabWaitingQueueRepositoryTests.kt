@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiLabWaitingQueueRepository
+import isel.rl.core.repository.utils.RepoUtils
 import kotlin.test.Test
 
 class JdbiLabWaitingQueueRepositoryTests {

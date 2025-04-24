@@ -50,9 +50,13 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
         data object LaboratoryNotOwned : ServicesExceptions("Laboratory not owned") {
             private fun readResolve(): Any = LaboratoryNotOwned
         }
+
         class InvalidLaboratoryName(message: String) : ServicesExceptions(message)
+
         class InvalidLaboratoryDescription(message: String) : ServicesExceptions(message)
+
         class InvalidLaboratoryDuration(message: String) : ServicesExceptions(message)
+
         class InvalidLaboratoryQueueLimit(message: String) : ServicesExceptions(message)
     }
 

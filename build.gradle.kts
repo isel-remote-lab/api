@@ -9,7 +9,7 @@ repositories {
 
 // Declared plugins with versions; 'apply false' means they are not applied to the root project
 plugins {
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" // Ktlint for code formatting
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false // Ktlint for code formatting
     id("org.springframework.boot") version "3.3.3" apply false // Spring Boot plugin
     id("io.spring.dependency-management") version "1.1.6" apply false // Dependency management
     kotlin("jvm") version "2.0.10" // Kotlin JVM plugin
@@ -35,6 +35,7 @@ subprojects {
 
     // Apply necessary plugins to subprojects
     apply {
+        plugin("org.jlleitschuh.gradle.ktlint")
         plugin("org.springframework.boot")
         plugin("io.spring.dependency-management")
         plugin("org.jetbrains.kotlin.jvm")

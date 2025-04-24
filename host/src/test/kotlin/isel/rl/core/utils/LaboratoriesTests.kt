@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [RemoteLabApp::class]
+    classes = [RemoteLabApp::class],
 )
 class LaboratoriesTests {
     // This is the port that will be used to run the tests
@@ -74,10 +74,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labName = ""
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labName = "",
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabNameProblem)
@@ -91,10 +92,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1)
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1),
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabNameProblem)
@@ -108,10 +110,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labDescription = ""
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labDescription = "",
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDescriptionProblem)
@@ -125,10 +128,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1)
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1),
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDescriptionProblem)
@@ -142,10 +146,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labDuration = (httpUtils.labDomainConfig.minLabDuration.inWholeMinutes - 1).toInt()
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labDuration = (httpUtils.labDomainConfig.minLabDuration.inWholeMinutes - 1).toInt(),
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDurationProblem)
@@ -159,10 +164,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt()
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt(),
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabDurationProblem)
@@ -176,10 +182,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1,
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabQueueLimitProblem)
@@ -193,10 +200,11 @@ class LaboratoriesTests {
             // when: creating a user to be the owner of the laboratory
             val ownerId = httpUtils.createTestUser(testClient)
 
-            val invalidLaboratory = InitialLaboratory(
-                ownerId,
-                labQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1
-            )
+            val invalidLaboratory =
+                InitialLaboratory(
+                    ownerId,
+                    labQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1,
+                )
 
             // when: creating a laboratory
             testClient.createInvalidLab(invalidLaboratory, expectedInvalidLabQueueLimitProblem)
@@ -219,13 +227,14 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
             // when: updating the laboratory
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                newLabName,
-                newLabDescription,
-                newLabDuration,
-                newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    newLabName,
+                    newLabDescription,
+                    newLabDuration,
+                    newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -237,8 +246,8 @@ class LaboratoriesTests {
                     labName = newLabName,
                     labDescription = newLabDescription,
                     labDuration = newLabDuration,
-                    labQueueLimit = newLabQueueLimit
-                )
+                    labQueueLimit = newLabQueueLimit,
+                ),
             )
         }
 
@@ -253,10 +262,11 @@ class LaboratoriesTests {
             val newLabName = httpUtils.newTestLabName()
 
             // when: updating the laboratory name
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                newLabName,
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    newLabName,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -275,10 +285,11 @@ class LaboratoriesTests {
             val newLabDescription = httpUtils.newTestLabDescription()
 
             // when: updating the laboratory description
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDescription = newLabDescription
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDescription = newLabDescription,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -297,10 +308,11 @@ class LaboratoriesTests {
             val newLabDuration = httpUtils.newTestLabDuration()
 
             // when: updating the laboratory duration
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDuration = newLabDuration
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDuration = newLabDuration,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -319,10 +331,11 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
             // when: updating the laboratory queue limit
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labQueueLimit = newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labQueueLimit = newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -342,11 +355,12 @@ class LaboratoriesTests {
             val newLabDescription = httpUtils.newTestLabDescription()
 
             // when: updating the laboratory name and description
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                newLabName,
-                newLabDescription
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    newLabName,
+                    newLabDescription,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -356,8 +370,8 @@ class LaboratoriesTests {
                 labId,
                 initialLab.copy(
                     labName = newLabName,
-                    labDescription = newLabDescription
-                )
+                    labDescription = newLabDescription,
+                ),
             )
         }
 
@@ -372,11 +386,12 @@ class LaboratoriesTests {
             val newLabDuration = httpUtils.newTestLabDuration()
 
             // when: updating the laboratory description and duration
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDescription = newLabDescription,
-                labDuration = newLabDuration
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDescription = newLabDescription,
+                    labDuration = newLabDuration,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -386,8 +401,8 @@ class LaboratoriesTests {
                 labId,
                 initialLab.copy(
                     labDescription = newLabDescription,
-                    labDuration = newLabDuration
-                )
+                    labDuration = newLabDuration,
+                ),
             )
         }
 
@@ -402,11 +417,12 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
             // when: updating the laboratory duration and queue limit
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDuration = newLabDuration,
-                labQueueLimit = newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDuration = newLabDuration,
+                    labQueueLimit = newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -416,8 +432,8 @@ class LaboratoriesTests {
                 labId,
                 initialLab.copy(
                     labDuration = newLabDuration,
-                    labQueueLimit = newLabQueueLimit
-                )
+                    labQueueLimit = newLabQueueLimit,
+                ),
             )
         }
 
@@ -432,11 +448,12 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.randomLabQueueLimit()
 
             // when: updating the laboratory queue limit and name
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labName = newLabName,
-                labQueueLimit = newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labName = newLabName,
+                    labQueueLimit = newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateLab(labId, updateLab)
@@ -446,8 +463,8 @@ class LaboratoriesTests {
                 labId,
                 initialLab.copy(
                     labName = newLabName,
-                    labQueueLimit = newLabQueueLimit
-                )
+                    labQueueLimit = newLabQueueLimit,
+                ),
             )
         }
 
@@ -461,10 +478,11 @@ class LaboratoriesTests {
             val newLabName = "" // Invalid name
 
             // when: updating the laboratory with invalid name
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labName = newLabName
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labName = newLabName,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabNameProblem)
@@ -480,10 +498,11 @@ class LaboratoriesTests {
             val newLabName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1) // Invalid name
 
             // when: updating the laboratory with invalid name
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labName = newLabName
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labName = newLabName,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabNameProblem)
@@ -499,10 +518,11 @@ class LaboratoriesTests {
             val newLabDescription = "" // Invalid description
 
             // when: updating the laboratory with invalid description
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDescription = newLabDescription
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDescription = newLabDescription,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDescriptionProblem)
@@ -519,10 +539,11 @@ class LaboratoriesTests {
                 "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1) // Invalid description
 
             // when: updating the laboratory with invalid description
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDescription = newLabDescription
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDescription = newLabDescription,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDescriptionProblem)
@@ -538,10 +559,11 @@ class LaboratoriesTests {
             val newLabDuration = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid duration
 
             // when: updating the laboratory with invalid duration
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDuration = newLabDuration
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDuration = newLabDuration,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDurationProblem)
@@ -558,10 +580,11 @@ class LaboratoriesTests {
                 (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt() // Invalid duration
 
             // when: updating the laboratory with invalid duration
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labDuration = newLabDuration
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labDuration = newLabDuration,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabDurationProblem)
@@ -577,10 +600,11 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1 // Invalid queue limit
 
             // when: updating the laboratory with invalid queue limit
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labQueueLimit = newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labQueueLimit = newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabQueueLimitProblem)
@@ -596,10 +620,11 @@ class LaboratoriesTests {
             val newLabQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1 // Invalid queue limit
 
             // when: updating the laboratory with invalid queue limit
-            val updateLab = UpdateLaboratory(
-                initialLab.ownerId,
-                labQueueLimit = newLabQueueLimit
-            )
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labQueueLimit = newLabQueueLimit,
+                )
 
             // when: updating the laboratory
             testClient.updateInvalidLab(labId, updateLab, expectedInvalidLabQueueLimitProblem)
@@ -634,22 +659,23 @@ class LaboratoriesTests {
             val initialLaboratory = InitialLaboratory(ownerId)
 
             // when: creating a laboratory
-            val responseLabId = this
-                .post()
-                .uri(Uris.Laboratories.CREATE)
-                .bodyValue(
-                    mapOf(
-                        "labName" to initialLaboratory.labName,
-                        "labDescription" to initialLaboratory.labDescription,
-                        "labDuration" to initialLaboratory.labDuration,
-                        "labQueueLimit" to initialLaboratory.labQueueLimit,
-                        "ownerId" to ownerId
+            val responseLabId =
+                this
+                    .post()
+                    .uri(Uris.Laboratories.CREATE)
+                    .bodyValue(
+                        mapOf(
+                            "labName" to initialLaboratory.labName,
+                            "labDescription" to initialLaboratory.labDescription,
+                            "labDuration" to initialLaboratory.labDuration,
+                            "labQueueLimit" to initialLaboratory.labQueueLimit,
+                            "ownerId" to ownerId,
+                        ),
                     )
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
+                    .exchange()
+                    .expectStatus().isCreated
+                    .expectBody<Int>()
+                    .returnResult()
 
             // then: check the labId
             val labId = responseLabId.responseBody!!
@@ -657,12 +683,15 @@ class LaboratoriesTests {
             return Pair(labId, initialLaboratory)
         }
 
-        private fun WebTestClient.createInvalidLab(initialLaboratory: InitialLaboratory, expectedProblem: Problem) {
+        private fun WebTestClient.createInvalidLab(
+            initialLaboratory: InitialLaboratory,
+            expectedProblem: Problem,
+        ) {
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
                 .bodyValue(
-                    initialLaboratory
+                    initialLaboratory,
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -672,7 +701,7 @@ class LaboratoriesTests {
 
         private fun WebTestClient.getLabByIdAndVerify(
             labId: Int,
-            expectedLab: InitialLaboratory
+            expectedLab: InitialLaboratory,
         ) {
             this.get()
                 .uri(Uris.Laboratories.GET, labId)
@@ -693,7 +722,7 @@ class LaboratoriesTests {
 
         private fun WebTestClient.updateLab(
             labId: Int,
-            updateLab: UpdateLaboratory
+            updateLab: UpdateLaboratory,
         ) {
             this
                 .patch()
@@ -704,8 +733,8 @@ class LaboratoriesTests {
                         "labDescription" to updateLab.labDescription,
                         "labDuration" to updateLab.labDuration,
                         "labQueueLimit" to updateLab.labQueueLimit,
-                        "ownerId" to updateLab.ownerId
-                    )
+                        "ownerId" to updateLab.ownerId,
+                    ),
                 )
                 .exchange()
                 .expectStatus().isOk
@@ -719,7 +748,7 @@ class LaboratoriesTests {
         private fun WebTestClient.updateInvalidLab(
             labId: Int,
             updateLab: UpdateLaboratory,
-            expectedProblem: Problem
+            expectedProblem: Problem,
         ) {
             this
                 .patch()
@@ -730,8 +759,8 @@ class LaboratoriesTests {
                         "labDescription" to updateLab.labDescription,
                         "labDuration" to updateLab.labDuration,
                         "labQueueLimit" to updateLab.labQueueLimit,
-                        "ownerId" to updateLab.ownerId
-                    )
+                        "ownerId" to updateLab.ownerId,
+                    ),
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -739,33 +768,40 @@ class LaboratoriesTests {
                 .consumeWith { it.assertProblem(expectedProblem) }
         }
 
-
         private val INVALID_LAB_NAME_MSG =
-            "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and ${httpUtils.labDomainConfig.maxLengthLabName} characters"
+            "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and " +
+                "${httpUtils.labDomainConfig.maxLengthLabName} characters"
 
-        val expectedInvalidLabNameProblem = Problem.invalidLaboratoryName(
-            INVALID_LAB_NAME_MSG
-        )
+        val expectedInvalidLabNameProblem =
+            Problem.invalidLaboratoryName(
+                INVALID_LAB_NAME_MSG,
+            )
 
         private val INVALID_LAB_DESCRIPTION_MSG =
-            "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
+            "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} " +
+                "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
 
-        val expectedInvalidLabDescriptionProblem = Problem.invalidLaboratoryDescription(
-            INVALID_LAB_DESCRIPTION_MSG
-        )
+        val expectedInvalidLabDescriptionProblem =
+            Problem.invalidLaboratoryDescription(
+                INVALID_LAB_DESCRIPTION_MSG,
+            )
 
         private val INVALID_LAB_DURATION_MSG =
-            "Laboratory duration must be between ${httpUtils.labDomainConfig.minLabDuration.inWholeMinutes} and ${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
+            "Laboratory duration must be between ${httpUtils.labDomainConfig.minLabDuration.inWholeMinutes} and " +
+                "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
 
-        val expectedInvalidLabDurationProblem = Problem.invalidLaboratoryDuration(
-            INVALID_LAB_DURATION_MSG
-        )
+        val expectedInvalidLabDurationProblem =
+            Problem.invalidLaboratoryDuration(
+                INVALID_LAB_DURATION_MSG,
+            )
 
         private val INVALID_LAB_QUEUE_LIMIT_MSG =
-            "Laboratory queue limit must be between ${httpUtils.labDomainConfig.minLabQueueLimit} and ${httpUtils.labDomainConfig.maxLabQueueLimit}"
+            "Laboratory queue limit must be between ${httpUtils.labDomainConfig.minLabQueueLimit} and " +
+                "${httpUtils.labDomainConfig.maxLabQueueLimit}"
 
-        val expectedInvalidLabQueueLimitProblem = Problem.invalidLaboratoryQueueLimit(
-            INVALID_LAB_QUEUE_LIMIT_MSG
-        )
+        val expectedInvalidLabQueueLimitProblem =
+            Problem.invalidLaboratoryQueueLimit(
+                INVALID_LAB_QUEUE_LIMIT_MSG,
+            )
     }
 }

@@ -110,44 +110,40 @@ class Problem(
                 "The laboratory with the provided information is not owned by the user.",
             )
 
-        fun invalidLaboratoryName(
-            message: String,
-        ) = Problem(
-            URI(
-                "TODO",
-            ).toASCIIString(),
-            "Invalid laboratory name",
-            message,
-        )
+        fun invalidLaboratoryName(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid laboratory name",
+                message,
+            )
 
-        fun invalidLaboratoryDescription(
-            message: String,
-        ) = Problem(
-            URI(
-                "TODO",
-            ).toASCIIString(),
-            "Invalid laboratory description",
-            message,
-        )
+        fun invalidLaboratoryDescription(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid laboratory description",
+                message,
+            )
 
-        fun invalidLaboratoryDuration(
-            message: String,
-        ) = Problem(
-            URI(
-                "TODO",
-            ).toASCIIString(),
-            "Invalid laboratory duration",
-            message,
-        )
+        fun invalidLaboratoryDuration(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid laboratory duration",
+                message,
+            )
 
-        fun invalidLaboratoryQueueLimit(
-            message: String,
-        ) = Problem(
-            URI(
-                "TODO",
-            ).toASCIIString(),
-            "Invalid laboratory queue limit",
-            message,
-        )
+        fun invalidLaboratoryQueueLimit(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid laboratory queue limit",
+                message,
+            )
     }
 }

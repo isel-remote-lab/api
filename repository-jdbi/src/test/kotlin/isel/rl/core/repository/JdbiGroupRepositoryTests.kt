@@ -3,11 +3,15 @@ package isel.rl.core.repository
 import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.group.GroupDescription
 import isel.rl.core.domain.group.GroupName
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.jdbi.JdbiGroupRepository
+import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.*
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class JdbiGroupRepositoryTests {
     @Test
@@ -76,10 +80,10 @@ class JdbiGroupRepositoryTests {
             // when: Removing user from group
             assertTrue(
                 groupRepo.removeUserFromGroup(userId, groupId),
-                "Failed to remove user $userId from group $groupId"
+                "Failed to remove user $userId from group $groupId",
             )
 
-            //then: verify the user is not in the group anymore
+            // then: verify the user is not in the group anymore
             val groupUsers2 = groupRepo.getGroupUsers(groupId)
             assertTrue(groupUsers2.size == 1, "Expected group to have 1 user but had ${groupUsers2.size}")
             assertTrue(groupUsers2.contains(ownerId), "Expected group to have user $ownerId but it didn't")
@@ -159,7 +163,7 @@ class JdbiGroupRepositoryTests {
             val newGroupDescription = repoUtils.newTestGroupDescription()
             assertTrue(
                 groupRepo.updateGroup(groupId, newGroupName, newGroupDescription),
-                "Failed to update group name and description"
+                "Failed to update group name and description",
             )
 
             // then: check for the new name and description
@@ -191,7 +195,7 @@ class JdbiGroupRepositoryTests {
             // when: removing the only user in the group
             assertTrue(
                 groupRepo.removeUserFromGroup(ownerId, groupId),
-                "Failed to remove user $ownerId from group $groupId"
+                "Failed to remove user $ownerId from group $groupId",
             )
 
             // then: delete group
@@ -218,7 +222,7 @@ class JdbiGroupRepositoryTests {
                 group.groupName,
                 group.groupDescription,
                 group.createdAt,
-                group.ownerId
+                group.ownerId,
             )
 
         private fun InitialGroup.assertGroupWith(group: Group?) {
