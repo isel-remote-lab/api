@@ -4,6 +4,8 @@ import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
 
+typealias LoginUserResult = Either<ServicesExceptions, String>
+
 /**
  * Result of creating a user.
  * It can either be a [Either.Right] with the user ID or a [Either.Left] with an exception.
@@ -20,6 +22,25 @@ typealias GetUserResult = Either<ServicesExceptions, User>
  * Interface for managing users.
  */
 interface IUsersService {
+    /**
+     * Logs in a user.
+     * If the user does not exist, it creates a new user.
+     * The parameters are validated before creating the user with the user domain.
+     * If the validation fails, a [ServicesExceptions] is returned as failure.
+     *
+     * @param oauthId The OAuth ID of the user.
+     * @param username The username of the user.
+     * @param email The email of the user.
+     * @param accessToken The access token of the user.
+     * @return A result indicating success or failure.
+     */
+    fun login(
+        oauthId: String,
+        username: String,
+        email: String,
+        accessToken: String,
+    ): LoginUserResult
+
     /**
      * Creates a new user.
      * The parameters are validated before creating the user with the user domain.
@@ -60,5 +81,8 @@ interface IUsersService {
      * @param email The email of the user.
      * @return A result containing the user or an exception.
      */
-    fun getUserByEmailOrAuthId(oAuthId: String? = null, email: String? = null): GetUserResult
+    fun getUserByEmailOrAuthId(
+        oAuthId: String? = null,
+        email: String? = null,
+    ): GetUserResult
 }

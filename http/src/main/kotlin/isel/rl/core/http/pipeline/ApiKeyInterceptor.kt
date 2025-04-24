@@ -1,6 +1,6 @@
 package isel.rl.core.http.pipeline
 
-import isel.rl.core.domain.ApiKey
+import isel.rl.core.domain.Secrets
 import isel.rl.core.http.RequireApiKey
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -10,7 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor
 
 @Component
 class ApiKeyInterceptor(
-    private val apiKey: ApiKey,
+    private val secrets: Secrets,
 ) : HandlerInterceptor {
     override fun preHandle(
         request: HttpServletRequest,
@@ -22,7 +22,7 @@ class ApiKeyInterceptor(
         ) {
             val apikey = request.getHeader(NAME_APIKEY_HEADER)
 
-            if (apikey == apiKey.apiKeyInfo) {
+            if (apikey == secrets.apiKey) {
                 true
             } else {
                 response.status = 403

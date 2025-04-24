@@ -4,11 +4,11 @@ import isel.rl.core.domain.group.GroupDescription
 import isel.rl.core.domain.group.GroupName
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
-import isel.rl.core.domain.laboratory.props.LabDescription
-import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
+import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
+import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
@@ -16,7 +16,11 @@ import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
-import isel.rl.core.repository.jdbi.*
+import isel.rl.core.repository.jdbi.JdbiGroupRepository
+import isel.rl.core.repository.jdbi.JdbiHardwareRepository
+import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
+import isel.rl.core.repository.jdbi.JdbiUsersRepository
+import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
@@ -30,15 +34,19 @@ import kotlin.time.toDuration
  * This class provides methods to create test users, groups, laboratories, and hardware,
  */
 class RepoUtils {
+    private val labDomainConfig = RemoteLabApp().laboratoryDomainConfig()
+    val secrets = RemoteLabApp().secrets()
+
     /**
      * Provides a [LaboratoriesDomain] instance for validating laboratory-related operations.
      */
-    val laboratoriesDomain = LaboratoriesDomain(
-        RemoteLabApp().laboratoryDomainConfig()
-    )
-
+    val laboratoriesDomain =
+        LaboratoriesDomain(
+            labDomainConfig,
+        )
 
     // General
+
     /**
      * Creates a new database connection handle.
      * @return A new [Handle] instance for database operations.
@@ -56,6 +64,7 @@ class RepoUtils {
         ).configureWithAppRequirements()
 
     // User functions
+
     /**
      * Generates a random username for testing purposes.
      */
@@ -83,7 +92,10 @@ class RepoUtils {
      */
     fun createTestUser(handle: Handle): Int {
         val userRepo = JdbiUsersRepository(handle)
-        val userDomain = UsersDomain()
+        val userDomain =
+            UsersDomain(
+                secrets,
+            )
         val clock = TestClock()
 
         // when: storing a user
@@ -95,8 +107,12 @@ class RepoUtils {
 
         return userRepo.createUser(
             userDomain.validateCreateUser(
-                oAuthId.oAuthIdInfo, userRole.char, username.usernameInfo, email.emailInfo, createdAt
-            )
+                oAuthId.oAuthIdInfo,
+                userRole.char,
+                username.usernameInfo,
+                email.emailInfo,
+                createdAt,
+            ),
         )
     }
 
@@ -118,7 +134,10 @@ class RepoUtils {
      * @param handle The [Handle] instance for database operations.
      * @return The ID of the created group.
      */
-    fun createTestGroup(userId: Int, handle: Handle): Int {
+    fun createTestGroup(
+        userId: Int,
+        handle: Handle,
+    ): Int {
         val groupRepo = JdbiGroupRepository(handle)
         val clock = TestClock()
 
@@ -131,6 +150,7 @@ class RepoUtils {
     }
 
     // Lab functions
+
     /**
      * Generates a random lab name for testing purposes.
      */
@@ -163,9 +183,10 @@ class RepoUtils {
      */
     fun createTestLab(handle: Handle): Int {
         val laboratoryRepo = JdbiLaboratoriesRepository(handle)
-        val labDomain = LaboratoriesDomain(
-            RemoteLabApp().laboratoryDomainConfig()
-        )
+        val labDomain =
+            LaboratoriesDomain(
+                RemoteLabApp().laboratoryDomainConfig(),
+            )
         val clock = TestClock()
 
         // when: storing a laboratory
@@ -183,12 +204,13 @@ class RepoUtils {
                 labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
                 randomLabQueueLimit.labQueueLimitInfo,
                 labCreatedAt,
-                userId
-            )
+                userId,
+            ),
         )
     }
 
     // Hardware functions
+
     /**
      * Generates a random hardware name for testing purposes.
      */
@@ -236,7 +258,7 @@ class RepoUtils {
             status = status,
             macAddress = macAddress,
             ipAddress = ipAddress,
-            createdAt = createdAt
+            createdAt = createdAt,
         )
     }
 

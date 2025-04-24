@@ -6,6 +6,9 @@ import isel.rl.core.repository.TransactionManager
 import isel.rl.core.services.interfaces.CreateUserResult
 import isel.rl.core.services.interfaces.GetUserResult
 import isel.rl.core.services.interfaces.IUsersService
+import isel.rl.core.services.interfaces.LoginUserResult
+import isel.rl.core.utils.Failure
+import isel.rl.core.utils.Success
 import isel.rl.core.utils.failure
 import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
@@ -20,6 +23,60 @@ data class UsersService(
     private val usersDomain: UsersDomain,
     private val clock: Clock,
 ) : IUsersService {
+    val initialUserRole = "S"
+
+    override fun login(
+        oauthId: String,
+        username: String,
+        email: String,
+        accessToken: String,
+    ): LoginUserResult =
+        try {
+            when (val getByOauthRes = getUserByOAuthId(oauthId)) {
+                is Failure -> {
+                    if (getByOauthRes.value == ServicesExceptions.Users.UserNotFound) {
+                        val createUserResult = createUser(oauthId, initialUserRole, username, email)
+
+                        if (createUserResult is Success) {
+                            success(
+                                usersDomain.generateJWTToken(
+                                    createUserResult.value.toString(),
+                                    oauthId,
+                                    initialUserRole,
+                                    username,
+                                    email,
+                                    accessToken,
+                                    clock.now(),
+                                ),
+                            )
+                        } else {
+                            failure((createUserResult as Failure).value)
+                        }
+                    } else {
+                        failure(getByOauthRes.value)
+                    }
+                }
+
+                is Success -> {
+                    val user = getByOauthRes.value
+                    success(
+                        usersDomain.generateJWTToken(
+                            user.id.toString(),
+                            user.oauthId.oAuthIdInfo,
+                            user.role.char,
+                            user.username.usernameInfo,
+                            user.email.emailInfo,
+                            accessToken,
+                            clock.now(),
+                        ),
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            // Handle exceptions that may occur during the login process
+            handleException(e)
+        }
+
     override fun createUser(
         oauthId: String,
         role: String,
@@ -47,7 +104,6 @@ data class UsersService(
             handleException(e)
         }
 
-
     override fun getUserById(id: String): GetUserResult =
         try {
             // Validate the user ID
@@ -65,7 +121,10 @@ data class UsersService(
             handleException(e)
         }
 
-    override fun getUserByEmailOrAuthId(oAuthId: String?, email: String?): GetUserResult {
+    override fun getUserByEmailOrAuthId(
+        oAuthId: String?,
+        email: String?,
+    ): GetUserResult {
         // Validate the input parameters
         if (oAuthId == null && email == null) {
             return failure(ServicesExceptions.Users.InvalidQueryParams)
@@ -73,10 +132,11 @@ data class UsersService(
 
         // Check if the OAuth ID is provided and retrieve the user by OAuth ID
         // Otherwise, retrieve the user by email
-        return if(oAuthId != null)
+        return if (oAuthId != null) {
             getUserByOAuthId(oAuthId)
-        else
+        } else {
             getUserByEmail(email!!)
+        }
     }
 
     /**

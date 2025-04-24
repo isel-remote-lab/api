@@ -5,7 +5,7 @@ object Uris {
      * Prefix of the URI
      */
     private const val PREFIX = "/api/v1"
-    private const val PRIVATE = "${PREFIX}/_private"
+    private const val PRIVATE = "$PREFIX/_private"
 
     object Users {
         private const val BASE = "$PREFIX/users"
@@ -15,6 +15,11 @@ object Uris {
          * URI for creating a user
          */
         const val CREATE = BASE_PRIVATE
+
+        /**
+         * URI for login
+         */
+        const val LOGIN = "$BASE_PRIVATE/login"
 
         /**
          * URI for getting a user by ID

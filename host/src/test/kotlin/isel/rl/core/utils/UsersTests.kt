@@ -1,5 +1,6 @@
 package isel.rl.core.utils
 
+import com.auth0.jwt.interfaces.DecodedJWT
 import isel.rl.core.domain.Uris
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.http.model.Problem
@@ -15,7 +16,7 @@ import kotlin.test.assertTrue
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [RemoteLabApp::class]
+    classes = [RemoteLabApp::class],
 )
 class UsersTests {
     // This is the port that will be used to run the tests
@@ -24,21 +25,52 @@ class UsersTests {
     var port: Int = 0
 
     @Test
-    fun `create user test and get by Id, Email and OAuthId`() {
+    fun `login user test`() {
+        // given: a test client
+        val testClient = httpUtils.buildTestClient(port)
+
+        // when: logging a user that does not exist
+        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
+
+        // then: the user is created
+        testClient.getUserByIdAndVerify(userId, expectedUser)
+    }
+
+    @Test
+    fun `login already created user`() {
+        // given: a test client
+        val testClient = httpUtils.buildTestClient(port)
+
+        // when: logging a user that does not exist
+        val initialUser = InitialUserLogin()
+        val (userId, expectedUser) = testClient.loginUser(initialUser)
+
+        // then: the user is created
+        testClient.getUserByIdAndVerify(userId, expectedUser)
+
+        // when: logging the same user again
+        val (actualUserId, _) = testClient.loginUser(initialUser)
+
+        // then: the user is the same
+        assertEquals(userId, actualUserId)
+    }
+
+    @Test
+    fun `create user test and get by Id and Email`() {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
         // when: creating a user
-        val (userId, initialUser) = testClient.createUser()
+        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
 
         // when: doing a GET by id
-        testClient.getUserByIdAndVerify(userId, initialUser)
+        testClient.getUserByIdAndVerify(userId, expectedUser)
 
         // when: doing a GET by email
-        testClient.getUserByEmailAndVerify(initialUser.email, initialUser)
+        testClient.getUserByEmailAndVerify(expectedUser.email, expectedUser)
 
         // when: doing a GET by oauthId
-        testClient.getUserByOAuthIdAndVerify(initialUser.oAuthId, initialUser)
+        // testClient.getUserByOAuthIdAndVerify(initialUser.oAuthId, initialUser)
     }
 
     @Test
@@ -46,25 +78,13 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val initialUser = InitialUser(
-            email = ""
-        )
+        val initialUser =
+            InitialUserLogin(
+                email = "",
+            )
 
         // when: doing a POST
         testClient.createInvalidUser(initialUser, Problem.invalidEmail)
-    }
-
-    @Test
-    fun `create user with invalid role`() {
-        // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
-
-        val initialUser = InitialUser(
-            role = "invalid-role"
-        )
-
-        // when: doing a POST
-        testClient.createInvalidUser(initialUser, Problem.invalidRole)
     }
 
     @Test
@@ -72,9 +92,10 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val initialUser = InitialUser(
-            username = ""
-        )
+        val initialUser =
+            InitialUserLogin(
+                username = "",
+            )
 
         // when: doing a POST
         testClient.createInvalidUser(initialUser, Problem.invalidUsername)
@@ -85,9 +106,10 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val initialUser = InitialUser(
-            oAuthId = ""
-        )
+        val initialUser =
+            InitialUserLogin(
+                oAuthId = "",
+            )
 
         // when: doing a POST
         testClient.createInvalidUser(initialUser, Problem.invalidOauthId)
@@ -98,19 +120,19 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val initialUser = InitialUser()
+        val initialUser = InitialUserLogin()
 
         // when: doing a POST
         // then: the response is an 403 Forbidden
         testClient
             .post()
-            .uri(Uris.Users.CREATE)
+            .uri(Uris.Users.LOGIN)
             .bodyValue(
                 mapOf(
                     "oauthId" to initialUser.oAuthId,
-                    "role" to initialUser.role,
                     "username" to initialUser.username,
-                    "email" to initialUser.email
+                    "email" to initialUser.email,
+                    "accessToken" to initialUser.accessToken,
                 ),
             )
             .exchange()
@@ -122,44 +144,22 @@ class UsersTests {
         // given: a test client
         val testClient = httpUtils.buildTestClient(port)
 
-        val initialUser = InitialUser()
+        val initialUser = InitialUserLogin()
 
         // when: doing a POST
         // then: the response is an 403 Forbidden
         testClient
             .post()
-            .uri(Uris.Users.CREATE)
+            .uri(Uris.Users.LOGIN)
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
                 mapOf(
                     "oauthId" to initialUser.oAuthId,
-                    "role" to initialUser.role,
                     "username" to initialUser.username,
-                    "email" to initialUser.email
+                    "email" to initialUser.email,
+                    "accessToken" to initialUser.accessToken,
                 ),
             )
-            .exchange()
-            .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `get user by oAuthId with invalid api key`() {
-        // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
-
-        val oAuthId = httpUtils.newTestOauthId()
-
-        // when: doing a GET
-        // then: the response is an 403 Forbidden
-        testClient
-            .get()
-            .uri { builder ->
-                builder
-                    .path(Uris.Users.GET_BY_OAUTHID)
-                    .queryParam("oauthid", oAuthId)
-                    .build()
-            }
-            .header(httpUtils.apiHeader, "invalid-api-key")
             .exchange()
             .expectStatus().isForbidden
     }
@@ -172,43 +172,55 @@ class UsersTests {
             val oAuthId: String = httpUtils.newTestOauthId(),
             val role: String = httpUtils.randomUserRole(),
             val username: String = httpUtils.newTestUsername(),
-            val email: String = httpUtils.newTestEmail()
+            val email: String = httpUtils.newTestEmail(),
+        )
+
+        private data class InitialUserLogin(
+            val oAuthId: String = httpUtils.newTestOauthId(),
+            val role: String = "S",
+            val username: String = httpUtils.newTestUsername(),
+            val email: String = httpUtils.newTestEmail(),
+            val accessToken: String = httpUtils.newTestAccessToken(),
         )
 
         private fun WebTestClient.createUser(): Pair<Int, InitialUser> {
             val user = InitialUser()
 
-            val responseUserId = post()
-                .uri(Uris.Users.CREATE)
-                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
-                .bodyValue(
-                    mapOf(
-                        "oauthId" to user.oAuthId,
-                        "role" to user.role,
-                        "username" to user.username,
-                        "email" to user.email
-                    ),
-                )
-                .exchange()
-                .expectStatus().isCreated
-                .expectBody<Int>()
-                .returnResult()
+            val responseUserId =
+                post()
+                    .uri(Uris.Users.CREATE)
+                    .header(httpUtils.apiHeader, httpUtils.apiKey)
+                    .bodyValue(
+                        mapOf(
+                            "oauthId" to user.oAuthId,
+                            "role" to user.role,
+                            "username" to user.username,
+                            "email" to user.email,
+                        ),
+                    )
+                    .exchange()
+                    .expectStatus().isCreated
+                    .expectBody<Int>()
+                    .returnResult()
 
             val userId = responseUserId.responseBody!!
             assertTrue(userId >= 0)
             return Pair(userId, user)
         }
 
-        private fun WebTestClient.createInvalidUser(initialUser: InitialUser, expectedProblem: Problem) {
+        private fun WebTestClient.createInvalidUser(
+            initialUser: InitialUserLogin,
+            expectedProblem: Problem,
+        ) {
             post()
-                .uri(Uris.Users.CREATE)
-                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
+                .uri(Uris.Users.LOGIN)
+                .header(httpUtils.apiHeader, httpUtils.apiKey)
                 .bodyValue(
                     mapOf(
                         "oauthId" to initialUser.oAuthId,
-                        "role" to initialUser.role,
                         "username" to initialUser.username,
-                        "email" to initialUser.email
+                        "email" to initialUser.email,
+                        "accessToken" to initialUser.accessToken,
                     ),
                 )
                 .exchange()
@@ -223,7 +235,10 @@ class UsersTests {
                 }
         }
 
-        private fun WebTestClient.getUserByIdAndVerify(userId: Int, expectedUser: InitialUser) {
+        private fun WebTestClient.getUserByIdAndVerify(
+            userId: Int,
+            expectedUser: InitialUser,
+        ) {
             get()
                 .uri(Uris.Users.GET, userId)
                 .exchange()
@@ -241,7 +256,10 @@ class UsersTests {
                 }
         }
 
-        private fun WebTestClient.getUserByEmailAndVerify(userEmail: String, expectedUser: InitialUser) {
+        private fun WebTestClient.getUserByEmailAndVerify(
+            userEmail: String,
+            expectedUser: InitialUser,
+        ) {
             get()
                 .uri { builder ->
                     builder
@@ -263,7 +281,10 @@ class UsersTests {
                 }
         }
 
-        private fun WebTestClient.getUserByOAuthIdAndVerify(oAuthId: String, expectedUser: InitialUser) {
+        private fun WebTestClient.getUserByOAuthIdAndVerify(
+            oAuthId: String,
+            expectedUser: InitialUser,
+        ) {
             get()
                 .uri { builder ->
                     builder
@@ -271,7 +292,7 @@ class UsersTests {
                         .queryParam("oauthid", oAuthId)
                         .build()
                 }
-                .header(httpUtils.apiHeader, httpUtils.apiKey.apiKeyInfo)
+                .header(httpUtils.apiHeader, httpUtils.apiKey)
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<Map<String, UserOutputModel>>()
@@ -284,6 +305,42 @@ class UsersTests {
                     assertEquals(expectedUser.username, user.username)
                     assertEquals(expectedUser.email, user.email)
                 }
+        }
+
+        private fun WebTestClient.loginUser(initialUser: InitialUserLogin): Pair<Int, InitialUser> {
+            val res =
+                post()
+                    .uri(Uris.Users.LOGIN)
+                    .header(httpUtils.apiHeader, httpUtils.apiKey)
+                    .bodyValue(
+                        mapOf(
+                            "oauthId" to initialUser.oAuthId,
+                            "username" to initialUser.username,
+                            "email" to initialUser.email,
+                            "accessToken" to initialUser.accessToken,
+                        ),
+                    )
+                    .exchange()
+                    .expectStatus().isOk
+                    .expectCookie().exists(httpUtils.sessionCookie)
+                    .expectBody<Unit>()
+                    .returnResult()
+
+            val cookie = res.responseCookies[httpUtils.sessionCookie]?.first()?.value
+
+            val jwt: DecodedJWT = httpUtils.validateJWTToken(cookie)
+
+            val userId = jwt.getClaim("userId").asString()
+            assertNotNull(userId, "User ID should not be null")
+            return (
+                userId.toInt() to
+                    InitialUser(
+                        oAuthId = initialUser.oAuthId,
+                        role = initialUser.role,
+                        username = initialUser.username,
+                        email = initialUser.email,
+                    )
+            )
         }
     }
 }

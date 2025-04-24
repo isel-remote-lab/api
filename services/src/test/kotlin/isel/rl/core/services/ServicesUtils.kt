@@ -4,7 +4,8 @@ import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Role
-import isel.rl.core.repository.jdbi.*
+import isel.rl.core.host.RemoteLabApp
+import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import isel.rl.core.repository.jdbi.transaction.JdbiTransactionManager
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
@@ -18,28 +19,31 @@ import kotlin.time.toDuration
  */
 class ServicesUtils {
     // General
+
     /**
      * [Jdbi] instance configured with a PostgreSQL data source.
      */
-    private val jdbi = Jdbi.create(
-        PGSimpleDataSource().apply {
-            setURL("jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
-        },
-    ).configureWithAppRequirements()
+    private val jdbi =
+        Jdbi.create(
+            PGSimpleDataSource().apply {
+                setURL("jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+            },
+        ).configureWithAppRequirements()
+
+    private val secrets = RemoteLabApp().secrets()
 
     // User functions
+
     /**
      * Creates a new instance of the [UsersService] with a [JdbiTransactionManager] and [UsersDomain].
      *
      * @param testClock The [TestClock] instance to be used.
      * @return A new instance of [UsersService].
      */
-    fun createUsersServices(
-        testClock: TestClock,
-    ): UsersService =
+    fun createUsersServices(testClock: TestClock): UsersService =
         UsersService(
             JdbiTransactionManager(jdbi),
-            UsersDomain(),
+            UsersDomain(secrets),
             testClock,
         )
 
@@ -64,6 +68,7 @@ class ServicesUtils {
     fun newTestOauthId() = "oauth-${abs(Random.nextLong())}"
 
     // Group functions
+
     /**
      * Generates a random group name for testing purposes.
      */
@@ -75,6 +80,7 @@ class ServicesUtils {
     fun newTestGroupDescription() = "description-${abs(Random.nextLong())}"
 
     // Lab functions
+
     /**
      * Generates a random lab name for testing purposes.
      */
@@ -101,6 +107,7 @@ class ServicesUtils {
     fun randomLabSessionState() = LabSessionState.entries.random().char
 
     // Hardware functions
+
     /**
      * Generates a random hardware name for testing purposes.
      */

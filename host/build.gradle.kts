@@ -21,6 +21,10 @@ dependencies {
     // To use WebTestClient on tests
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // To use JWT
+    testImplementation("com.auth0:java-jwt:4.5.0")
+
     testImplementation(kotlin("test"))
 }
 
@@ -28,6 +32,9 @@ tasks.test {
     useJUnitPlatform()
     if (System.getenv("DB_URL") == null) {
         environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+    }
+    if (System.getenv("TEST_MODE") == null) {
+        environment("TEST_MODE", "true")
     }
     dependsOn(":repository-jdbi:dbTestsWait")
     finalizedBy(":repository-jdbi:dbTestsDown")

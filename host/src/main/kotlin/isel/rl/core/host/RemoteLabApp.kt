@@ -1,7 +1,7 @@
 package isel.rl.core.host
 
 import io.github.cdimascio.dotenv.dotenv
-import isel.rl.core.domain.ApiKey
+import isel.rl.core.domain.Secrets
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
 import isel.rl.core.http.pipeline.ApiKeyInterceptor
 import isel.rl.core.repository.jdbi.configureWithAppRequirements
@@ -18,6 +18,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 const val API_KEY = "API_KEY"
+const val JWT_SECRET = "JWT_SECRET"
 
 const val MIN_LENGTH_LABNAME = "MIN_LENGTH_LABNAME"
 const val MAX_LENGTH_LABNAME = "MAX_LENGTH_LABNAME"
@@ -30,24 +31,37 @@ const val MAX_LABQUEUE_LIMIT = "MAX_LABQUEUE_LIMIT"
 
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
+    val privateDirectory: String
+        get() =
+            if (System.getenv("TEST_MODE") == "true") {
+                "../../private"
+            } else {
+                "../private"
+            }
+
     /**
      * Loads environment variables from a .env file located in the shared domain directory.
      * This variables are used to configure the application domain restrictions.
      */
     val domainConfigs =
         dotenv {
-            directory = "../../private/shared/domain"
+            directory = "$privateDirectory/shared/domain"
             filename = ".env"
         }
 
     @Bean
-    fun apiKeyInfo() =
-        ApiKey(
+    fun secrets(): Secrets {
+        val secrets =
             dotenv {
-                directory = "../../private/shared/secrets"
+                directory = "$privateDirectory/shared/secrets"
                 filename = ".env"
-            }[API_KEY]!!
+            }
+
+        return Secrets(
+            apiKey = secrets[API_KEY]!!,
+            jwtSecret = secrets[JWT_SECRET]!!,
         )
+    }
 
     @Bean
     fun laboratoryDomainConfig() =
@@ -86,7 +100,7 @@ class RemoteLabApp {
 
 @Configuration
 class PipelineConfigurer(
-    val apiKeyInterceptor: ApiKeyInterceptor
+    val apiKeyInterceptor: ApiKeyInterceptor,
 ) : WebMvcConfigurer {
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(apiKeyInterceptor)

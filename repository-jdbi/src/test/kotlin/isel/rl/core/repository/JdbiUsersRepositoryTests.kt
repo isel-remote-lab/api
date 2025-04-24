@@ -1,16 +1,21 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
+import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.*
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class JdbiUsersRepositoryTests {
     @Test
@@ -140,8 +145,7 @@ class JdbiUsersRepositoryTests {
             assertEquals(tokenCreationInstant, retrievedToken.createdAt)
         }
     }
-    */
-
+     */
 
     companion object {
         private val repoUtils = RepoUtils()
@@ -180,7 +184,7 @@ class JdbiUsersRepositoryTests {
          * @return The ID of the created user.
          */
         private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int {
-            val usersDomain = UsersDomain()
+            val usersDomain = UsersDomain(repoUtils.secrets)
 
             return createUser(
                 usersDomain.validateCreateUser(
@@ -188,8 +192,8 @@ class JdbiUsersRepositoryTests {
                     user.userRole.char,
                     user.username.usernameInfo,
                     user.email.emailInfo,
-                    user.createdAt
-                )
+                    user.createdAt,
+                ),
             )
         }
     }
