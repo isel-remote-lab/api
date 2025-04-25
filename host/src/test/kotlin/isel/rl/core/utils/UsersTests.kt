@@ -126,7 +126,7 @@ class UsersTests {
         // then: the response is an 403 Forbidden
         testClient
             .post()
-            .uri(Uris.Users.LOGIN)
+            .uri(Uris.Auth.LOGIN)
             .bodyValue(
                 mapOf(
                     "oauthId" to initialUser.oAuthId,
@@ -150,7 +150,7 @@ class UsersTests {
         // then: the response is an 403 Forbidden
         testClient
             .post()
-            .uri(Uris.Users.LOGIN)
+            .uri(Uris.Auth.LOGIN)
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
                 mapOf(
@@ -183,37 +183,12 @@ class UsersTests {
             val accessToken: String = httpUtils.newTestAccessToken(),
         )
 
-        private fun WebTestClient.createUser(): Pair<Int, InitialUser> {
-            val user = InitialUser()
-
-            val responseUserId =
-                post()
-                    .uri(Uris.Users.CREATE)
-                    .header(httpUtils.apiHeader, httpUtils.apiKey)
-                    .bodyValue(
-                        mapOf(
-                            "oauthId" to user.oAuthId,
-                            "role" to user.role,
-                            "username" to user.username,
-                            "email" to user.email,
-                        ),
-                    )
-                    .exchange()
-                    .expectStatus().isCreated
-                    .expectBody<Int>()
-                    .returnResult()
-
-            val userId = responseUserId.responseBody!!
-            assertTrue(userId >= 0)
-            return Pair(userId, user)
-        }
-
         private fun WebTestClient.createInvalidUser(
             initialUser: InitialUserLogin,
             expectedProblem: Problem,
         ) {
             post()
-                .uri(Uris.Users.LOGIN)
+                .uri(Uris.Auth.LOGIN)
                 .header(httpUtils.apiHeader, httpUtils.apiKey)
                 .bodyValue(
                     mapOf(
@@ -281,36 +256,11 @@ class UsersTests {
                 }
         }
 
-        private fun WebTestClient.getUserByOAuthIdAndVerify(
-            oAuthId: String,
-            expectedUser: InitialUser,
-        ) {
-            get()
-                .uri { builder ->
-                    builder
-                        .path(Uris.Users.GET_BY_OAUTHID)
-                        .queryParam("oauthid", oAuthId)
-                        .build()
-                }
-                .header(httpUtils.apiHeader, httpUtils.apiKey)
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<Map<String, UserOutputModel>>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                    assertNotNull(user)
-                    assertEquals(expectedUser.oAuthId, user.oauthId)
-                    assertEquals(expectedUser.role, user.role)
-                    assertEquals(expectedUser.username, user.username)
-                    assertEquals(expectedUser.email, user.email)
-                }
-        }
 
         private fun WebTestClient.loginUser(initialUser: InitialUserLogin): Pair<Int, InitialUser> {
             val res =
                 post()
-                    .uri(Uris.Users.LOGIN)
+                    .uri(Uris.Auth.LOGIN)
                     .header(httpUtils.apiHeader, httpUtils.apiKey)
                     .bodyValue(
                         mapOf(
@@ -322,11 +272,11 @@ class UsersTests {
                     )
                     .exchange()
                     .expectStatus().isOk
-                    .expectCookie().exists(httpUtils.sessionCookie)
+                    .expectCookie().exists(httpUtils.jwtCookieName)
                     .expectBody<Unit>()
                     .returnResult()
 
-            val cookie = res.responseCookies[httpUtils.sessionCookie]?.first()?.value
+            val cookie = res.responseCookies[httpUtils.jwtCookieName]?.first()?.value
 
             val jwt: DecodedJWT = httpUtils.validateJWTToken(cookie)
 

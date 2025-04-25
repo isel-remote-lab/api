@@ -5,6 +5,7 @@ import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryUpdateInputModel
+import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.ILaboratoriesService
 import isel.rl.core.utils.Failure
@@ -25,6 +26,7 @@ data class LaboratoriesController(
 ) {
     @PostMapping(Uris.Laboratories.CREATE)
     fun createLaboratory(
+        user: AuthenticatedUser,
         @RequestBody input: LaboratoryCreateInputModel,
     ): ResponseEntity<*> =
         when (
@@ -34,7 +36,7 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = input.ownerId,
+                    ownerId = user.user.id,
                 )
         ) {
             is Success -> {
@@ -46,6 +48,7 @@ data class LaboratoriesController(
 
     @GetMapping(Uris.Laboratories.GET)
     fun getLaboratoryById(
+        user: AuthenticatedUser,
         @PathVariable id: String,
     ): ResponseEntity<*> =
         when (val result = laboratoriesService.getLaboratoryById(id)) {
@@ -64,6 +67,7 @@ data class LaboratoriesController(
 
     @PatchMapping(Uris.Laboratories.UPDATE)
     fun updateLaboratory(
+        user: AuthenticatedUser,
         @PathVariable id: String,
         @RequestBody input: LaboratoryUpdateInputModel,
     ): ResponseEntity<*> =
@@ -75,7 +79,7 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = input.ownerId,
+                    ownerId = user.user.id,
                 )
         ) {
             is Success -> {

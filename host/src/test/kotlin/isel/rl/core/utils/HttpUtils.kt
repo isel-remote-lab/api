@@ -28,7 +28,7 @@ class HttpUtils {
     private val secrets = remoteLab.secrets()
     val apiKey = secrets.apiKey
     private val jwtSecret = secrets.jwtSecret
-    val sessionCookie = "session"
+    val jwtCookieName = "jwt-token"
 
     val apiHeader = "X-API-Key"
 
@@ -47,7 +47,7 @@ class HttpUtils {
 
     fun newTestAccessToken() = "access-token-${abs(Random.nextLong())}"
 
-    fun createTestUser(testClient: WebTestClient): Int {
+    fun createTestUser(testClient: WebTestClient): Pair<Int, String> {
         val oAuthId = newTestOauthId()
         val username = newTestUsername()
         val email = newTestEmail()
@@ -58,7 +58,7 @@ class HttpUtils {
         val res =
             testClient
                 .post()
-                .uri(Uris.Users.LOGIN)
+                .uri(Uris.Auth.LOGIN)
                 .header(apiHeader, apiKey)
                 .bodyValue(
                     mapOf(
@@ -70,17 +70,17 @@ class HttpUtils {
                 )
                 .exchange()
                 .expectStatus().isOk
-                .expectCookie().exists(sessionCookie)
+                .expectCookie().exists(jwtCookieName)
                 .expectBody<Unit>()
                 .returnResult()
 
-        val cookie = res.responseCookies[sessionCookie]?.first()?.value
+        val cookie = res.responseCookies[jwtCookieName]?.first()?.value
 
         val jwt: DecodedJWT = validateJWTToken(cookie)
 
         val userId = jwt.getClaim("userId").asString()
         assertNotNull(userId, "User ID should not be null")
-        return userId.toInt()
+        return Pair(userId.toInt(), jwt.token)
     }
 
     fun validateJWTToken(token: String?): DecodedJWT {

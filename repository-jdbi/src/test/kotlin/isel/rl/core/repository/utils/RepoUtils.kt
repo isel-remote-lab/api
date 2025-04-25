@@ -92,10 +92,7 @@ class RepoUtils {
      */
     fun createTestUser(handle: Handle): Int {
         val userRepo = JdbiUsersRepository(handle)
-        val userDomain =
-            UsersDomain(
-                secrets,
-            )
+        val userDomain = UsersDomain()
         val clock = TestClock()
 
         // when: storing a user

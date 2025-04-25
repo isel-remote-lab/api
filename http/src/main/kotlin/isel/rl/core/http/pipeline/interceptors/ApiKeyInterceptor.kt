@@ -1,4 +1,4 @@
-package isel.rl.core.http.pipeline
+package isel.rl.core.http.pipeline.interceptors
 
 import isel.rl.core.domain.Secrets
 import isel.rl.core.http.RequireApiKey

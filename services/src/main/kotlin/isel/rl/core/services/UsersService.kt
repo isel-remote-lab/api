@@ -3,6 +3,7 @@ package isel.rl.core.services
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.repository.TransactionManager
+import isel.rl.core.security.JWTUtils
 import isel.rl.core.services.interfaces.CreateUserResult
 import isel.rl.core.services.interfaces.GetUserResult
 import isel.rl.core.services.interfaces.IUsersService
@@ -21,10 +22,9 @@ import org.springframework.stereotype.Service
 data class UsersService(
     private val transactionManager: TransactionManager,
     private val usersDomain: UsersDomain,
+    private val jwtUtils: JWTUtils,
     private val clock: Clock,
 ) : IUsersService {
-    val initialUserRole = "S"
-
     override fun login(
         oauthId: String,
         username: String,
@@ -35,14 +35,14 @@ data class UsersService(
             when (val getByOauthRes = getUserByOAuthId(oauthId)) {
                 is Failure -> {
                     if (getByOauthRes.value == ServicesExceptions.Users.UserNotFound) {
-                        val createUserResult = createUser(oauthId, initialUserRole, username, email)
+                        val createUserResult = createUser(oauthId, INITIAL_USER_ROLE, username, email)
 
                         if (createUserResult is Success) {
                             success(
-                                usersDomain.generateJWTToken(
+                                jwtUtils.generateJWTToken(
                                     createUserResult.value.toString(),
                                     oauthId,
-                                    initialUserRole,
+                                    INITIAL_USER_ROLE,
                                     username,
                                     email,
                                     accessToken,
@@ -60,7 +60,7 @@ data class UsersService(
                 is Success -> {
                     val user = getByOauthRes.value
                     success(
-                        usersDomain.generateJWTToken(
+                        jwtUtils.generateJWTToken(
                             user.id.toString(),
                             user.oauthId.oAuthIdInfo,
                             user.role.char,
@@ -182,4 +182,10 @@ data class UsersService(
         } catch (e: Exception) {
             handleException(e)
         }
+
+    companion object {
+        const val INITIAL_USER_ROLE = "S"
+    }
+
+
 }

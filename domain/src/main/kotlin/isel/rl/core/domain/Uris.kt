@@ -7,6 +7,20 @@ object Uris {
     private const val PREFIX = "/api/v1"
     private const val PRIVATE = "$PREFIX/_private"
 
+    object Auth {
+        private const val BASE = "$PREFIX/auth"
+
+        /**
+         * URI for login
+         */
+        const val LOGIN = "$BASE/login"
+
+        /**
+         * URI for logout
+         */
+        const val LOGOUT = "$BASE/logout"
+    }
+
     object Users {
         private const val BASE = "$PREFIX/users"
         private const val BASE_PRIVATE = "$PRIVATE/users"
@@ -15,11 +29,6 @@ object Uris {
          * URI for creating a user
          */
         const val CREATE = BASE_PRIVATE
-
-        /**
-         * URI for login
-         */
-        const val LOGIN = "$BASE_PRIVATE/login"
 
         /**
          * URI for getting a user by ID

@@ -184,7 +184,7 @@ class JdbiUsersRepositoryTests {
          * @return The ID of the created user.
          */
         private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int {
-            val usersDomain = UsersDomain(repoUtils.secrets)
+            val usersDomain = UsersDomain()
 
             return createUser(
                 usersDomain.validateCreateUser(

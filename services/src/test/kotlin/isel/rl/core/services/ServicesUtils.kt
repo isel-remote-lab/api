@@ -7,6 +7,7 @@ import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import isel.rl.core.repository.jdbi.transaction.JdbiTransactionManager
+import isel.rl.core.security.JWTUtils
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import kotlin.math.abs
@@ -43,7 +44,8 @@ class ServicesUtils {
     fun createUsersServices(testClock: TestClock): UsersService =
         UsersService(
             JdbiTransactionManager(jdbi),
-            UsersDomain(secrets),
+            UsersDomain(),
+            JWTUtils(secrets),
             testClock,
         )
 

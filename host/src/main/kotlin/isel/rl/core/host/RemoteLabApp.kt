@@ -3,7 +3,9 @@ package isel.rl.core.host
 import io.github.cdimascio.dotenv.dotenv
 import isel.rl.core.domain.Secrets
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
-import isel.rl.core.http.pipeline.ApiKeyInterceptor
+import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
+import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
+import isel.rl.core.http.pipeline.interceptors.AuthenticationInterceptor
 import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
@@ -12,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import kotlin.time.DurationUnit
@@ -101,9 +104,16 @@ class RemoteLabApp {
 @Configuration
 class PipelineConfigurer(
     val apiKeyInterceptor: ApiKeyInterceptor,
+    val authenticationInterceptor: AuthenticationInterceptor,
+    val authenticatedUserArgumentResolver: AuthenticatedUserArgumentResolver,
 ) : WebMvcConfigurer {
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(apiKeyInterceptor)
+        registry.addInterceptor(authenticationInterceptor)
+    }
+
+    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+        resolvers.add(authenticatedUserArgumentResolver)
     }
 }
 
