@@ -3,7 +3,7 @@ package isel.rl.core.utils
 import isel.rl.core.domain.Uris
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.http.model.Problem
-import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
+import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.Nested
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -262,6 +262,43 @@ class LaboratoriesTests {
                     labQueueLimit = newLabQueueLimit,
                 ),
             )
+        }
+
+        @Test
+        fun `update laboratory not owned`() {
+            // given: a test client
+            val testClient = httpUtils.buildTestClient(port)
+
+            // when: creating a laboratory
+            val (labId, initialLab, _) = testClient.createTestLaboratory()
+
+            // when: creating a second user
+            val (_, jwt2) = httpUtils.createTestUser(testClient)
+
+            // when: updating the laboratory
+            val updateLab =
+                UpdateLaboratory(
+                    initialLab.ownerId,
+                    labName = httpUtils.newTestLabName(),
+                )
+
+            // when: updating the laboratory
+            testClient
+                .patch()
+                .uri(Uris.Laboratories.UPDATE, labId)
+                .cookie(httpUtils.jwtCookieName, jwt2)
+                .bodyValue(
+                    mapOf(
+                        "labName" to updateLab.labName,
+                        "labDescription" to updateLab.labDescription,
+                        "labDuration" to updateLab.labDuration,
+                        "labQueueLimit" to updateLab.labQueueLimit,
+                    ),
+                )
+                .exchange()
+                .expectStatus().isNotFound
+                .expectBody<Problem>()
+                .consumeWith { it.assertProblem(Problem.laboratoryNotFound) }
         }
 
         @Test
@@ -682,26 +719,34 @@ class LaboratoriesTests {
             val initialLaboratory = InitialLaboratory(ownerId)
 
             // when: creating a laboratory
-            val responseLabId =
-                this
-                    .post()
-                    .uri(Uris.Laboratories.CREATE)
-                    .cookie(httpUtils.jwtCookieName, jwt)
-                    .bodyValue(
-                        mapOf(
-                            "labName" to initialLaboratory.labName,
-                            "labDescription" to initialLaboratory.labDescription,
-                            "labDuration" to initialLaboratory.labDuration,
-                            "labQueueLimit" to initialLaboratory.labQueueLimit,
-                        ),
+            var labId = -1
+            this
+                .post()
+                .uri(Uris.Laboratories.CREATE)
+                .cookie(httpUtils.jwtCookieName, jwt)
+                .bodyValue(
+                    mapOf(
+                        "labName" to initialLaboratory.labName,
+                        "labDescription" to initialLaboratory.labDescription,
+                        "labDuration" to initialLaboratory.labDuration,
+                        "labQueueLimit" to initialLaboratory.labQueueLimit,
+                    ),
+                )
+                .exchange()
+                .expectStatus().isCreated
+                .expectBody<SuccessResponse>()
+                .consumeWith { response ->
+                    assertNotNull(response)
+                    assertEquals(
+                        "Laboratory created successfully",
+                        response.responseBody?.message,
                     )
-                    .exchange()
-                    .expectStatus().isCreated
-                    .expectBody<Int>()
-                    .returnResult()
+                    assertNotNull(response.responseBody?.data)
+                    labId = (response.responseBody?.data as Map<*, *>)["laboratoryId"] as Int
+                }
+                .returnResult()
 
             // then: check the labId
-            val labId = responseLabId.responseBody!!
             assertTrue(labId >= 0)
             return CreateTestLabResult(
                 labId,
@@ -743,16 +788,20 @@ class LaboratoriesTests {
                 .cookie(httpUtils.jwtCookieName, jwt)
                 .exchange()
                 .expectStatus().isOk
-                .expectBody<Map<String, LaboratoryOutputModel>>()
+                .expectBody<SuccessResponse>()
                 .consumeWith { result ->
                     assertNotNull(result)
-                    val lab = result.responseBody?.get(LAB_OUTPUT_MAP_KEY)
-                    assertNotNull(lab)
-                    assertEquals(expectedLab.labName, lab.labName)
-                    assertEquals(expectedLab.labDescription, lab.labDescription)
-                    assertEquals(expectedLab.labDuration, lab.labDuration)
-                    assertEquals(expectedLab.labQueueLimit, lab.labQueueLimit)
-                    assertEquals(expectedLab.ownerId, lab.ownerId)
+                    assertEquals(
+                        "Laboratory found with the id $labId",
+                        result.responseBody?.message,
+                    )
+                    assertNotNull(result.responseBody?.data)
+                    val lab =
+                        (result.responseBody?.data as Map<*, *>)[LAB_OUTPUT_MAP_KEY] as Map<*, *>
+                    assertEquals(expectedLab.labName, lab["labName"])
+                    assertEquals(expectedLab.labDescription, lab["labDescription"])
+                    assertEquals(expectedLab.labDuration, lab["labDuration"])
+                    assertEquals(expectedLab.labQueueLimit, lab["labQueueLimit"])
                 }
         }
 
@@ -775,10 +824,13 @@ class LaboratoriesTests {
                 )
                 .exchange()
                 .expectStatus().isOk
-                .expectBody<String>()
+                .expectBody<SuccessResponse>()
                 .consumeWith { result ->
                     assertNotNull(result)
-                    assertEquals(UPDATED_SUCCESSFULLY_MSG, result.responseBody)
+                    assertEquals(
+                        UPDATED_SUCCESSFULLY_MSG,
+                        result.responseBody?.message,
+                    )
                 }
         }
 

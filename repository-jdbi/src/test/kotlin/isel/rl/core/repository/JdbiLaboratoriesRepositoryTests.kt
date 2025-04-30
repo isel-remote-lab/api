@@ -9,10 +9,7 @@ import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 import kotlin.time.DurationUnit
 
 class JdbiLaboratoriesRepositoryTests {
@@ -255,6 +252,54 @@ class JdbiLaboratoriesRepositoryTests {
             val groupsAfterRemoval = laboratoryRepo.getLaboratoryGroups(labId)
             assertNotNull(groupsAfterRemoval) { "No groups retrieved from database" }
             assertTrue(groupsAfterRemoval.isEmpty(), "Groups should be empty after removal")
+        }
+    }
+
+    @Test
+    fun `check if user belongs to laboratory (success)`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory, user repo and group repo
+            val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a laboratory
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
+
+            // when: storing a group
+            val groupId = repoUtils.createTestGroup(userId, handle)
+
+            // when: adding a group to the laboratory
+            assertTrue(laboratoryRepo.addGroupToLaboratory(labId, groupId))
+
+            // when: checking if the user belongs to the laboratory
+            assertTrue(laboratoryRepo.checkIfUserBelongsToLaboratory(labId, userId))
+        }
+    }
+
+    @Test
+    fun `check if user belongs to laboratory (failure)`()  {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory, user repo and group repo
+            val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a laboratory
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
+
+            // when: checking if the user belongs to the laboratory
+            assertFalse(!laboratoryRepo.checkIfUserBelongsToLaboratory(labId, userId))
         }
     }
 

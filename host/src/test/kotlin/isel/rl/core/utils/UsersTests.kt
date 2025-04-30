@@ -4,7 +4,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import isel.rl.core.domain.Uris
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.http.model.Problem
-import isel.rl.core.http.model.user.UserOutputModel
+import isel.rl.core.http.model.SuccessResponse
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -217,16 +217,18 @@ class UsersTests {
                 .uri(Uris.Users.GET, userId)
                 .exchange()
                 .expectStatus().isOk
-                .expectBody<Map<String, UserOutputModel>>()
+                .expectBody<SuccessResponse>()
                 .consumeWith { result ->
                     assertNotNull(result)
-                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                    assertNotNull(user)
-                    assertEquals(userId, user.id)
-                    assertEquals(expectedUser.oAuthId, user.oauthId)
-                    assertEquals(expectedUser.role, user.role)
-                    assertEquals(expectedUser.username, user.username)
-                    assertEquals(expectedUser.email, user.email)
+                    val response = result.responseBody
+                    val responseBody = (response?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
+                    assertNotNull(response)
+                    assertEquals("User found with the id $userId", response.message)
+                    assertEquals(userId, responseBody["id"])
+                    assertEquals(expectedUser.oAuthId, responseBody["oauthId"])
+                    assertEquals(expectedUser.role, responseBody["role"])
+                    assertEquals(expectedUser.username, responseBody["username"])
+                    assertEquals(expectedUser.email, responseBody["email"])
                 }
         }
 
@@ -243,15 +245,17 @@ class UsersTests {
                 }
                 .exchange()
                 .expectStatus().isOk
-                .expectBody<Map<String, UserOutputModel>>()
+                .expectBody<SuccessResponse>()
                 .consumeWith { result ->
                     assertNotNull(result)
-                    val user = result.responseBody?.get(USER_OUTPUT_MAP_KEY)
-                    assertNotNull(user)
-                    assertEquals(expectedUser.oAuthId, user.oauthId)
-                    assertEquals(expectedUser.role, user.role)
-                    assertEquals(expectedUser.username, user.username)
-                    assertEquals(expectedUser.email, user.email)
+                    val response = result.responseBody
+                    val responseBody = (response?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
+                    assertNotNull(response)
+                    assertEquals("User found with the email $userEmail", response.message)
+                    assertEquals(expectedUser.oAuthId, responseBody["oauthId"])
+                    assertEquals(expectedUser.role, responseBody["role"])
+                    assertEquals(expectedUser.username, responseBody["username"])
+                    assertEquals(expectedUser.email, responseBody["email"])
                 }
         }
 
@@ -271,7 +275,14 @@ class UsersTests {
                     .exchange()
                     .expectStatus().isOk
                     .expectCookie().exists(httpUtils.jwtCookieName)
-                    .expectBody<Unit>()
+                    .expectBody<SuccessResponse>()
+                    .consumeWith { result ->
+                        assertNotNull(result)
+                        val actualMessage = result.responseBody
+                        assertNotNull(actualMessage)
+                        assertEquals(200, result.status.value())
+                        assertEquals("User logged in successfully", actualMessage.message)
+                    }
                     .returnResult()
 
             val cookie = res.responseCookies[httpUtils.jwtCookieName]?.first()?.value
