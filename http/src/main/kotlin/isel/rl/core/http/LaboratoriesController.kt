@@ -44,10 +44,11 @@ data class LaboratoriesController(
                 ResponseEntity.status(HttpStatus.CREATED).body(
                     SuccessResponse(
                         message = "Laboratory created successfully",
-                        data = mapOf(
-                            "laboratoryId" to result.value,
-                        ),
-                    )
+                        data =
+                            mapOf(
+                                "laboratoryId" to result.value,
+                            ),
+                    ),
                 )
             }
 
@@ -67,7 +68,7 @@ data class LaboratoriesController(
                     SuccessResponse(
                         message = "Laboratory found with the id $id",
                         data = laboratory.toLaboratoryOutput(),
-                    )
+                    ),
                 )
             }
 
@@ -95,7 +96,7 @@ data class LaboratoriesController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratory updated successfully",
-                    )
+                    ),
                 )
             }
 
@@ -104,14 +105,15 @@ data class LaboratoriesController(
 
     private fun Laboratory.toLaboratoryOutput() =
         mapOf(
-            "laboratory" to LaboratoryOutputModel(
-                id = id,
-                labName = labName.labNameInfo,
-                labDescription = labDescription.labDescriptionInfo,
-                labDuration = labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
-                labQueueLimit = labQueueLimit.labQueueLimitInfo,
-                ownerId = ownerId,
-                createdAt = createdAt.toString(),
-            )
+            "laboratory" to
+                LaboratoryOutputModel(
+                    id = id,
+                    labName = labName.labNameInfo,
+                    labDescription = labDescription.labDescriptionInfo,
+                    labDuration = labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                    labQueueLimit = labQueueLimit.labQueueLimitInfo,
+                    ownerId = ownerId,
+                    createdAt = createdAt.toString(),
+                ),
         )
 }
