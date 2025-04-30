@@ -22,8 +22,14 @@ class RequestJWTProcessor(
         return if (user is Failure) {
             null
         } else {
+            val userDetails = (user as Success).value
             AuthenticatedUser(
-                (user as Success).value,
+                id = userDetails.id,
+                oauthId = userDetails.oauthId,
+                role = userDetails.role,
+                username = userDetails.username,
+                email = userDetails.email,
+                createdAt = userDetails.createdAt,
             )
         }
     }

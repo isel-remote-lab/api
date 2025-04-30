@@ -151,6 +151,27 @@ data class JdbiLaboratoriesRepository(
             .bind("lab_id", labId)
             .execute() == 1
 
+    override fun checkIfUserBelongsToLaboratory(labId: Int, userId: Int): Boolean {
+        // Check first if the user is the owner
+        return if (getLaboratoryOwnerId(labId) == userId) {
+            true
+        } else { // Check if the user is part of any group in the laboratory
+            handle.createQuery(
+                """
+            SELECT EXISTS(
+                SELECT 1 FROM rl.group_laboratory AS gl
+                JOIN rl.group_user AS gu ON gl.group_id = gu.group_id
+                WHERE gl.lab_id = :lab_id AND gu.user_id = :user_id
+            )
+        """,
+            )
+                .bind("lab_id", labId)
+                .bind("user_id", userId)
+                .mapTo<Boolean>()
+                .one()
+        }
+    }
+
     override fun getLaboratoryGroups(labId: Int): List<Int> =
         handle.createQuery(
             """
