@@ -41,7 +41,7 @@ data class AuthController(
                     .body(
                         SuccessResponse(
                             message = "User logged in successfully",
-                        )
+                        ),
                     )
             }
 

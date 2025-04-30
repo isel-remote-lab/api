@@ -151,7 +151,10 @@ data class JdbiLaboratoriesRepository(
             .bind("lab_id", labId)
             .execute() == 1
 
-    override fun checkIfUserBelongsToLaboratory(labId: Int, userId: Int): Boolean {
+    override fun checkIfUserBelongsToLaboratory(
+        labId: Int,
+        userId: Int,
+    ): Boolean {
         // Check first if the user is the owner
         return if (getLaboratoryOwnerId(labId) == userId) {
             true

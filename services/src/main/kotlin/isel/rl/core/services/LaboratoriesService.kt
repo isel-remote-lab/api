@@ -56,22 +56,28 @@ data class LaboratoriesService(
             handleException(e)
         }
 
-    override fun getLaboratoryById(id: String, userId: Int): GetLaboratoryResult =
+    override fun getLaboratoryById(
+        id: String,
+        userId: Int,
+    ): GetLaboratoryResult =
         try {
             // Validate the laboratory ID
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(id)
 
             transactionManager.run {
-                // Check if the user belongs to the laboratory or is the owner
-                if (!it.laboratoriesRepository.checkIfUserBelongsToLaboratory(validatedLabId, userId)) {
-                    // For security reasons, we don't want to expose the existence of a laboratory
-                    return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                }
-
+                val laboratoriesRepo = it.laboratoriesRepository
                 // Retrieve the laboratory by ID from the database and return the result as success
                 // If the laboratory is not found, return failure with LaboratoryNotFound exception
-                it.laboratoriesRepository.getLaboratoryById(validatedLabId)
-                    ?.let(::success)
+                laboratoriesRepo.getLaboratoryById(validatedLabId)
+                    ?.let { laboratory ->
+                        // Check if the user belongs to the laboratory or is the owner
+                        if (!laboratoriesRepo.checkIfUserBelongsToLaboratory(validatedLabId, userId)) {
+                            // For security reasons, we don't want to expose the existence of a laboratory
+                            return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                        } else {
+                            success(laboratory)
+                        }
+                    }
                     ?: failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
             }
         } catch (e: Exception) {

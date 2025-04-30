@@ -28,8 +28,8 @@ data class UsersController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "User found with the id $id",
-                        data = result.value.toUserOutputModel()
-                    )
+                        data = result.value.toUserOutputModel(),
+                    ),
                 )
             }
 
@@ -45,25 +45,24 @@ data class UsersController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "User found with the email $email",
-                        data = result.value.toUserOutputModel()
-                    )
+                        data = result.value.toUserOutputModel(),
+                    ),
                 )
             }
 
             is Failure -> handleServicesExceptions(result.value)
         }
 
-
-
     private fun User.toUserOutputModel() =
         mapOf(
-            "user" to UserOutputModel(
-                id = id,
-                oauthId = oauthId.oAuthIdInfo,
-                role = role.char,
-                username = username.usernameInfo,
-                email = email.emailInfo,
-                createdAt = createdAt.toString(),
-            )
+            "user" to
+                UserOutputModel(
+                    id = id,
+                    oauthId = oauthId.oAuthIdInfo,
+                    role = role.char,
+                    username = username.usernameInfo,
+                    email = email.emailInfo,
+                    createdAt = createdAt.toString(),
+                ),
         )
 }

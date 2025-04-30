@@ -16,7 +16,7 @@ interface LaboratoriesRepository {
 
     fun checkIfLaboratoryExists(labId: Int): Boolean
 
-    fun getLaboratoryOwnerId(labId: Int): Int
+    fun getLaboratoryOwnerId(labId: Int): Int?
 
     fun deleteLaboratory(labId: Int): Boolean
 

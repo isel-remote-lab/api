@@ -55,7 +55,10 @@ interface ILaboratoriesService {
      * @param id The ID of the laboratory.
      * @return A result containing the laboratory or an exception.
      */
-    fun getLaboratoryById(id: String, userId: Int): GetLaboratoryResult
+    fun getLaboratoryById(
+        id: String,
+        userId: Int,
+    ): GetLaboratoryResult
 
     /**
      * Updates an existing laboratory.
