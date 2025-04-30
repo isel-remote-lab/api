@@ -49,8 +49,6 @@ subprojects {
     dependencies {
         // Kotlinx datetime library
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
-
-        testImplementation(kotlin("test"))
     }
 
     // Configure test tasks to use JUnit Platform
