@@ -12,7 +12,6 @@ import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -255,7 +254,6 @@ class UsersTests {
                     assertEquals(expectedUser.email, user.email)
                 }
         }
-
 
         private fun WebTestClient.loginUser(initialUser: InitialUserLogin): Pair<Int, InitialUser> {
             val res =

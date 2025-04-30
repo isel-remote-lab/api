@@ -672,7 +672,7 @@ class LaboratoriesTests {
         private data class CreateTestLabResult(
             val labId: Int,
             val initialLab: InitialLaboratory,
-            val jwt: String
+            val jwt: String,
         )
 
         private fun WebTestClient.createTestLaboratory(): CreateTestLabResult {
@@ -808,7 +808,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_NAME_MSG =
             "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and " +
-                    "${httpUtils.labDomainConfig.maxLengthLabName} characters"
+                "${httpUtils.labDomainConfig.maxLengthLabName} characters"
 
         val expectedInvalidLabNameProblem =
             Problem.invalidLaboratoryName(
@@ -817,7 +817,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DESCRIPTION_MSG =
             "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} " +
-                    "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
+                "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
 
         val expectedInvalidLabDescriptionProblem =
             Problem.invalidLaboratoryDescription(
@@ -826,7 +826,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DURATION_MSG =
             "Laboratory duration must be between ${httpUtils.labDomainConfig.minLabDuration.inWholeMinutes} and " +
-                    "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
+                "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
 
         val expectedInvalidLabDurationProblem =
             Problem.invalidLaboratoryDuration(
@@ -835,7 +835,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_QUEUE_LIMIT_MSG =
             "Laboratory queue limit must be between ${httpUtils.labDomainConfig.minLabQueueLimit} and " +
-                    "${httpUtils.labDomainConfig.maxLabQueueLimit}"
+                "${httpUtils.labDomainConfig.maxLabQueueLimit}"
 
         val expectedInvalidLabQueueLimitProblem =
             Problem.invalidLaboratoryQueueLimit(

@@ -23,7 +23,7 @@ class RequestJWTProcessor(
             null
         } else {
             AuthenticatedUser(
-                (user as Success).value
+                (user as Success).value,
             )
         }
     }
