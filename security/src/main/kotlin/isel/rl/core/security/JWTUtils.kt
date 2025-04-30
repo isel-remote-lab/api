@@ -33,10 +33,11 @@ class JWTUtils(
             .sign(Algorithm.HMAC256(secrets.jwtSecret))
 
     fun validateJWTTokenAndRetrieveUserId(token: String): String {
-        val verifier = JWT.require(Algorithm.HMAC256(secrets.jwtSecret))
-            .withSubject(JWT_TOKEN_SUBJECT)
-            .withIssuer(JWT_TOKEN_ISSUER)
-            .build()
+        val verifier =
+            JWT.require(Algorithm.HMAC256(secrets.jwtSecret))
+                .withSubject(JWT_TOKEN_SUBJECT)
+                .withIssuer(JWT_TOKEN_ISSUER)
+                .build()
 
         val jwt = verifier.verify(token)
         return jwt.getClaim("userId").asString()

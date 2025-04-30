@@ -6,12 +6,12 @@ import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.IUsersService
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.http.HttpHeaders
 
 @RestController
 data class AuthController(

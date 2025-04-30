@@ -43,7 +43,7 @@ class AuthenticationInterceptor(
     private fun isUserAuthenticated(
         user: AuthenticatedUser?,
         request: HttpServletRequest,
-        response: HttpServletResponse
+        response: HttpServletResponse,
     ): Boolean {
         return if (user == null) {
             response.status = 401

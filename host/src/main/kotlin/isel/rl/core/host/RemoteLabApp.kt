@@ -34,13 +34,9 @@ const val MAX_LABQUEUE_LIMIT = "MAX_LABQUEUE_LIMIT"
 
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
-    val privateDirectory: String
-        get() =
-            if (System.getenv("TEST_MODE") == "true") {
-                "../../private"
-            } else {
-                "../private"
-            }
+    private val privateDirectory = "../private"
+    val domainEnv = "$privateDirectory/shared/domain"
+    val secretsEnv = "$privateDirectory/shared/secrets"
 
     /**
      * Loads environment variables from a .env file located in the shared domain directory.
@@ -48,7 +44,7 @@ class RemoteLabApp {
      */
     val domainConfigs =
         dotenv {
-            directory = "$privateDirectory/shared/domain"
+            directory = domainEnv
             filename = ".env"
         }
 
@@ -56,7 +52,7 @@ class RemoteLabApp {
     fun secrets(): Secrets {
         val secrets =
             dotenv {
-                directory = "$privateDirectory/shared/secrets"
+                directory = secretsEnv
                 filename = ".env"
             }
 

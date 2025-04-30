@@ -186,6 +186,4 @@ data class UsersService(
     companion object {
         const val INITIAL_USER_ROLE = "S"
     }
-
-
 }
