@@ -9,7 +9,11 @@ import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.time.DurationUnit
 
 class JdbiLaboratoriesRepositoryTests {
@@ -283,7 +287,7 @@ class JdbiLaboratoriesRepositoryTests {
     }
 
     @Test
-    fun `check if user belongs to laboratory (failure)`()  {
+    fun `check if user belongs to laboratory (failure)`() {
         repoUtils.runWithHandle { handle ->
             // given: a laboratory, user repo and group repo
             val laboratoryRepo = JdbiLaboratoriesRepository(handle)
