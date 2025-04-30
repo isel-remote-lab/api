@@ -2,6 +2,7 @@ package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
 import isel.rl.core.domain.laboratory.Laboratory
+import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryUpdateInputModel
@@ -36,11 +37,18 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = user.user.id,
+                    ownerId = user.id,
                 )
         ) {
             is Success -> {
-                ResponseEntity.status(HttpStatus.CREATED).body(result.value)
+                ResponseEntity.status(HttpStatus.CREATED).body(
+                    SuccessResponse(
+                        message = "Laboratory created successfully",
+                        data = mapOf(
+                            "laboratoryId" to result.value,
+                        ),
+                    )
+                )
             }
 
             is Failure -> handleServicesExceptions(result.value)
@@ -51,14 +59,15 @@ data class LaboratoriesController(
         user: AuthenticatedUser,
         @PathVariable id: String,
     ): ResponseEntity<*> =
-        when (val result = laboratoriesService.getLaboratoryById(id)) {
+        when (val result = laboratoriesService.getLaboratoryById(id, user.id)) {
             is Success -> {
                 val laboratory = result.value
 
                 ResponseEntity.status(HttpStatus.OK).body(
-                    mapOf(
-                        "laboratory" to laboratory.toLaboratoryOutput(),
-                    ),
+                    SuccessResponse(
+                        message = "Laboratory found with the id $id",
+                        data = laboratory.toLaboratoryOutput(),
+                    )
                 )
             }
 
@@ -79,12 +88,14 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = user.user.id,
+                    ownerId = user.id,
                 )
         ) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.OK).body(
-                    "Laboratory updated successfully",
+                    SuccessResponse(
+                        message = "Laboratory updated successfully",
+                    )
                 )
             }
 
@@ -92,13 +103,15 @@ data class LaboratoriesController(
         }
 
     private fun Laboratory.toLaboratoryOutput() =
-        LaboratoryOutputModel(
-            id = id,
-            labName = labName.labNameInfo,
-            labDescription = labDescription.labDescriptionInfo,
-            labDuration = labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
-            labQueueLimit = labQueueLimit.labQueueLimitInfo,
-            ownerId = ownerId,
-            createdAt = createdAt.toString(),
+        mapOf(
+            "laboratory" to LaboratoryOutputModel(
+                id = id,
+                labName = labName.labNameInfo,
+                labDescription = labDescription.labDescriptionInfo,
+                labDuration = labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                labQueueLimit = labQueueLimit.labQueueLimitInfo,
+                ownerId = ownerId,
+                createdAt = createdAt.toString(),
+            )
         )
 }

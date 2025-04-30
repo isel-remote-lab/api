@@ -30,6 +30,11 @@ interface LaboratoriesRepository {
         groupId: Int,
     ): Boolean
 
+    fun checkIfUserBelongsToLaboratory(
+        labId: Int,
+        userId: Int,
+    ): Boolean
+
     fun getLaboratoryGroups(labId: Int): List<Int>
 
     fun addHardwareToLaboratory(

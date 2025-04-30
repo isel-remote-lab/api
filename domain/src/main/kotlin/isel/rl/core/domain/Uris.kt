@@ -14,21 +14,11 @@ object Uris {
          * URI for login
          */
         const val LOGIN = "$BASE/login"
-
-        /**
-         * URI for logout
-         */
-        const val LOGOUT = "$BASE/logout"
     }
 
     object Users {
         private const val BASE = "$PREFIX/users"
         private const val BASE_PRIVATE = "$PRIVATE/users"
-
-        /**
-         * URI for creating a user
-         */
-        const val CREATE = BASE_PRIVATE
 
         /**
          * URI for getting a user by ID
@@ -39,8 +29,6 @@ object Uris {
          * URI for getting a user by email or oAuth id with query parameters
          */
         const val GET_BY_EMAIL = BASE
-
-        const val GET_BY_OAUTHID = BASE_PRIVATE
     }
 
     object Laboratories {
