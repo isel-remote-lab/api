@@ -1,7 +1,7 @@
-package isel.rl.core.domain.group
+package isel.rl.core.domain.group.props
 
-import isel.rl.core.domain.config.GroupDomainConfig
+import isel.rl.core.domain.config.GroupsDomainConfig
 
 data class GroupDomain(
-    private val domainConfig: GroupDomainConfig,
+    private val domainConfig: GroupsDomainConfig,
 )

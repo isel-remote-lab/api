@@ -1,7 +1,7 @@
 package isel.rl.core.http.pipeline.interceptors
 
 import isel.rl.core.domain.Secrets
-import isel.rl.core.http.RequireApiKey
+import isel.rl.core.http.annotations.RequireApiKey
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component

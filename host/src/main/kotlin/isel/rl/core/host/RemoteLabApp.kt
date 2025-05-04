@@ -2,6 +2,7 @@ package isel.rl.core.host
 
 import io.github.cdimascio.dotenv.dotenv
 import isel.rl.core.domain.Secrets
+import isel.rl.core.domain.config.GroupsDomainConfig
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
@@ -23,14 +24,21 @@ import kotlin.time.toDuration
 const val API_KEY = "API_KEY"
 const val JWT_SECRET = "JWT_SECRET"
 
-const val MIN_LENGTH_LABNAME = "MIN_LENGTH_LABNAME"
-const val MAX_LENGTH_LABNAME = "MAX_LENGTH_LABNAME"
-const val MIN_LENGTH_LABDESCRIPTION = "MIN_LENGTH_LABDESCRIPTION"
-const val MAX_LENGTH_LABDESCRIPTION = "MAX_LENGTH_LABDESCRIPTION"
-const val MIN_LABDURATION = "MIN_LABDURATION"
-const val MAX_LABDURATION = "MAX_LABDURATION"
-const val MIN_LABQUEUE_LIMIT = "MIN_LABQUEUE_LIMIT"
-const val MAX_LABQUEUE_LIMIT = "MAX_LABQUEUE_LIMIT"
+// Laboratory domain restrictions
+const val MIN_LENGTH_LAB_NAME = "MIN_LENGTH_LAB_NAME"
+const val MAX_LENGTH_LAB_NAME = "MAX_LENGTH_LAB_NAME"
+const val MIN_LENGTH_LAB_DESCRIPTION = "MIN_LENGTH_LAB_DESCRIPTION"
+const val MAX_LENGTH_LAB_DESCRIPTION = "MAX_LENGTH_LAB_DESCRIPTION"
+const val MIN_LAB_DURATION = "MIN_LAB_DURATION"
+const val MAX_LAB_DURATION = "MAX_LAB_DURATION"
+const val MIN_LAB_QUEUE_LIMIT = "MIN_LAB_QUEUE_LIMIT"
+const val MAX_LAB_QUEUE_LIMIT = "MAX_LAB_QUEUE_LIMIT"
+
+// Group domain restrictions
+const val MIN_LENGTH_GROUP_NAME = "MIN_LENGTH_GROUP_NAME"
+const val MAX_LENGTH_GROUP_NAME = "MAX_LENGTH_GROUP_NAME"
+const val MIN_LENGTH_GROUP_DESCRIPTION = "MIN_LENGTH_GROUP_DESCRIPTION"
+const val MAX_LENGTH_GROUP_DESCRIPTION = "MAX_LENGTH_GROUP_DESCRIPTION"
 
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
@@ -67,16 +75,25 @@ class RemoteLabApp {
     }
 
     @Bean
-    fun laboratoryDomainConfig() =
+    fun laboratoriesDomainConfig() =
         LaboratoriesDomainConfig(
-            minLengthLabName = domainConfigs[MIN_LENGTH_LABNAME]!!.toInt(),
-            maxLengthLabName = domainConfigs[MAX_LENGTH_LABNAME]!!.toInt(),
-            minLengthLabDescription = domainConfigs[MIN_LENGTH_LABDESCRIPTION]!!.toInt(),
-            maxLengthLabDescription = domainConfigs[MAX_LENGTH_LABDESCRIPTION]!!.toInt(),
-            minLabDuration = domainConfigs[MIN_LABDURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            maxLabDuration = domainConfigs[MAX_LABDURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            minLabQueueLimit = domainConfigs[MIN_LABQUEUE_LIMIT]!!.toInt(),
-            maxLabQueueLimit = domainConfigs[MAX_LABQUEUE_LIMIT]!!.toInt(),
+            minLengthLabName = domainConfigs[MIN_LENGTH_LAB_NAME]!!.toInt(),
+            maxLengthLabName = domainConfigs[MAX_LENGTH_LAB_NAME]!!.toInt(),
+            minLengthLabDescription = domainConfigs[MIN_LENGTH_LAB_DESCRIPTION]!!.toInt(),
+            maxLengthLabDescription = domainConfigs[MAX_LENGTH_LAB_DESCRIPTION]!!.toInt(),
+            minLabDuration = domainConfigs[MIN_LAB_DURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
+            maxLabDuration = domainConfigs[MAX_LAB_DURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
+            minLabQueueLimit = domainConfigs[MIN_LAB_QUEUE_LIMIT]!!.toInt(),
+            maxLabQueueLimit = domainConfigs[MAX_LAB_QUEUE_LIMIT]!!.toInt(),
+        )
+
+    @Bean
+    fun groupsDomainConfig() =
+        GroupsDomainConfig(
+            minLengthGroupName = domainConfigs[MIN_LENGTH_GROUP_NAME]!!.toInt(),
+            maxLengthGroupName = domainConfigs[MAX_LENGTH_GROUP_NAME]!!.toInt(),
+            minLengthGroupDescription = domainConfigs[MIN_LENGTH_GROUP_DESCRIPTION]!!.toInt(),
+            maxLengthGroupDescription = domainConfigs[MAX_LENGTH_GROUP_DESCRIPTION]!!.toInt(),
         )
 
     /**

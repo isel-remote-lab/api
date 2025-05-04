@@ -1,9 +1,9 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
-import isel.rl.core.repository.jdbi.JdbiGroupRepository
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
@@ -13,12 +13,12 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class JdbiGroupRepositoryTests {
+class JdbiGroupsRepositoryTests {
     @Test
     fun `store group and retrieve`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
 
             // and: a test clock
             val clock = TestClock()
@@ -53,7 +53,7 @@ class JdbiGroupRepositoryTests {
     fun `add user to group, verify and remove`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
 
             // and: a test clock
             val clock = TestClock()
@@ -94,7 +94,7 @@ class JdbiGroupRepositoryTests {
     fun `update group name`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
@@ -120,7 +120,7 @@ class JdbiGroupRepositoryTests {
     fun `update group description`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
             // and: a test clock
             val clock = TestClock()
 
@@ -146,7 +146,7 @@ class JdbiGroupRepositoryTests {
     fun `update group name and description`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
 
             // and: a test clock
             val clock = TestClock()
@@ -178,7 +178,7 @@ class JdbiGroupRepositoryTests {
     fun `delete group`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
-            val groupRepo = JdbiGroupRepository(handle)
+            val groupRepo = JdbiGroupsRepository(handle)
 
             // and: a test clock
             val clock = TestClock()
@@ -217,12 +217,14 @@ class JdbiGroupRepositoryTests {
             val createdAt: Instant = clock.now(),
         )
 
-        private fun JdbiGroupRepository.createGroup(group: InitialGroup): Int =
+        private fun JdbiGroupsRepository.createGroup(group: InitialGroup): Int =
             createGroup(
-                group.groupName,
-                group.groupDescription,
-                group.createdAt,
-                group.ownerId,
+                repoUtils.groupsDomain.validateCreateGroup(
+                    group.groupName.groupNameInfo,
+                    group.groupDescription.groupDescriptionInfo,
+                    group.createdAt,
+                    group.ownerId,
+                )
             )
 
         private fun InitialGroup.assertGroupWith(group: Group?) {

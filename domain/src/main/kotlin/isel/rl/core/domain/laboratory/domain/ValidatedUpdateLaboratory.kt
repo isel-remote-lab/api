@@ -1,4 +1,4 @@
-package isel.rl.core.domain.laboratory
+package isel.rl.core.domain.laboratory.domain
 
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration

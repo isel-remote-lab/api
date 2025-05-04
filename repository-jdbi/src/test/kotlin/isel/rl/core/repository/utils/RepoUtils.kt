@@ -1,7 +1,8 @@
 package isel.rl.core.repository.utils
 
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
+import isel.rl.core.domain.group.domain.GroupsDomain
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
@@ -16,7 +17,7 @@ import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
-import isel.rl.core.repository.jdbi.JdbiGroupRepository
+import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
@@ -34,7 +35,8 @@ import kotlin.time.toDuration
  * This class provides methods to create test users, groups, laboratories, and hardware,
  */
 class RepoUtils {
-    private val labDomainConfig = RemoteLabApp().laboratoryDomainConfig()
+    private val labDomainConfig = RemoteLabApp().laboratoriesDomainConfig()
+    private val groupDomainConfig = RemoteLabApp().groupsDomainConfig()
     val secrets = RemoteLabApp().secrets()
 
     /**
@@ -43,6 +45,14 @@ class RepoUtils {
     val laboratoriesDomain =
         LaboratoriesDomain(
             labDomainConfig,
+        )
+
+    /**
+     * Provides a [GroupsDomain] instance for validating user-related operations.
+     */
+    val groupsDomain =
+        GroupsDomain(
+            groupDomainConfig,
         )
 
     // General
@@ -135,7 +145,7 @@ class RepoUtils {
         userId: Int,
         handle: Handle,
     ): Int {
-        val groupRepo = JdbiGroupRepository(handle)
+        val groupRepo = JdbiGroupsRepository(handle)
         val clock = TestClock()
 
         // when: storing a group
@@ -143,7 +153,15 @@ class RepoUtils {
         val groupDescription = newTestGroupDescription()
         val groupCreatedAt = clock.now()
 
-        return groupRepo.createGroup(groupName, groupDescription, groupCreatedAt, userId)
+        return groupRepo.createGroup(
+            groupsDomain.validateCreateGroup(
+                groupName.groupNameInfo,
+                groupDescription.groupDescriptionInfo,
+                groupCreatedAt,
+                userId
+            )
+        )
+
     }
 
     // Lab functions
@@ -182,7 +200,7 @@ class RepoUtils {
         val laboratoryRepo = JdbiLaboratoriesRepository(handle)
         val labDomain =
             LaboratoriesDomain(
-                RemoteLabApp().laboratoryDomainConfig(),
+                RemoteLabApp().laboratoriesDomainConfig(),
             )
         val clock = TestClock()
 

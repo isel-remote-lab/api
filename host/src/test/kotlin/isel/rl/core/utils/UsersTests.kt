@@ -67,9 +67,6 @@ class UsersTests {
 
         // when: doing a GET by email
         testClient.getUserByEmailAndVerify(expectedUser.email, expectedUser)
-
-        // when: doing a GET by oauthId
-        // testClient.getUserByOAuthIdAndVerify(initialUser.oAuthId, initialUser)
     }
 
     @Test
@@ -127,12 +124,7 @@ class UsersTests {
             .post()
             .uri(Uris.Auth.LOGIN)
             .bodyValue(
-                mapOf(
-                    "oauthId" to initialUser.oAuthId,
-                    "username" to initialUser.username,
-                    "email" to initialUser.email,
-                    "accessToken" to initialUser.accessToken,
-                ),
+                initialUser.mapOf()
             )
             .exchange()
             .expectStatus().isForbidden
@@ -152,12 +144,7 @@ class UsersTests {
             .uri(Uris.Auth.LOGIN)
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
-                mapOf(
-                    "oauthId" to initialUser.oAuthId,
-                    "username" to initialUser.username,
-                    "email" to initialUser.email,
-                    "accessToken" to initialUser.accessToken,
-                ),
+                initialUser.mapOf()
             )
             .exchange()
             .expectStatus().isForbidden
@@ -166,6 +153,12 @@ class UsersTests {
     companion object {
         private val httpUtils = HttpUtils()
         private const val USER_OUTPUT_MAP_KEY = "user"
+        private const val ID_PROP = "id"
+        private const val OAUTH_ID_PROP = "oauth_id"
+        private const val ROLE_PROP = "role"
+        private const val USERNAME_PROP = "username"
+        private const val EMAIL_PROP = "email"
+        private const val ACCESS_TOKEN = "access_token"
 
         private data class InitialUser(
             val oAuthId: String = httpUtils.newTestOauthId(),
@@ -180,7 +173,15 @@ class UsersTests {
             val username: String = httpUtils.newTestUsername(),
             val email: String = httpUtils.newTestEmail(),
             val accessToken: String = httpUtils.newTestAccessToken(),
-        )
+        ) {
+            fun mapOf() =
+                mapOf(
+                    OAUTH_ID_PROP to oAuthId,
+                    USERNAME_PROP to username,
+                    EMAIL_PROP to email,
+                    ACCESS_TOKEN to accessToken,
+                )
+        }
 
         private fun WebTestClient.createInvalidUser(
             initialUser: InitialUserLogin,
@@ -190,12 +191,7 @@ class UsersTests {
                 .uri(Uris.Auth.LOGIN)
                 .header(httpUtils.apiHeader, httpUtils.apiKey)
                 .bodyValue(
-                    mapOf(
-                        "oauthId" to initialUser.oAuthId,
-                        "username" to initialUser.username,
-                        "email" to initialUser.email,
-                        "accessToken" to initialUser.accessToken,
-                    ),
+                    initialUser.mapOf()
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -205,7 +201,7 @@ class UsersTests {
                     assertNotNull(problem)
                     assertEquals(expectedProblem.type, problem.type)
                     assertEquals(expectedProblem.title, problem.title)
-                    assertEquals(expectedProblem.details, problem.details)
+                    assertEquals(expectedProblem.detail, problem.detail)
                 }
         }
 
@@ -224,11 +220,11 @@ class UsersTests {
                     val responseBody = (response?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
                     assertNotNull(response)
                     assertEquals("User found with the id $userId", response.message)
-                    assertEquals(userId, responseBody["id"])
-                    assertEquals(expectedUser.oAuthId, responseBody["oauthId"])
-                    assertEquals(expectedUser.role, responseBody["role"])
-                    assertEquals(expectedUser.username, responseBody["username"])
-                    assertEquals(expectedUser.email, responseBody["email"])
+                    assertEquals(userId, responseBody[ID_PROP])
+                    assertEquals(expectedUser.oAuthId, responseBody[OAUTH_ID_PROP])
+                    assertEquals(expectedUser.role, responseBody[ROLE_PROP])
+                    assertEquals(expectedUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(expectedUser.email, responseBody[EMAIL_PROP])
                 }
         }
 
@@ -252,10 +248,10 @@ class UsersTests {
                     val responseBody = (response?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
                     assertNotNull(response)
                     assertEquals("User found with the email $userEmail", response.message)
-                    assertEquals(expectedUser.oAuthId, responseBody["oauthId"])
-                    assertEquals(expectedUser.role, responseBody["role"])
-                    assertEquals(expectedUser.username, responseBody["username"])
-                    assertEquals(expectedUser.email, responseBody["email"])
+                    assertEquals(expectedUser.oAuthId, responseBody[OAUTH_ID_PROP])
+                    assertEquals(expectedUser.role, responseBody[ROLE_PROP])
+                    assertEquals(expectedUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(expectedUser.email, responseBody[EMAIL_PROP])
                 }
         }
 
@@ -265,12 +261,7 @@ class UsersTests {
                     .uri(Uris.Auth.LOGIN)
                     .header(httpUtils.apiHeader, httpUtils.apiKey)
                     .bodyValue(
-                        mapOf(
-                            "oauthId" to initialUser.oAuthId,
-                            "username" to initialUser.username,
-                            "email" to initialUser.email,
-                            "accessToken" to initialUser.accessToken,
-                        ),
+                        initialUser.mapOf()
                     )
                     .exchange()
                     .expectStatus().isOk

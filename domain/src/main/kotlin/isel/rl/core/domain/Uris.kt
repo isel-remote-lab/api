@@ -5,7 +5,6 @@ object Uris {
      * Prefix of the URI
      */
     private const val PREFIX = "/api/v1"
-    private const val PRIVATE = "$PREFIX/_private"
 
     object Auth {
         private const val BASE = "$PREFIX/auth"
@@ -18,7 +17,6 @@ object Uris {
 
     object Users {
         private const val BASE = "$PREFIX/users"
-        private const val BASE_PRIVATE = "$PRIVATE/users"
 
         /**
          * URI for getting a user by ID
@@ -45,13 +43,42 @@ object Uris {
         const val GET = "$BASE/{id}"
 
         /**
+         * URI for getting all laboratories of the authenticated user
+         */
+        const val GET_ALL_BY_USER = BASE
+
+        /**
          * URI for updating a laboratory by ID
          */
         const val UPDATE = "$BASE/{id}"
 
         /**
+         * URI for deleting a laboratory by ID
+         */
+        const val DELETE = "$BASE/{id}"
+
+        /**
          * URI for getting all laboratories
          */
         const val GET_ALL = BASE
+    }
+
+    object Groups {
+        const val BASE = "$PREFIX/groups"
+
+        /**
+         * URI for creating a group
+         */
+        const val CREATE = BASE
+
+        /**
+         * URI for getting a group by ID
+         */
+        const val GET = "$BASE/{id}"
+
+        /**
+         * URI for getting all groups of the authenticated user
+         */
+        const val GET_ALL_BY_USER = BASE
     }
 }

@@ -42,6 +42,48 @@ class LaboratoriesTests {
             )
         }
 
+        // TODO: Change this test to use the groups routes
+        /*
+        @Test
+        fun `get laboratories by userId`() {
+            // given: a test client
+            val testClient = httpUtils.buildTestClient(port)
+
+            // when: creating a user and a group
+            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+
+            // when: creating a laboratory
+            val (labId, initialLab) = testClient.createTestLaboratory()
+
+            // when: retrieving the laboratories by userId with default limit and skip
+            testClient
+                .get()
+                .uri(Uris.Laboratories.GET_ALL_BY_USER)
+                .cookie(httpUtils.jwtCookieName, jwt)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    assertEquals(
+                        "Laboratories found for user with id $ownerId",
+                        result.responseBody?.message,
+                    )
+                    assertNotNull(result.responseBody?.data)
+                    val laboratories = result.responseBody?.data as List<*>
+                    assertTrue(laboratories.isNotEmpty())
+                    assertTrue(laboratories.size == 1)
+
+                    val laboratory = laboratories[0] as Map<*, *>
+                    assertEquals(labId, laboratory["laboratoryId"])
+                    assertEquals(initialLab.labName, laboratory["labName"])
+                    assertEquals(initialLab.labDescription, laboratory["labDescription"])
+                    assertEquals(initialLab.labDuration, laboratory["labDuration"])
+                    assertEquals(initialLab.labQueueLimit, laboratory["labQueueLimit"])
+                    assertEquals(ownerId, laboratory["ownerId"])
+                }
+        }*/
+
         @Test
         fun `get laboratory by invalid id`() {
             // given: a test client
@@ -689,6 +731,10 @@ class LaboratoriesTests {
         private val httpUtils = HttpUtils()
         private const val LAB_OUTPUT_MAP_KEY = "laboratory"
         private const val UPDATED_SUCCESSFULLY_MSG = "Laboratory updated successfully"
+        private const val LAB_NAME_PROP = "lab_name"
+        private const val LAB_DESCRIPTION_PROP = "lab_description"
+        private const val LAB_DURATION_PROP = "lab_duration"
+        private const val LAB_QUEUE_LIMIT_PROP = "lab_queue_limit"
 
         private data class InitialLaboratory(
             val ownerId: Int,
@@ -696,7 +742,15 @@ class LaboratoriesTests {
             val labDescription: String? = httpUtils.newTestLabDescription(),
             val labDuration: Int? = httpUtils.newTestLabDuration(),
             val labQueueLimit: Int? = httpUtils.randomLabQueueLimit(),
-        )
+        ) {
+            fun mapOf() =
+                mapOf(
+                    LAB_NAME_PROP to labName,
+                    LAB_DESCRIPTION_PROP to labDescription,
+                    LAB_DURATION_PROP to labDuration,
+                    LAB_QUEUE_LIMIT_PROP to labQueueLimit,
+                )
+        }
 
         private data class UpdateLaboratory(
             val ownerId: Int,
@@ -704,7 +758,15 @@ class LaboratoriesTests {
             val labDescription: String? = null,
             val labDuration: Int? = null,
             val labQueueLimit: Int? = null,
-        )
+        ) {
+            fun mapOf() =
+                mapOf(
+                    LAB_NAME_PROP to labName,
+                    LAB_DESCRIPTION_PROP to labDescription,
+                    LAB_DURATION_PROP to labDuration,
+                    LAB_QUEUE_LIMIT_PROP to labQueueLimit,
+                )
+        }
 
         private data class CreateTestLabResult(
             val labId: Int,
@@ -725,12 +787,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.CREATE)
                 .cookie(httpUtils.jwtCookieName, jwt)
                 .bodyValue(
-                    mapOf(
-                        "labName" to initialLaboratory.labName,
-                        "labDescription" to initialLaboratory.labDescription,
-                        "labDuration" to initialLaboratory.labDuration,
-                        "labQueueLimit" to initialLaboratory.labQueueLimit,
-                    ),
+                    initialLaboratory.mapOf()
                 )
                 .exchange()
                 .expectStatus().isCreated
@@ -742,7 +799,7 @@ class LaboratoriesTests {
                         response.responseBody?.message,
                     )
                     assertNotNull(response.responseBody?.data)
-                    labId = (response.responseBody?.data as Map<*, *>)["laboratoryId"] as Int
+                    labId = (response.responseBody?.data as Map<*, *>)["laboratory_id"] as Int
                 }
                 .returnResult()
 
@@ -765,12 +822,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.CREATE)
                 .cookie(httpUtils.jwtCookieName, jwt)
                 .bodyValue(
-                    mapOf(
-                        "labName" to initialLaboratory.labName,
-                        "labDescription" to initialLaboratory.labDescription,
-                        "labDuration" to initialLaboratory.labDuration,
-                        "labQueueLimit" to initialLaboratory.labQueueLimit,
-                    ),
+                    initialLaboratory.mapOf()
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -798,10 +850,10 @@ class LaboratoriesTests {
                     assertNotNull(result.responseBody?.data)
                     val lab =
                         (result.responseBody?.data as Map<*, *>)[LAB_OUTPUT_MAP_KEY] as Map<*, *>
-                    assertEquals(expectedLab.labName, lab["labName"])
-                    assertEquals(expectedLab.labDescription, lab["labDescription"])
-                    assertEquals(expectedLab.labDuration, lab["labDuration"])
-                    assertEquals(expectedLab.labQueueLimit, lab["labQueueLimit"])
+                    assertEquals(expectedLab.labName, lab[LAB_NAME_PROP])
+                    assertEquals(expectedLab.labDescription, lab[LAB_DESCRIPTION_PROP])
+                    assertEquals(expectedLab.labDuration, lab[LAB_DURATION_PROP])
+                    assertEquals(expectedLab.labQueueLimit, lab[LAB_QUEUE_LIMIT_PROP])
                 }
         }
 
@@ -815,12 +867,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.UPDATE, labId)
                 .cookie(httpUtils.jwtCookieName, jwt)
                 .bodyValue(
-                    mapOf(
-                        "labName" to updateLab.labName,
-                        "labDescription" to updateLab.labDescription,
-                        "labDuration" to updateLab.labDuration,
-                        "labQueueLimit" to updateLab.labQueueLimit,
-                    ),
+                    updateLab.mapOf()
                 )
                 .exchange()
                 .expectStatus().isOk
@@ -845,12 +892,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.UPDATE, labId)
                 .cookie(httpUtils.jwtCookieName, jwt)
                 .bodyValue(
-                    mapOf(
-                        "labName" to updateLab.labName,
-                        "labDescription" to updateLab.labDescription,
-                        "labDuration" to updateLab.labDuration,
-                        "labQueueLimit" to updateLab.labQueueLimit,
-                    ),
+                    updateLab.mapOf()
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -860,7 +902,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_NAME_MSG =
             "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and " +
-                "${httpUtils.labDomainConfig.maxLengthLabName} characters"
+                    "${httpUtils.labDomainConfig.maxLengthLabName} characters"
 
         val expectedInvalidLabNameProblem =
             Problem.invalidLaboratoryName(
@@ -869,7 +911,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DESCRIPTION_MSG =
             "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} " +
-                "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
+                    "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
 
         val expectedInvalidLabDescriptionProblem =
             Problem.invalidLaboratoryDescription(
@@ -878,7 +920,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DURATION_MSG =
             "Laboratory duration must be between ${httpUtils.labDomainConfig.minLabDuration.inWholeMinutes} and " +
-                "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
+                    "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
 
         val expectedInvalidLabDurationProblem =
             Problem.invalidLaboratoryDuration(
@@ -887,7 +929,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_QUEUE_LIMIT_MSG =
             "Laboratory queue limit must be between ${httpUtils.labDomainConfig.minLabQueueLimit} and " +
-                "${httpUtils.labDomainConfig.maxLabQueueLimit}"
+                    "${httpUtils.labDomainConfig.maxLabQueueLimit}"
 
         val expectedInvalidLabQueueLimitProblem =
             Problem.invalidLaboratoryQueueLimit(

@@ -8,6 +8,7 @@ import isel.rl.core.services.interfaces.CreateUserResult
 import isel.rl.core.services.interfaces.GetUserResult
 import isel.rl.core.services.interfaces.IUsersService
 import isel.rl.core.services.interfaces.LoginUserResult
+import isel.rl.core.services.utils.handleException
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
 import isel.rl.core.utils.failure
@@ -62,7 +63,7 @@ data class UsersService(
                     success(
                         jwtUtils.generateJWTToken(
                             user.id.toString(),
-                            user.oauthId.oAuthIdInfo,
+                            user.oAuthId.oAuthIdInfo,
                             user.role.char,
                             user.username.usernameInfo,
                             user.email.emailInfo,

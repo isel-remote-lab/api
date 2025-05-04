@@ -20,7 +20,7 @@ class UserMapper : RowMapper<User> {
 
         return User(
             id = rs.getInt("id"),
-            oauthId = OAuthId(rs.getString("o_auth_id")),
+            oAuthId = OAuthId(rs.getString("o_auth_id")),
             role =
                 Role.entries.firstOrNull { it.char == roleChar }
                     ?: throw SQLException("Unknown role: $roleChar"),

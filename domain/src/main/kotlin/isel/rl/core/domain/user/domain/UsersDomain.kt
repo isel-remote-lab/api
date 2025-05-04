@@ -1,7 +1,6 @@
 package isel.rl.core.domain.user.domain
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
-import isel.rl.core.domain.user.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role

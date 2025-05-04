@@ -1,7 +1,6 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
-import isel.rl.core.domain.user.User
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.user.UserOutputModel
 import isel.rl.core.http.utils.handleServicesExceptions
@@ -28,7 +27,7 @@ data class UsersController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "User found with the id $id",
-                        data = result.value.toUserOutputModel(),
+                        data = UserOutputModel.mapOf(result.value),
                     ),
                 )
             }
@@ -45,24 +44,11 @@ data class UsersController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "User found with the email $email",
-                        data = result.value.toUserOutputModel(),
+                        data = UserOutputModel.mapOf(result.value),
                     ),
                 )
             }
 
             is Failure -> handleServicesExceptions(result.value)
         }
-
-    private fun User.toUserOutputModel() =
-        mapOf(
-            "user" to
-                UserOutputModel(
-                    id = id,
-                    oauthId = oauthId.oAuthIdInfo,
-                    role = role.char,
-                    username = username.usernameInfo,
-                    email = email.emailInfo,
-                    createdAt = createdAt.toString(),
-                ),
-        )
 }

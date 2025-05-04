@@ -1,10 +1,12 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
+import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
@@ -342,6 +344,46 @@ class JdbiLaboratoriesRepositoryTests {
             val hardwaresAfterRemoval = laboratoryRepo.getLaboratoryHardware(labId)
             assertNotNull(hardwaresAfterRemoval) { "No hardwares retrieved from database" }
             assertTrue(hardwaresAfterRemoval.isEmpty(), "Hardwares should be empty after removal")
+        }
+    }
+
+    @Test
+    fun `get laboratories by user id with limit and skip`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a laboratory and user repo
+            val laboratoryRepo = JdbiLaboratoriesRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user and add it to a group
+            val userId = repoUtils.createTestUser(handle)
+            val groupId = repoUtils.createTestGroup(userId, handle)
+
+            // when: storing a laboratory and associate the group
+            val initialLaboratory = InitialLaboratoryInfo(clock, userId)
+            val labId = laboratoryRepo.createLaboratory(initialLaboratory)
+            assertTrue(laboratoryRepo.addGroupToLaboratory(labId, groupId))
+
+            // when: storing another laboratory
+            val initialLaboratory2 = InitialLaboratoryInfo(clock, userId)
+            val labId2 = laboratoryRepo.createLaboratory(initialLaboratory2)
+            assertTrue(laboratoryRepo.addGroupToLaboratory(labId2, groupId))
+
+            // when: retrieving the laboratories by user id
+            val labs = laboratoryRepo.getLaboratoriesByUserId(userId, LimitAndSkip())
+
+            // then: the laboratories should not be empty
+            assertTrue(labs.isNotEmpty(), "No laboratories found for user")
+            assertTrue(labs.size == 2, "Unexpected number of laboratories found for user")
+
+            // when: retrieving only one laboratory with limit = 1
+            val limitAndSkip = LimitAndSkip(limit = 1, skip = 0)
+            val labsWithLimit = laboratoryRepo.getLaboratoriesByUserId(userId, limitAndSkip)
+
+            // then: the laboratories should not be empty
+            assertTrue(labsWithLimit.isNotEmpty(), "No laboratories found for user with limit")
+            assertTrue(labsWithLimit.size == 1, "Unexpected number of laboratories found for user with limit")
         }
     }
 

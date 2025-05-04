@@ -1,4 +1,4 @@
-package isel.rl.core.domain.user
+package isel.rl.core.domain.user.domain
 
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId

@@ -22,6 +22,8 @@ typealias GetLaboratoryResult = Either<ServicesExceptions, Laboratory>
  */
 typealias UpdateLaboratoryResult = Either<ServicesExceptions, Unit>
 
+typealias GetAllLaboratoriesResult = Either<ServicesExceptions, List<Laboratory>>
+
 /**
  * Interface for managing laboratories.
  */
@@ -81,4 +83,10 @@ interface ILaboratoriesService {
         labQueueLimit: Int? = null,
         ownerId: Int,
     ): UpdateLaboratoryResult
+
+    fun getAllLaboratoriesByUser(
+        userId: Int,
+        limit: String? = null,
+        skip: String? = null,
+    ): GetAllLaboratoriesResult
 }

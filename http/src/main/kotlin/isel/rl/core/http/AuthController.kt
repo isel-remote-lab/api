@@ -1,6 +1,7 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
+import isel.rl.core.http.annotations.RequireApiKey
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.user.UserLoginInputModel
 import isel.rl.core.http.utils.handleServicesExceptions

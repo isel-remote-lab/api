@@ -173,7 +173,7 @@ class JdbiUsersRepositoryTests {
             assertEquals(email, user.email, "Emails do not match")
             assertEquals(createdAt, user.createdAt, "CreatedAt do not match")
             assertEquals(userRole, user.role, "Roles do not match")
-            assertEquals(oAuthId, user.oauthId, "OAuthIds do not match")
+            assertEquals(oAuthId, user.oAuthId, "OAuthIds do not match")
             assertTrue(user.id >= 0, "UserId must be >= 0")
         }
 

@@ -49,7 +49,7 @@ class UsersServiceTests {
                 assertEquals(user.username.usernameInfo, username, GET_USERNAME_ERROR)
                 assertEquals(user.email.emailInfo, email, GET_USER_EMAIL_ERROR)
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
-                assertEquals(user.oauthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
+                assertEquals(user.oAuthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATEDAT_ERROR)
             }
         }
@@ -64,7 +64,7 @@ class UsersServiceTests {
                 assertEquals(user.username.usernameInfo, username, GET_USERNAME_ERROR)
                 assertEquals(user.email.emailInfo, email, GET_USER_EMAIL_ERROR)
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
-                assertEquals(user.oauthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
+                assertEquals(user.oAuthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATEDAT_ERROR)
             }
         }
@@ -79,7 +79,7 @@ class UsersServiceTests {
                 assertEquals(user.username.usernameInfo, username, GET_USERNAME_ERROR)
                 assertEquals(user.email.emailInfo, email, GET_USER_EMAIL_ERROR)
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
-                assertEquals(user.oauthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
+                assertEquals(user.oAuthId.oAuthIdInfo, oAuthId, GET_USER_OAUTHID_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATEDAT_ERROR)
             }
         }

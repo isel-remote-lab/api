@@ -1,22 +1,19 @@
 package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
-import isel.rl.core.repository.GroupRepository
-import kotlinx.datetime.Instant
+import isel.rl.core.domain.group.domain.ValidatedCreateGroup
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.repository.GroupsRepository
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
 
-data class JdbiGroupRepository(
+data class JdbiGroupsRepository(
     val handle: Handle,
-) : GroupRepository {
+) : GroupsRepository {
     override fun createGroup(
-        groupName: GroupName,
-        groupDescription: GroupDescription,
-        createdAt: Instant,
-        ownerId: Int,
+        validatedCreateGroup: ValidatedCreateGroup
     ): Int =
         handle.createUpdate(
             """
@@ -24,15 +21,15 @@ data class JdbiGroupRepository(
            VALUES (:group_name, :group_description, :created_at, :owner_id)
         """,
         )
-            .bind("group_name", groupName.groupNameInfo)
-            .bind("group_description", groupDescription.groupDescriptionInfo)
-            .bind("created_at", createdAt.toJavaInstant())
-            .bind("owner_id", ownerId)
+            .bind("group_name", validatedCreateGroup.groupName.groupNameInfo)
+            .bind("group_description", validatedCreateGroup.groupDescription.groupDescriptionInfo)
+            .bind("created_at", validatedCreateGroup.createdAt.toJavaInstant())
+            .bind("owner_id", validatedCreateGroup.ownerId)
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
             .also { groupId ->
-                addUserToGroup(ownerId, groupId)
+                addUserToGroup(validatedCreateGroup.ownerId, groupId)
             }
 
     override fun getGroupById(groupId: Int): Group? =

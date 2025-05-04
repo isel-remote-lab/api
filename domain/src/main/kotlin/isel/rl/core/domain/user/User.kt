@@ -8,7 +8,7 @@ import kotlinx.datetime.Instant
 
 class User(
     val id: Int,
-    val oauthId: OAuthId,
+    val oAuthId: OAuthId,
     val role: Role,
     val username: Username,
     val email: Email,

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import kotlin.time.DurationUnit
 
@@ -46,7 +47,7 @@ data class LaboratoriesController(
                         message = "Laboratory created successfully",
                         data =
                             mapOf(
-                                "laboratoryId" to result.value,
+                                "laboratory_id" to result.value,
                             ),
                     ),
                 )
@@ -62,12 +63,10 @@ data class LaboratoriesController(
     ): ResponseEntity<*> =
         when (val result = laboratoriesService.getLaboratoryById(id, user.id)) {
             is Success -> {
-                val laboratory = result.value
-
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratory found with the id $id",
-                        data = laboratory.toLaboratoryOutput(),
+                        data = LaboratoryOutputModel.mapOf(result.value),
                     ),
                 )
             }
@@ -103,17 +102,26 @@ data class LaboratoriesController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
-    private fun Laboratory.toLaboratoryOutput() =
-        mapOf(
-            "laboratory" to
-                LaboratoryOutputModel(
-                    id = id,
-                    labName = labName.labNameInfo,
-                    labDescription = labDescription.labDescriptionInfo,
-                    labDuration = labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
-                    labQueueLimit = labQueueLimit.labQueueLimitInfo,
-                    ownerId = ownerId,
-                    createdAt = createdAt.toString(),
-                ),
-        )
+    @GetMapping(Uris.Laboratories.GET_ALL_BY_USER)
+    fun getUserLaboratories(
+        user: AuthenticatedUser,
+        @RequestParam limit: String?,
+        @RequestParam skip: String?,
+    ): ResponseEntity<*> =
+        when (val result = laboratoriesService.getAllLaboratoriesByUser(user.id, limit, skip)) {
+            is Success -> {
+                val laboratories = result.value
+
+                ResponseEntity.status(HttpStatus.OK).body(
+                    SuccessResponse(
+                        message = "Laboratories found for user with id ${user.id}",
+                        data = laboratories.map { laboratory ->
+                            LaboratoryOutputModel.mapOf(laboratory)
+                        },
+                    ),
+                )
+            }
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
 }

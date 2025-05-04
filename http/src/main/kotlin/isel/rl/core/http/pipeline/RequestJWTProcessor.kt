@@ -25,7 +25,7 @@ class RequestJWTProcessor(
             val userDetails = (user as Success).value
             AuthenticatedUser(
                 id = userDetails.id,
-                oauthId = userDetails.oauthId,
+                oauthId = userDetails.oAuthId,
                 role = userDetails.role,
                 username = userDetails.username,
                 email = userDetails.email,

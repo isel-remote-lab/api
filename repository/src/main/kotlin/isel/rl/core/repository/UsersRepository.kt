@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.ValidatedUser
+import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Username

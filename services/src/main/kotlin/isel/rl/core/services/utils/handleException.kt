@@ -1,4 +1,4 @@
-package isel.rl.core.services
+package isel.rl.core.services.utils
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.utils.failure

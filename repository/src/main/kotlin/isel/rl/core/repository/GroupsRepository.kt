@@ -1,19 +1,16 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
-import kotlinx.datetime.Instant
+import isel.rl.core.domain.group.domain.ValidatedCreateGroup
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
 
 /**
  * Repository for groups
  */
-interface GroupRepository {
+interface GroupsRepository {
     fun createGroup(
-        groupName: GroupName,
-        groupDescription: GroupDescription,
-        createdAt: Instant,
-        ownerId: Int,
+        validatedCreateGroup: ValidatedCreateGroup
     ): Int
 
     fun getGroupById(groupId: Int): Group?

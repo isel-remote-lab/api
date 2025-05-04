@@ -5,8 +5,8 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
 import isel.rl.core.domain.Uris
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
@@ -62,10 +62,10 @@ class HttpUtils {
                 .header(apiHeader, apiKey)
                 .bodyValue(
                     mapOf(
-                        "oauthId" to oAuthId,
+                        "oauth_id" to oAuthId,
                         "username" to username,
                         "email" to email,
-                        "accessToken" to accessToken,
+                        "access_token" to accessToken,
                     ),
                 )
                 .exchange()
@@ -99,7 +99,7 @@ class HttpUtils {
     fun newTestGroupDescription() = GroupDescription("description-${abs(Random.nextLong())}")
 
     // Lab functions
-    val labDomainConfig = remoteLab.laboratoryDomainConfig()
+    val labDomainConfig = remoteLab.laboratoriesDomainConfig()
 
     fun newTestLabName() = "lab-${abs(Random.nextLong())}"
 
@@ -132,5 +132,5 @@ fun EntityExchangeResult<Problem>.assertProblem(expectedProblem: Problem) {
     assertNotNull(problem)
     assertEquals(expectedProblem.type, problem.type)
     assertEquals(expectedProblem.title, problem.title)
-    assertEquals(expectedProblem.details, problem.details)
+    assertEquals(expectedProblem.detail, problem.detail)
 }
