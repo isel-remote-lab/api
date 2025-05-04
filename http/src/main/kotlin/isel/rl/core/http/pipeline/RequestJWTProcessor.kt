@@ -7,6 +7,7 @@ import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
 import org.springframework.stereotype.Component
 
+/*
 @Component
 class RequestJWTProcessor(
     private val usersService: UsersService,
@@ -38,3 +39,6 @@ class RequestJWTProcessor(
         const val SCHEME = "Bearer"
     }
 }
+
+
+ */

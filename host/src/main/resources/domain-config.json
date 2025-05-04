@@ -1,0 +1,26 @@
+{
+  "user": {
+    "tokenSizeInBytes": 16,
+    "tokenTtl": 24,
+    "tokenRollingTtl": 1,
+    "tokenTtlDurationUnit": "HOURS",
+    "maxTokensPerUser": 3
+  },
+  "laboratory": {
+    "minLengthLabName": 3,
+    "maxLengthLabName": 100,
+    "minLengthLabDescription": 10,
+    "maxLengthLabDescription": 1000,
+    "minLabDuration": 1,
+    "maxLabDuration": 480,
+    "minLabQueueLimit": 1,
+    "maxLabQueueLimit": 100,
+    "labDurationUnit": "MINUTES"
+  },
+  "group": {
+    "minLengthGroupName": 3,
+    "maxLengthGroupName": 100,
+    "minLengthGroupDescription": 10,
+    "maxLengthGroupDescription": 1000
+  }
+}

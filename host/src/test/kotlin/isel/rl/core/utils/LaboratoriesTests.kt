@@ -36,7 +36,7 @@ class LaboratoriesTests {
 
             // when: retrieving the laboratory by id
             testClient.getLabByIdAndVerify(
-                result.jwt,
+                result.authToken,
                 result.labId,
                 result.initialLab,
             )
@@ -90,13 +90,13 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user
-            val (_, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, "a")
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .exchange()
                 .expectStatus().isBadRequest
                 .expectBody<Problem>()
@@ -108,13 +108,13 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user
-            val (_, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, 9999)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .exchange()
                 .expectStatus().isNotFound
                 .expectBody<Problem>()
@@ -126,16 +126,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labName = "",
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabNameProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -144,16 +143,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1),
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabNameProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabNameProblem)
         }
 
         @Test
@@ -162,16 +160,16 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
+
                     labDescription = "",
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabDescriptionProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -180,16 +178,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1),
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabDescriptionProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabDescriptionProblem)
         }
 
         @Test
@@ -198,16 +195,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labDuration = (httpUtils.labDomainConfig.minLabDuration.inWholeMinutes - 1).toInt(),
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabDurationProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -216,16 +212,16 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
+
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labDuration = (httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes + 1).toInt(),
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabDurationProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabDurationProblem)
         }
 
         @Test
@@ -234,16 +230,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labQueueLimit = httpUtils.labDomainConfig.minLabQueueLimit - 1,
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabQueueLimitProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabQueueLimitProblem)
         }
 
         @Test
@@ -252,16 +247,15 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    ownerId,
                     labQueueLimit = httpUtils.labDomainConfig.maxLabQueueLimit + 1,
                 )
 
             // when: creating a laboratory
-            testClient.createInvalidLab(jwt, invalidLaboratory, expectedInvalidLabQueueLimitProblem)
+            testClient.createInvalidLab(authToken, invalidLaboratory, expectedInvalidLabQueueLimitProblem)
         }
     }
 
@@ -315,7 +309,7 @@ class LaboratoriesTests {
             val (labId, initialLab, _) = testClient.createTestLaboratory()
 
             // when: creating a second user
-            val (_, jwt2) = httpUtils.createTestUser(testClient)
+            val authToken = httpUtils.createTestUser(testClient)
 
             // when: updating the laboratory
             val updateLab =
@@ -328,7 +322,7 @@ class LaboratoriesTests {
             testClient
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.jwtCookieName, jwt2)
+                .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
                     mapOf(
                         "labName" to updateLab.labName,
@@ -737,7 +731,7 @@ class LaboratoriesTests {
         private const val LAB_QUEUE_LIMIT_PROP = "lab_queue_limit"
 
         private data class InitialLaboratory(
-            val ownerId: Int,
+            val ownerId: Int = 0,
             val labName: String? = httpUtils.newTestLabName(),
             val labDescription: String? = httpUtils.newTestLabDescription(),
             val labDuration: Int? = httpUtils.newTestLabDuration(),
@@ -771,21 +765,21 @@ class LaboratoriesTests {
         private data class CreateTestLabResult(
             val labId: Int,
             val initialLab: InitialLaboratory,
-            val jwt: String,
+            val authToken: String,
         )
 
         private fun WebTestClient.createTestLaboratory(): CreateTestLabResult {
             // when: creating a user to be the owner of the laboratory
-            val (ownerId, jwt) = httpUtils.createTestUser(this)
+            val authToken = httpUtils.createTestUser(this)
 
-            val initialLaboratory = InitialLaboratory(ownerId)
+            val initialLaboratory = InitialLaboratory()
 
             // when: creating a laboratory
             var labId = -1
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
                     initialLaboratory.mapOf()
                 )
@@ -808,19 +802,19 @@ class LaboratoriesTests {
             return CreateTestLabResult(
                 labId,
                 initialLaboratory,
-                jwt,
+                authToken,
             )
         }
 
         private fun WebTestClient.createInvalidLab(
-            jwt: String,
+            authToken: String,
             initialLaboratory: InitialLaboratory,
             expectedProblem: Problem,
         ) {
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
                     initialLaboratory.mapOf()
                 )
@@ -831,13 +825,13 @@ class LaboratoriesTests {
         }
 
         private fun WebTestClient.getLabByIdAndVerify(
-            jwt: String,
+            authToken: String,
             labId: Int,
             expectedLab: InitialLaboratory,
         ) {
             this.get()
                 .uri(Uris.Laboratories.GET, labId)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<SuccessResponse>()
@@ -858,14 +852,14 @@ class LaboratoriesTests {
         }
 
         private fun WebTestClient.updateLab(
-            jwt: String,
+            authToken: String,
             labId: Int,
             updateLab: UpdateLaboratory,
         ) {
             this
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
                     updateLab.mapOf()
                 )
@@ -882,7 +876,7 @@ class LaboratoriesTests {
         }
 
         private fun WebTestClient.updateInvalidLab(
-            jwt: String,
+            authToken: String,
             labId: Int,
             updateLab: UpdateLaboratory,
             expectedProblem: Problem,
@@ -890,7 +884,7 @@ class LaboratoriesTests {
             this
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.jwtCookieName, jwt)
+                .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
                     updateLab.mapOf()
                 )

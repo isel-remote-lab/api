@@ -36,7 +36,7 @@ interface UsersRepository {
         now: Instant,
     )
 
-    fun getTokenByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
+    fun getUserByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
 
     fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int
 

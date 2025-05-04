@@ -3,6 +3,7 @@ package isel.rl.core.http
 import isel.rl.core.domain.Uris
 import isel.rl.core.http.annotations.RequireApiKey
 import isel.rl.core.http.model.SuccessResponse
+import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.model.user.UserLoginInputModel
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.IUsersService
@@ -26,11 +27,11 @@ data class AuthController(
         @RequestBody input: UserLoginInputModel,
     ): ResponseEntity<*> =
         when (
-            val result = usersService.login(input.oauthId, input.username, input.email, input.accessToken)
+            val result = usersService.login(input.oauthId, input.username, input.email)
         ) {
             is Success -> {
                 val cookie =
-                    ResponseCookie.from("jwt-token", result.value)
+                    ResponseCookie.from("token", result.value)
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("Strict")
@@ -48,4 +49,14 @@ data class AuthController(
 
             is Failure -> handleServicesExceptions(result.value)
         }
+
+    /**
+     * Logs out the authenticated user.
+     *
+     * @param user the authenticated user
+     */
+    @PostMapping(Uris.Auth.LOGOUT)
+    fun logout(user: AuthenticatedUser) {
+        usersService.revokeToken(user.token)
+    }
 }

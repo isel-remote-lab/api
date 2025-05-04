@@ -2,8 +2,11 @@ package isel.rl.core.host
 
 import io.github.cdimascio.dotenv.dotenv
 import isel.rl.core.domain.Secrets
+import isel.rl.core.domain.config.DomainConfig
 import isel.rl.core.domain.config.GroupsDomainConfig
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
+import isel.rl.core.domain.config.UsersDomainConfig
+import isel.rl.core.domain.user.token.Sha256TokenEncoder
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
 import isel.rl.core.http.pipeline.interceptors.AuthenticationInterceptor
@@ -24,22 +27,6 @@ import kotlin.time.toDuration
 const val API_KEY = "API_KEY"
 const val JWT_SECRET = "JWT_SECRET"
 
-// Laboratory domain restrictions
-const val MIN_LENGTH_LAB_NAME = "MIN_LENGTH_LAB_NAME"
-const val MAX_LENGTH_LAB_NAME = "MAX_LENGTH_LAB_NAME"
-const val MIN_LENGTH_LAB_DESCRIPTION = "MIN_LENGTH_LAB_DESCRIPTION"
-const val MAX_LENGTH_LAB_DESCRIPTION = "MAX_LENGTH_LAB_DESCRIPTION"
-const val MIN_LAB_DURATION = "MIN_LAB_DURATION"
-const val MAX_LAB_DURATION = "MAX_LAB_DURATION"
-const val MIN_LAB_QUEUE_LIMIT = "MIN_LAB_QUEUE_LIMIT"
-const val MAX_LAB_QUEUE_LIMIT = "MAX_LAB_QUEUE_LIMIT"
-
-// Group domain restrictions
-const val MIN_LENGTH_GROUP_NAME = "MIN_LENGTH_GROUP_NAME"
-const val MAX_LENGTH_GROUP_NAME = "MAX_LENGTH_GROUP_NAME"
-const val MIN_LENGTH_GROUP_DESCRIPTION = "MIN_LENGTH_GROUP_DESCRIPTION"
-const val MAX_LENGTH_GROUP_DESCRIPTION = "MAX_LENGTH_GROUP_DESCRIPTION"
-
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
     val privateDirectory: String
@@ -51,14 +38,29 @@ class RemoteLabApp {
             }
 
     /**
+     * Helper function to load the domain-config.json file from the resources directory.
+     */
+    private final fun loadDomainConfigFile(): String {
+        val inputStream = object {}.javaClass.getResourceAsStream("/domain-config.json")
+        return inputStream?.bufferedReader()?.use { it.readText() }
+            ?: throw Exception("Unable to load domain-config.json")
+    }
+
+    /**
      * Loads environment variables from a .env file located in the shared domain directory.
      * This variables are used to configure the application domain restrictions.
      */
-    val domainConfigs =
-        dotenv {
-            directory = "$privateDirectory/shared/domain"
-            filename = ".env"
-        }
+    val domainConfigs = DomainConfig.parseDomainConfigs(
+        loadDomainConfigFile()
+    )
+
+    /**
+     * Creates a Sha256TokenEncoder bean.
+     *
+     * @return the Sha256TokenEncoder instance
+     */
+    @Bean
+    fun tokenEncoder() = Sha256TokenEncoder()
 
     @Bean
     fun secrets(): Secrets {
@@ -75,25 +77,42 @@ class RemoteLabApp {
     }
 
     @Bean
-    fun laboratoriesDomainConfig() =
-        LaboratoriesDomainConfig(
-            minLengthLabName = domainConfigs[MIN_LENGTH_LAB_NAME]!!.toInt(),
-            maxLengthLabName = domainConfigs[MAX_LENGTH_LAB_NAME]!!.toInt(),
-            minLengthLabDescription = domainConfigs[MIN_LENGTH_LAB_DESCRIPTION]!!.toInt(),
-            maxLengthLabDescription = domainConfigs[MAX_LENGTH_LAB_DESCRIPTION]!!.toInt(),
-            minLabDuration = domainConfigs[MIN_LAB_DURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            maxLabDuration = domainConfigs[MAX_LAB_DURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            minLabQueueLimit = domainConfigs[MIN_LAB_QUEUE_LIMIT]!!.toInt(),
-            maxLabQueueLimit = domainConfigs[MAX_LAB_QUEUE_LIMIT]!!.toInt(),
+    fun usersDomainConfig(): UsersDomainConfig {
+        val usersConfig = domainConfigs.user
+        val tokenTtlDurationUnit = DurationUnit.valueOf(usersConfig.tokenTtlDurationUnit)
+
+        return UsersDomainConfig(
+            tokenSizeInBytes = usersConfig.tokenSizeInBytes,
+            tokenTtl = usersConfig.tokenTtl.toDuration(tokenTtlDurationUnit),
+            tokenRollingTtl = usersConfig.tokenRollingTtl.toDuration(tokenTtlDurationUnit),
+            maxTokensPerUser = usersConfig.maxTokensPerUser,
         )
+    }
+
+    @Bean
+    fun laboratoriesDomainConfig(): LaboratoriesDomainConfig {
+        val labsConfig = domainConfigs.laboratory
+        val labDurationUnit = DurationUnit.valueOf(labsConfig.labDurationUnit)
+
+        return LaboratoriesDomainConfig(
+            minLengthLabName = labsConfig.minLengthLabName,
+            maxLengthLabName = labsConfig.maxLengthLabName,
+            minLengthLabDescription = labsConfig.minLengthLabDescription,
+            maxLengthLabDescription = labsConfig.maxLengthLabDescription,
+            minLabDuration = labsConfig.minLabDuration.toDuration(labDurationUnit),
+            maxLabDuration = labsConfig.maxLabDuration.toDuration(labDurationUnit),
+            minLabQueueLimit = labsConfig.minLabQueueLimit,
+            maxLabQueueLimit = labsConfig.maxLabQueueLimit,
+        )
+    }
 
     @Bean
     fun groupsDomainConfig() =
         GroupsDomainConfig(
-            minLengthGroupName = domainConfigs[MIN_LENGTH_GROUP_NAME]!!.toInt(),
-            maxLengthGroupName = domainConfigs[MAX_LENGTH_GROUP_NAME]!!.toInt(),
-            minLengthGroupDescription = domainConfigs[MIN_LENGTH_GROUP_DESCRIPTION]!!.toInt(),
-            maxLengthGroupDescription = domainConfigs[MAX_LENGTH_GROUP_DESCRIPTION]!!.toInt(),
+            minLengthGroupName = domainConfigs.group.minLengthGroupName,
+            maxLengthGroupName = domainConfigs.group.maxLengthGroupName,
+            minLengthGroupDescription = domainConfigs.group.minLengthGroupDescription,
+            maxLengthGroupDescription = domainConfigs.group.maxLengthGroupDescription,
         )
 
     /**

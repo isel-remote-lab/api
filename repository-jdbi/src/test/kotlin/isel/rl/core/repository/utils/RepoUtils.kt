@@ -35,9 +35,20 @@ import kotlin.time.toDuration
  * This class provides methods to create test users, groups, laboratories, and hardware,
  */
 class RepoUtils {
+    private val userDomainConfig = RemoteLabApp().usersDomainConfig()
     private val labDomainConfig = RemoteLabApp().laboratoriesDomainConfig()
     private val groupDomainConfig = RemoteLabApp().groupsDomainConfig()
     val secrets = RemoteLabApp().secrets()
+    private val tokenEncoder = RemoteLabApp().tokenEncoder()
+
+    /**
+     * Provides a [UsersDomain] instance for validating user-related operations.
+     */
+    val usersDomain =
+        UsersDomain(
+            userDomainConfig,
+            tokenEncoder,
+        )
 
     /**
      * Provides a [LaboratoriesDomain] instance for validating laboratory-related operations.
@@ -54,6 +65,7 @@ class RepoUtils {
         GroupsDomain(
             groupDomainConfig,
         )
+
 
     // General
 
@@ -102,7 +114,6 @@ class RepoUtils {
      */
     fun createTestUser(handle: Handle): Int {
         val userRepo = JdbiUsersRepository(handle)
-        val userDomain = UsersDomain()
         val clock = TestClock()
 
         // when: storing a user
@@ -113,7 +124,7 @@ class RepoUtils {
         val oAuthId = newTestOauthId()
 
         return userRepo.createUser(
-            userDomain.validateCreateUser(
+            usersDomain.validateCreateUser(
                 oAuthId.oAuthIdInfo,
                 userRole.char,
                 username.usernameInfo,

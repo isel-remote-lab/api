@@ -13,6 +13,11 @@ object Uris {
          * URI for login
          */
         const val LOGIN = "$BASE/login"
+
+        /**
+         * URI for logout
+         */
+        const val LOGOUT = "$BASE/logout"
     }
 
     object Users {

@@ -1,7 +1,6 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
-import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import kotlin.time.DurationUnit
 
 @RestController
 data class LaboratoriesController(
@@ -38,7 +36,7 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = user.id,
+                    ownerId = user.user.id,
                 )
         ) {
             is Success -> {
@@ -61,7 +59,7 @@ data class LaboratoriesController(
         user: AuthenticatedUser,
         @PathVariable id: String,
     ): ResponseEntity<*> =
-        when (val result = laboratoriesService.getLaboratoryById(id, user.id)) {
+        when (val result = laboratoriesService.getLaboratoryById(id, user.user.id)) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
@@ -88,7 +86,7 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = user.id,
+                    ownerId = user.user.id,
                 )
         ) {
             is Success -> {
@@ -108,13 +106,13 @@ data class LaboratoriesController(
         @RequestParam limit: String?,
         @RequestParam skip: String?,
     ): ResponseEntity<*> =
-        when (val result = laboratoriesService.getAllLaboratoriesByUser(user.id, limit, skip)) {
+        when (val result = laboratoriesService.getAllLaboratoriesByUser(user.user.id, limit, skip)) {
             is Success -> {
                 val laboratories = result.value
 
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
-                        message = "Laboratories found for user with id ${user.id}",
+                        message = "Laboratories found for user with id ${user.user.id}",
                         data = laboratories.map { laboratory ->
                             LaboratoryOutputModel.mapOf(laboratory)
                         },

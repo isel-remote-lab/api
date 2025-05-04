@@ -13,6 +13,7 @@ import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.http.model.Problem
+import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -28,7 +29,7 @@ class HttpUtils {
     private val secrets = remoteLab.secrets()
     val apiKey = secrets.apiKey
     private val jwtSecret = secrets.jwtSecret
-    val jwtCookieName = "jwt-token"
+    val authTokenName = "token"
 
     val apiHeader = "X-API-Key"
 
@@ -47,11 +48,10 @@ class HttpUtils {
 
     fun newTestAccessToken() = "access-token-${abs(Random.nextLong())}"
 
-    fun createTestUser(testClient: WebTestClient): Pair<Int, String> {
+    fun createTestUser(testClient: WebTestClient): String {
         val oAuthId = newTestOauthId()
         val username = newTestUsername()
         val email = newTestEmail()
-        val accessToken = newTestAccessToken()
 
         // when: doing a POST
         // then: the response is an 201 Created
@@ -65,22 +65,17 @@ class HttpUtils {
                         "oauth_id" to oAuthId,
                         "username" to username,
                         "email" to email,
-                        "access_token" to accessToken,
                     ),
                 )
                 .exchange()
                 .expectStatus().isOk
-                .expectCookie().exists(jwtCookieName)
-                .expectBody<Unit>()
+                .expectCookie().exists(authTokenName)
+                .expectBody<SuccessResponse>()
                 .returnResult()
 
-        val cookie = res.responseCookies[jwtCookieName]?.first()?.value
-
-        val jwt: DecodedJWT = validateJWTToken(cookie)
-
-        val userId = jwt.getClaim("userId").asString()
-        assertNotNull(userId, "User ID should not be null")
-        return Pair(userId.toInt(), jwt.token)
+        val cookie = res.responseCookies[authTokenName]?.first()?.value
+        assertNotNull(cookie)
+        return cookie
     }
 
     fun validateJWTToken(token: String?): DecodedJWT {

@@ -32,6 +32,10 @@ class ServicesUtils {
         ).configureWithAppRequirements()
 
     private val secrets = RemoteLabApp().secrets()
+    private val usersDomain = UsersDomain(
+        RemoteLabApp().usersDomainConfig(),
+        RemoteLabApp().tokenEncoder(),
+    )
 
     // User functions
 
@@ -44,7 +48,7 @@ class ServicesUtils {
     fun createUsersServices(testClock: TestClock): UsersService =
         UsersService(
             JdbiTransactionManager(jdbi),
-            UsersDomain(),
+            usersDomain,
             JWTUtils(secrets),
             testClock,
         )

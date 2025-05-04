@@ -1,11 +1,12 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
+import isel.rl.core.domain.user.token.Token
+import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
@@ -96,56 +97,107 @@ class JdbiUsersRepositoryTests {
         }
     }
 
-    /*
     @Test
-    fun `can create and validate tokens`() {
+    fun `create token and get user by token validation info`() {
         repoUtils.runWithHandle { handle ->
             // given: a user repo
-            val repo = JdbiUsersRepository(handle)
+            val userRepo = JdbiUsersRepository(handle)
+
             // and: a test clock
-            val clock = isel.rl.core.repository.utils.TestClock()
+            val clock = TestClock()
 
-            // and: a createdUser
-            val username = repoUtils.newTestUsername()
-            val email = repoUtils.newTestEmail()
-            val createdAt = clock.now()
-            val userRole = repoUtils.randomUserRole()
-            val oAuthId = repoUtils.newTestOauthId()
-            val userId = repo.createUser(
-                UserFactory.createValidatedUser(
-                    oAuthId, userRole, username, email, createdAt
-                )
-            )
-
-            // and: test TokenValidationInfo
-            val testTokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())
+            // when: storing a user
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
 
             // when: creating a token
-            val tokenCreationInstant = clock.now()
-            val token = Token(
-                testTokenValidationInfo,
-                userId,
-                createdAt = tokenCreationInstant,
-                lastUsedAt = tokenCreationInstant,
-            )
-            repo.createToken(token, 1)
+            val tokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())
+            val createdAt = clock.now()
+            val lastUsedAt = clock.now()
+            val token = Token(tokenValidationInfo, userId, createdAt, lastUsedAt)
+            userRepo.createToken(token, 1)
 
-            // then: createToken does not throw errors
-            // no exception
-
-            // when: retrieving the token and associated user
-            val userAndToken = repo.getTokenByTokenValidationInfo(testTokenValidationInfo)
+            // then: get user by token validation info
+            val userAndToken = userRepo.getUserByTokenValidationInfo(tokenValidationInfo)
 
             // then:
-            val (user, retrievedToken) = userAndToken ?: fail("token and associated user must exist")
+            // Assert User
+            assertNotNull(userAndToken)
+            assertEquals(userId, userAndToken.first.id)
+            assertEquals(initialUser.username, userAndToken.first.username)
+            assertEquals(initialUser.email, userAndToken.first.email)
+            assertEquals(initialUser.createdAt, userAndToken.first.createdAt)
+            assertEquals(initialUser.userRole, userAndToken.first.role)
+            assertEquals(initialUser.oAuthId, userAndToken.first.oAuthId)
 
-            // and: ...
-            assertEquals(username, user.username)
-            assertEquals(testTokenValidationInfo.validationInfo, retrievedToken.tokenValidationInfo.validationInfo)
-            assertEquals(tokenCreationInstant, retrievedToken.createdAt)
+            // Assert Token
+            assertEquals(token, userAndToken.second)
         }
     }
-     */
+
+    @Test
+    fun `update token last_used_at and get token by validation info`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a user repo
+            val userRepo = JdbiUsersRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
+
+            // when: creating a token
+            val tokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())
+            val createdAt = clock.now()
+            val lastUsedAt = clock.now()
+            val token = Token(tokenValidationInfo, userId, createdAt, lastUsedAt)
+            userRepo.createToken(token, 1)
+
+            Thread.sleep(2000)
+
+            val updatedAt = clock.now()
+            userRepo.updateTokenLastUsed(token, updatedAt)
+            val userAndToken = userRepo.getUserByTokenValidationInfo(tokenValidationInfo)
+
+            assertNotNull(userAndToken)
+            assertEquals(token, userAndToken.second)
+        }
+    }
+
+    @Test
+    fun `remove token by validation info`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a user repo
+            val userRepo = JdbiUsersRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
+
+            // when: creating a token
+            val tokenValidationInfo = TokenValidationInfo(repoUtils.newTokenValidationData())
+            val createdAt = clock.now()
+            val lastUsedAt = clock.now()
+            val token = Token(tokenValidationInfo, userId, createdAt, lastUsedAt)
+            userRepo.createToken(token, 1)
+
+            val tokenRetrieved = userRepo.getUserByTokenValidationInfo(tokenValidationInfo)
+
+            assertNotNull(tokenRetrieved)
+            assertEquals(token, tokenRetrieved.second)
+
+            val nrOfTokensDeleted = userRepo.removeTokenByValidationInfo(tokenValidationInfo)
+            assertEquals(1, nrOfTokensDeleted)
+
+            val tryRetrieveToken = userRepo.getUserByTokenValidationInfo(tokenValidationInfo)
+            assertNull(tryRetrieveToken)
+        }
+    }
 
     companion object {
         private val repoUtils = RepoUtils()
@@ -183,11 +235,9 @@ class JdbiUsersRepositoryTests {
          * @param user The initial user information.
          * @return The ID of the created user.
          */
-        private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int {
-            val usersDomain = UsersDomain()
-
-            return createUser(
-                usersDomain.validateCreateUser(
+        private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int =
+            createUser(
+                repoUtils.usersDomain.validateCreateUser(
                     user.oAuthId.oAuthIdInfo,
                     user.userRole.char,
                     user.username.usernameInfo,
@@ -195,6 +245,5 @@ class JdbiUsersRepositoryTests {
                     user.createdAt,
                 ),
             )
-        }
     }
 }

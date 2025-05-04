@@ -265,7 +265,7 @@ class UsersTests {
                     )
                     .exchange()
                     .expectStatus().isOk
-                    .expectCookie().exists(httpUtils.jwtCookieName)
+                    .expectCookie().exists(httpUtils.authTokenName)
                     .expectBody<SuccessResponse>()
                     .consumeWith { result ->
                         assertNotNull(result)
@@ -276,7 +276,7 @@ class UsersTests {
                     }
                     .returnResult()
 
-            val cookie = res.responseCookies[httpUtils.jwtCookieName]?.first()?.value
+            val cookie = res.responseCookies[httpUtils.authTokenName]?.first()?.value
 
             val jwt: DecodedJWT = httpUtils.validateJWTToken(cookie)
 
