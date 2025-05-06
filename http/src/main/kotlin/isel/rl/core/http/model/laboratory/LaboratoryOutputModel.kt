@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import isel.rl.core.domain.laboratory.Laboratory
 import kotlin.time.DurationUnit
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class LaboratoryOutputModel(
     val id: Int,
     val labName: String,

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import isel.rl.core.domain.user.User
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class UserOutputModel(
     val id: Int,
     val oAuthId: String,
