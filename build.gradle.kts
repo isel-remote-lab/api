@@ -19,10 +19,6 @@ plugins {
 group = "isel.rl.core"
 version = "1.0-SNAPSHOT"
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 // Define a custom task to bring down Docker Compose services
 task<Exec>("composeDown") {
     commandLine("docker", "compose", "down")
@@ -49,11 +45,6 @@ subprojects {
     dependencies {
         // Kotlinx datetime library
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
-    }
-
-    // Configure test tasks to use JUnit Platform
-    tasks.withType<Test> {
-        useJUnitPlatform()
     }
 
     // Set the Kotlin JVM toolchain to use Java 21
