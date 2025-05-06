@@ -224,7 +224,7 @@ class JdbiGroupsRepositoryTests {
                     group.groupDescription.groupDescriptionInfo,
                     group.createdAt,
                     group.ownerId,
-                )
+                ),
             )
 
         private fun InitialGroup.assertGroupWith(group: Group?) {

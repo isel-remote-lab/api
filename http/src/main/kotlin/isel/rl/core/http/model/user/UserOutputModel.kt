@@ -17,14 +17,14 @@ data class UserOutputModel(
         fun mapOf(user: User) =
             mapOf(
                 "user" to
-                        UserOutputModel(
-                            id = user.id,
-                            oAuthId = user.oAuthId.oAuthIdInfo,
-                            role = user.role.char,
-                            username = user.username.usernameInfo,
-                            email = user.email.emailInfo,
-                            createdAt = user.createdAt.toString(),
-                        ),
+                    UserOutputModel(
+                        id = user.id,
+                        oAuthId = user.oAuthId.oAuthIdInfo,
+                        role = user.role.char,
+                        username = user.username.usernameInfo,
+                        email = user.email.emailInfo,
+                        createdAt = user.createdAt.toString(),
+                    ),
             )
     }
 }

@@ -5,8 +5,10 @@ import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.security.JWTUtils
-import isel.rl.core.services.interfaces.*
+import isel.rl.core.services.interfaces.CreateUserResult
+import isel.rl.core.services.interfaces.GetUserResult
+import isel.rl.core.services.interfaces.IUsersService
+import isel.rl.core.services.interfaces.LoginUserResult
 import isel.rl.core.services.utils.handleException
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Service
 data class UsersService(
     private val transactionManager: TransactionManager,
     private val usersDomain: UsersDomain,
-    private val jwtUtils: JWTUtils,
     private val clock: Clock,
 ) : IUsersService {
     override fun login(
@@ -38,7 +39,7 @@ data class UsersService(
 
                         if (createUserResult is Success) {
                             success(
-                                createToken(createUserResult.value)
+                                createUserResult.value to createToken(createUserResult.value.id),
                             )
                         } else {
                             failure((createUserResult as Failure).value)
@@ -51,7 +52,7 @@ data class UsersService(
                 is Success -> {
                     val user = getByOauthRes.value
                     success(
-                        createToken(user.id)
+                        user to createToken(user.id),
                     )
                 }
             }
@@ -104,9 +105,17 @@ data class UsersService(
                     clock.now(),
                 )
             transactionManager.run {
+                val userId = it.usersRepository.createUser(user)
                 // Create the user in the database and return the result as success
                 success(
-                    it.usersRepository.createUser(user),
+                    User(
+                        id = userId,
+                        oAuthId = user.oauthId,
+                        role = user.role,
+                        username = user.username,
+                        email = user.email,
+                        createdAt = user.createdAt,
+                    ),
                 )
             }
         } catch (e: Exception) {
@@ -209,7 +218,6 @@ data class UsersService(
 
             tokenValue
         }
-
 
     companion object {
         const val INITIAL_USER_ROLE = "S"

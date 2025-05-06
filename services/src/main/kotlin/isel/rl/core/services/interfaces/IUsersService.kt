@@ -3,16 +3,16 @@ package isel.rl.core.services.interfaces
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
-import kotlinx.datetime.Instant
 
-
-typealias LoginUserResult = Either<ServicesExceptions, String>
+typealias AuthToken = String
+typealias UserAndToken = Pair<User, AuthToken>
+typealias LoginUserResult = Either<ServicesExceptions, UserAndToken>
 
 /**
  * Result of creating a user.
  * It can either be a [Either.Right] with the user ID or a [Either.Left] with an exception.
  */
-typealias CreateUserResult = Either<ServicesExceptions, Int>
+typealias CreateUserResult = Either<ServicesExceptions, User>
 
 /**
  * Result of getting a user.

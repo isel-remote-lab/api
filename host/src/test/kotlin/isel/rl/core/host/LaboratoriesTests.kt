@@ -1,7 +1,8 @@
-package isel.rl.core.utils
+package isel.rl.core.host
 
 import isel.rl.core.domain.Uris
-import isel.rl.core.host.RemoteLabApp
+import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.assertProblem
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.Nested
@@ -42,8 +43,8 @@ class LaboratoriesTests {
             )
         }
 
-        // TODO: Change this test to use the groups routes
         /*
+        TODO: Change this test to use the groups routes
         @Test
         fun `get laboratories by userId`() {
             // given: a test client
@@ -164,7 +165,6 @@ class LaboratoriesTests {
 
             val invalidLaboratory =
                 InitialLaboratory(
-
                     labDescription = "",
                 )
 
@@ -213,7 +213,6 @@ class LaboratoriesTests {
 
             // when: creating a user to be the owner of the laboratory
             val authToken = httpUtils.createTestUser(testClient)
-
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -781,7 +780,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.CREATE)
                 .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
-                    initialLaboratory.mapOf()
+                    initialLaboratory.mapOf(),
                 )
                 .exchange()
                 .expectStatus().isCreated
@@ -816,7 +815,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.CREATE)
                 .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
-                    initialLaboratory.mapOf()
+                    initialLaboratory.mapOf(),
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -861,7 +860,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.UPDATE, labId)
                 .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
-                    updateLab.mapOf()
+                    updateLab.mapOf(),
                 )
                 .exchange()
                 .expectStatus().isOk
@@ -886,7 +885,7 @@ class LaboratoriesTests {
                 .uri(Uris.Laboratories.UPDATE, labId)
                 .cookie(httpUtils.authTokenName, authToken)
                 .bodyValue(
-                    updateLab.mapOf()
+                    updateLab.mapOf(),
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -896,7 +895,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_NAME_MSG =
             "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and " +
-                    "${httpUtils.labDomainConfig.maxLengthLabName} characters"
+                "${httpUtils.labDomainConfig.maxLengthLabName} characters"
 
         val expectedInvalidLabNameProblem =
             Problem.invalidLaboratoryName(
@@ -905,7 +904,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DESCRIPTION_MSG =
             "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} " +
-                    "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
+                "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
 
         val expectedInvalidLabDescriptionProblem =
             Problem.invalidLaboratoryDescription(
@@ -914,7 +913,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_DURATION_MSG =
             "Laboratory duration must be between ${httpUtils.labDomainConfig.minLabDuration.inWholeMinutes} and " +
-                    "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
+                "${httpUtils.labDomainConfig.maxLabDuration.inWholeMinutes} minutes"
 
         val expectedInvalidLabDurationProblem =
             Problem.invalidLaboratoryDuration(
@@ -923,7 +922,7 @@ class LaboratoriesTests {
 
         private val INVALID_LAB_QUEUE_LIMIT_MSG =
             "Laboratory queue limit must be between ${httpUtils.labDomainConfig.minLabQueueLimit} and " +
-                    "${httpUtils.labDomainConfig.maxLabQueueLimit}"
+                "${httpUtils.labDomainConfig.maxLabQueueLimit}"
 
         val expectedInvalidLabQueueLimitProblem =
             Problem.invalidLaboratoryQueueLimit(

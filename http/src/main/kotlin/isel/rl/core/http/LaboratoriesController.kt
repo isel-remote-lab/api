@@ -113,9 +113,10 @@ data class LaboratoriesController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratories found for user with id ${user.user.id}",
-                        data = laboratories.map { laboratory ->
-                            LaboratoryOutputModel.mapOf(laboratory)
-                        },
+                        data =
+                            laboratories.map { laboratory ->
+                                LaboratoryOutputModel.mapOf(laboratory)
+                            },
                     ),
                 )
             }

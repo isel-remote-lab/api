@@ -36,7 +36,7 @@ data class DomainConfig(
         val minLengthGroupName: Int,
         val maxLengthGroupName: Int,
         val minLengthGroupDescription: Int,
-        val maxLengthGroupDescription: Int
+        val maxLengthGroupDescription: Int,
     )
 
     companion object {

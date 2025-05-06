@@ -53,7 +53,10 @@ data class JdbiLaboratoriesRepository(
             .mapTo<Laboratory>()
             .singleOrNull()
 
-    override fun getLaboratoriesByUserId(userId: Int, limitAndSkip: LimitAndSkip): List<Laboratory> =
+    override fun getLaboratoriesByUserId(
+        userId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Laboratory> =
         handle.createQuery(
             """
             SELECT l.* FROM rl.laboratory AS l
@@ -61,14 +64,13 @@ data class JdbiLaboratoriesRepository(
             JOIN rl.user_group AS gu ON gl.group_id = gu.group_id
             WHERE gu.user_id = :user_id
             LIMIT :limit OFFSET :skip
-        """
+        """,
         )
             .bind("user_id", userId)
             .bind("limit", limitAndSkip.limit)
             .bind("skip", limitAndSkip.skip)
             .mapTo<Laboratory>()
             .list()
-
 
     override fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean {
         val updateQuery =

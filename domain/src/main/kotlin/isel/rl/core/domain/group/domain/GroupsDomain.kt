@@ -9,19 +9,19 @@ import org.springframework.stereotype.Component
 
 @Component
 data class GroupsDomain(
-    val domainConfig: GroupsDomainConfig
+    val domainConfig: GroupsDomainConfig,
 ) {
     fun validateCreateGroup(
         groupName: String,
         groupDescription: String,
         createdAt: Instant,
-        ownerId: Int
+        ownerId: Int,
     ): ValidatedCreateGroup =
         ValidatedCreateGroup(
             validateGroupName(groupName),
             validateGroupDescription(groupDescription),
             createdAt,
-            ownerId
+            ownerId,
         )
 
     fun validateGroupName(groupName: String): GroupName =
@@ -29,7 +29,8 @@ data class GroupsDomain(
             GroupName(groupName)
         } else {
             throw ServicesExceptions.Groups.InvalidGroupName(
-                "Group name must be between ${domainConfig.minLengthGroupName} and ${domainConfig.maxLengthGroupName} characters."
+                "Group name must be between ${domainConfig.minLengthGroupName} " +
+                    "and ${domainConfig.maxLengthGroupName} characters.",
             )
         }
 
@@ -38,7 +39,8 @@ data class GroupsDomain(
             GroupDescription(groupDescription)
         } else {
             throw ServicesExceptions.Groups.InvalidGroupDescription(
-                "Group description must be between ${domainConfig.minLengthGroupDescription} and ${domainConfig.maxLengthGroupDescription} characters."
+                "Group description must be between ${domainConfig.minLengthGroupDescription} " +
+                    "and ${domainConfig.maxLengthGroupDescription} characters.",
             )
         }
 }

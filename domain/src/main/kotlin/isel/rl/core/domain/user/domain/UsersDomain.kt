@@ -13,12 +13,13 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
-import java.util.*
+import java.util.Base64
+import java.util.Locale
 
 @Component
 class UsersDomain(
     private val domainConfig: UsersDomainConfig,
-    private val tokenEncoder: TokenEncoder
+    private val tokenEncoder: TokenEncoder,
 ) {
     /**
      * Generates a token value.
@@ -58,8 +59,8 @@ class UsersDomain(
     ): Boolean {
         val now = clock.now()
         return token.createdAt <= now &&
-                (now - token.createdAt) <= domainConfig.tokenTtl &&
-                (now - token.lastUsedAt) <= domainConfig.tokenRollingTtl
+            (now - token.createdAt) <= domainConfig.tokenTtl &&
+            (now - token.lastUsedAt) <= domainConfig.tokenRollingTtl
     }
 
     /**

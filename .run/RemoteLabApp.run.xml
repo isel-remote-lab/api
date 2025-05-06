@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="RemoteLabApp" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-    <envs>
-      <env name="DB_URL" value="jdbc:postgresql://localhost:5432/db?user=dbuser&amp;password=changeit" />
-    </envs>
     <module name="api.host.main" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
     <option name="SPRING_BOOT_MAIN_CLASS" value="isel.rl.core.host.RemoteLabApp" />
     <method v="2">
       <option name="Make" enabled="true" />

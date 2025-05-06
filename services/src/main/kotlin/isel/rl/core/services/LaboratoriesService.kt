@@ -3,7 +3,11 @@ package isel.rl.core.services
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.services.interfaces.*
+import isel.rl.core.services.interfaces.CreateLaboratoryResult
+import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
+import isel.rl.core.services.interfaces.GetLaboratoryResult
+import isel.rl.core.services.interfaces.ILaboratoriesService
+import isel.rl.core.services.interfaces.UpdateLaboratoryResult
 import isel.rl.core.services.utils.handleException
 import isel.rl.core.services.utils.verifyQuery
 import isel.rl.core.utils.failure
@@ -135,7 +139,7 @@ data class LaboratoriesService(
     override fun getAllLaboratoriesByUser(
         userId: Int,
         limit: String?,
-        skip: String?
+        skip: String?,
     ): GetAllLaboratoriesResult =
         try {
             // Validate limit and skip
@@ -145,7 +149,7 @@ data class LaboratoriesService(
                 // Retrieve all laboratories by user ID from the database and return the result as success
                 success(
                     it.laboratoriesRepository
-                        .getLaboratoriesByUserId(userId, limitAndSkip)
+                        .getLaboratoriesByUserId(userId, limitAndSkip),
                 )
             }
         } catch (e: Exception) {

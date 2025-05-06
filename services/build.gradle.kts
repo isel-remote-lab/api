@@ -1,7 +1,6 @@
 dependencies {
     api(project(":domain"))
     implementation(project(":repository"))
-    implementation(project(":security"))
 
     // To get the DI annotation
     implementation("jakarta.inject:jakarta.inject-api:2.0.1")
@@ -20,13 +19,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    if (System.getenv("DB_URL") == null) {
-        environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
-    }
-
-    if (System.getenv("TEST_MODE") == null) {
-        environment("TEST_MODE", "true")
-    }
     dependsOn(":repository-jdbi:dbTestsWait")
     finalizedBy(":repository-jdbi:dbTestsDown")
 }

@@ -1,4 +1,4 @@
-package isel.rl.core.http.pipeline.interceptors
+package isel.rl.core.http.pipeline
 
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.services.UsersService

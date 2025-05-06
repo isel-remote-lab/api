@@ -1,6 +1,5 @@
 package isel.rl.core.host
 
-import io.github.cdimascio.dotenv.dotenv
 import isel.rl.core.domain.Secrets
 import isel.rl.core.domain.config.DomainConfig
 import isel.rl.core.domain.config.GroupsDomainConfig
@@ -14,6 +13,7 @@ import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -24,19 +24,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-const val API_KEY = "API_KEY"
-const val JWT_SECRET = "JWT_SECRET"
-
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
-    val privateDirectory: String
-        get() =
-            if (System.getenv("TEST_MODE") == "true") {
-                "../../private"
-            } else {
-                "../private"
-            }
-
     /**
      * Helper function to load the domain-config.json file from the resources directory.
      */
@@ -50,9 +39,10 @@ class RemoteLabApp {
      * Loads environment variables from a .env file located in the shared domain directory.
      * This variables are used to configure the application domain restrictions.
      */
-    val domainConfigs = DomainConfig.parseDomainConfigs(
-        loadDomainConfigFile()
-    )
+    val domainConfigs =
+        DomainConfig.parseDomainConfigs(
+            loadDomainConfigFile(),
+        )
 
     /**
      * Creates a Sha256TokenEncoder bean.
@@ -62,19 +52,14 @@ class RemoteLabApp {
     @Bean
     fun tokenEncoder() = Sha256TokenEncoder()
 
-    @Bean
-    fun secrets(): Secrets {
-        val secrets =
-            dotenv {
-                directory = "$privateDirectory/shared/secrets"
-                filename = ".env"
-            }
+    @Value("\${api.key}")
+    private lateinit var apiKey: String
 
-        return Secrets(
-            apiKey = secrets[API_KEY]!!,
-            jwtSecret = secrets[JWT_SECRET]!!,
+    @Bean
+    fun secrets() =
+        Secrets(
+            apiKey = apiKey,
         )
-    }
 
     @Bean
     fun usersDomainConfig(): UsersDomainConfig {
@@ -128,11 +113,14 @@ class RemoteLabApp {
      *
      * @return the configured Jdbi instance
      */
+    @Value("\${db.url}")
+    private lateinit var dbURL: String
+
     @Bean
     fun jdbi() =
         Jdbi.create(
             PGSimpleDataSource().apply {
-                setURL(Environment.getDbUrl())
+                setURL(dbURL)
             },
         ).configureWithAppRequirements()
 }

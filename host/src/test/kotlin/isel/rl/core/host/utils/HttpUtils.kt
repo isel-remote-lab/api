@@ -1,10 +1,7 @@
-package isel.rl.core.utils
+package isel.rl.core.host.utils
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
-import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.DecodedJWT
 import isel.rl.core.domain.Uris
+import isel.rl.core.domain.config.LaboratoriesDomainConfig
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
 import isel.rl.core.domain.hardware.HardwareName
@@ -14,7 +11,6 @@ import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -25,10 +21,9 @@ import kotlin.test.assertNotNull
 import kotlin.time.DurationUnit
 
 class HttpUtils {
-    private val remoteLab = RemoteLabApp()
-    private val secrets = remoteLab.secrets()
-    val apiKey = secrets.apiKey
-    private val jwtSecret = secrets.jwtSecret
+    val apiKey: String = "test_api_key"
+    private val remoteLabApp = RemoteLabApp()
+
     val authTokenName = "token"
 
     val apiHeader = "X-API-Key"
@@ -78,23 +73,13 @@ class HttpUtils {
         return cookie
     }
 
-    fun validateJWTToken(token: String?): DecodedJWT {
-        val verifier: JWTVerifier =
-            JWT.require(Algorithm.HMAC256(jwtSecret))
-                .withSubject("User Information")
-                .withIssuer("Remote Lab")
-                .build()
-
-        return assertDoesNotThrow { verifier.verify(token) }
-    }
-
     // Group functions
     fun newTestGroupName() = GroupName("group-${abs(Random.nextLong())}")
 
     fun newTestGroupDescription() = GroupDescription("description-${abs(Random.nextLong())}")
 
     // Lab functions
-    val labDomainConfig = remoteLab.laboratoriesDomainConfig()
+    val labDomainConfig: LaboratoriesDomainConfig = remoteLabApp.laboratoriesDomainConfig()
 
     fun newTestLabName() = "lab-${abs(Random.nextLong())}"
 

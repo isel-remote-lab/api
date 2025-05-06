@@ -6,7 +6,6 @@ import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
-import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock

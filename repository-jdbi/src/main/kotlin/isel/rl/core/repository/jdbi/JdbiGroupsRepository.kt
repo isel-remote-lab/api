@@ -12,9 +12,7 @@ import org.jdbi.v3.core.kotlin.mapTo
 data class JdbiGroupsRepository(
     val handle: Handle,
 ) : GroupsRepository {
-    override fun createGroup(
-        validatedCreateGroup: ValidatedCreateGroup
-    ): Int =
+    override fun createGroup(validatedCreateGroup: ValidatedCreateGroup): Int =
         handle.createUpdate(
             """
            INSERT INTO rl.group (group_name, group_description, created_at, owner_id)

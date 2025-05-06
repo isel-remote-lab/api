@@ -9,9 +9,7 @@ import isel.rl.core.domain.group.props.GroupName
  * Repository for groups
  */
 interface GroupsRepository {
-    fun createGroup(
-        validatedCreateGroup: ValidatedCreateGroup
-    ): Int
+    fun createGroup(validatedCreateGroup: ValidatedCreateGroup): Int
 
     fun getGroupById(groupId: Int): Group?
 

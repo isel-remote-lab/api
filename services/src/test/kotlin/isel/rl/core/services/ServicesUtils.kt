@@ -7,7 +7,6 @@ import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import isel.rl.core.repository.jdbi.transaction.JdbiTransactionManager
-import isel.rl.core.security.JWTUtils
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import kotlin.math.abs
@@ -31,11 +30,11 @@ class ServicesUtils {
             },
         ).configureWithAppRequirements()
 
-    private val secrets = RemoteLabApp().secrets()
-    private val usersDomain = UsersDomain(
-        RemoteLabApp().usersDomainConfig(),
-        RemoteLabApp().tokenEncoder(),
-    )
+    private val usersDomain =
+        UsersDomain(
+            RemoteLabApp().usersDomainConfig(),
+            RemoteLabApp().tokenEncoder(),
+        )
 
     // User functions
 
@@ -49,7 +48,6 @@ class ServicesUtils {
         UsersService(
             JdbiTransactionManager(jdbi),
             usersDomain,
-            JWTUtils(secrets),
             testClock,
         )
 

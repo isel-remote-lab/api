@@ -183,7 +183,7 @@ data class JdbiUsersRepository(
                         Role.entries.firstOrNull { it.char == role }!!,
                         Username(username),
                         Email(email),
-                        userCreatedAt
+                        userCreatedAt,
                     ),
                     Token(
                         TokenValidationInfo(tokenValidation),

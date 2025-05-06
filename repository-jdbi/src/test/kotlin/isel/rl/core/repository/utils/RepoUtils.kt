@@ -25,6 +25,7 @@ import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
+import org.springframework.stereotype.Component
 import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.time.DurationUnit
@@ -34,11 +35,11 @@ import kotlin.time.toDuration
  * Utility class for creating test data and managing database connections.
  * This class provides methods to create test users, groups, laboratories, and hardware,
  */
+@Component
 class RepoUtils {
     private val userDomainConfig = RemoteLabApp().usersDomainConfig()
     private val labDomainConfig = RemoteLabApp().laboratoriesDomainConfig()
     private val groupDomainConfig = RemoteLabApp().groupsDomainConfig()
-    val secrets = RemoteLabApp().secrets()
     private val tokenEncoder = RemoteLabApp().tokenEncoder()
 
     /**
@@ -65,7 +66,6 @@ class RepoUtils {
         GroupsDomain(
             groupDomainConfig,
         )
-
 
     // General
 
@@ -169,10 +169,9 @@ class RepoUtils {
                 groupName.groupNameInfo,
                 groupDescription.groupDescriptionInfo,
                 groupCreatedAt,
-                userId
-            )
+                userId,
+            ),
         )
-
     }
 
     // Lab functions

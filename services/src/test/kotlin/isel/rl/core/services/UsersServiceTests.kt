@@ -32,12 +32,12 @@ class UsersServiceTests {
             is Either.Left -> fail("User creation failed: ${createdUserResult.value}")
             is Either.Right ->
                 assertTrue(
-                    createdUserResult.value >= 0,
+                    createdUserResult.value.id >= 0,
                     CREATE_ID_ERROR,
                 )
         }
 
-        val userId = createdUserResult.value
+        val userId = createdUserResult.value.id
 
         // when: getting the user by id
         // then: Verify if the user was retrieved by id

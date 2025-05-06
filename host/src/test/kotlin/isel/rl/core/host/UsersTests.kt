@@ -1,8 +1,7 @@
-package isel.rl.core.utils
+package isel.rl.core.host
 
-import com.auth0.jwt.interfaces.DecodedJWT
 import isel.rl.core.domain.Uris
-import isel.rl.core.host.RemoteLabApp
+import isel.rl.core.host.utils.HttpUtils
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.springframework.boot.test.context.SpringBootTest
@@ -124,7 +123,7 @@ class UsersTests {
             .post()
             .uri(Uris.Auth.LOGIN)
             .bodyValue(
-                initialUser.mapOf()
+                initialUser.mapOf(),
             )
             .exchange()
             .expectStatus().isForbidden
@@ -144,7 +143,7 @@ class UsersTests {
             .uri(Uris.Auth.LOGIN)
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
-                initialUser.mapOf()
+                initialUser.mapOf(),
             )
             .exchange()
             .expectStatus().isForbidden
@@ -191,7 +190,7 @@ class UsersTests {
                 .uri(Uris.Auth.LOGIN)
                 .header(httpUtils.apiHeader, httpUtils.apiKey)
                 .bodyValue(
-                    initialUser.mapOf()
+                    initialUser.mapOf(),
                 )
                 .exchange()
                 .expectStatus().isBadRequest
@@ -256,41 +255,39 @@ class UsersTests {
         }
 
         private fun WebTestClient.loginUser(initialUser: InitialUserLogin): Pair<Int, InitialUser> {
-            val res =
-                post()
-                    .uri(Uris.Auth.LOGIN)
-                    .header(httpUtils.apiHeader, httpUtils.apiKey)
-                    .bodyValue(
-                        initialUser.mapOf()
-                    )
-                    .exchange()
-                    .expectStatus().isOk
-                    .expectCookie().exists(httpUtils.authTokenName)
-                    .expectBody<SuccessResponse>()
-                    .consumeWith { result ->
-                        assertNotNull(result)
-                        val actualMessage = result.responseBody
-                        assertNotNull(actualMessage)
-                        assertEquals(200, result.status.value())
-                        assertEquals("User logged in successfully", actualMessage.message)
-                    }
-                    .returnResult()
+            var ret: Pair<Int, InitialUser>? = null
 
-            val cookie = res.responseCookies[httpUtils.authTokenName]?.first()?.value
+            post()
+                .uri(Uris.Auth.LOGIN)
+                .header(httpUtils.apiHeader, httpUtils.apiKey)
+                .bodyValue(
+                    initialUser.mapOf(),
+                )
+                .exchange()
+                .expectStatus().isOk
+                .expectCookie().exists(httpUtils.authTokenName)
+                .expectBody<SuccessResponse>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val actualMessage = result.responseBody
+                    val responseBody = (actualMessage?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
+                    assertNotNull(actualMessage)
+                    assertEquals("User logged in successfully", actualMessage.message)
+                    assertEquals(initialUser.oAuthId, responseBody[OAUTH_ID_PROP])
+                    assertEquals(initialUser.role, responseBody[ROLE_PROP])
+                    assertEquals(initialUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(initialUser.email, responseBody[EMAIL_PROP])
+                    ret = responseBody[ID_PROP] as Int to
+                        InitialUser(
+                            oAuthId = responseBody[OAUTH_ID_PROP] as String,
+                            role = responseBody[ROLE_PROP] as String,
+                            username = responseBody[USERNAME_PROP] as String,
+                            email = responseBody[EMAIL_PROP] as String,
+                        )
+                }
 
-            val jwt: DecodedJWT = httpUtils.validateJWTToken(cookie)
-
-            val userId = jwt.getClaim("userId").asString()
-            assertNotNull(userId, "User ID should not be null")
-            return (
-                userId.toInt() to
-                    InitialUser(
-                        oAuthId = initialUser.oAuthId,
-                        role = initialUser.role,
-                        username = initialUser.username,
-                        email = initialUser.email,
-                    )
-            )
+            assertNotNull(ret)
+            return ret!!
         }
     }
 }

@@ -2,6 +2,7 @@ package isel.rl.core.http.pipeline.interceptors
 
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
+import isel.rl.core.http.pipeline.RequestTokenProcessor
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component

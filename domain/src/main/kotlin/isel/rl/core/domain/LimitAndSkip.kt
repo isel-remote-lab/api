@@ -1,6 +1,6 @@
 package isel.rl.core.domain
 
-data class LimitAndSkip (
+data class LimitAndSkip(
     val limit: Int = DEFAULT_LIMIT,
     val skip: Int = DEFAULT_SKIP,
 ) {

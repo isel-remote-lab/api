@@ -27,9 +27,6 @@ tasks.test {
     if (System.getenv("DB_URL") == null) {
         environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
     }
-    if (System.getenv("TEST_MODE") == null) {
-        environment("TEST_MODE", "true")
-    }
     dependsOn(":repository-jdbi:dbTestsWait")
     finalizedBy(":repository-jdbi:dbTestsDown")
 }

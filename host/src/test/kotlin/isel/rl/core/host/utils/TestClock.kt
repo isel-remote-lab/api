@@ -1,4 +1,4 @@
-package isel.rl.core.utils
+package isel.rl.core.host.utils
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
