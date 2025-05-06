@@ -2,8 +2,6 @@ package isel.rl.core.domain.laboratory.domain
 
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
 import isel.rl.core.domain.exceptions.ServicesExceptions
-import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
-import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName

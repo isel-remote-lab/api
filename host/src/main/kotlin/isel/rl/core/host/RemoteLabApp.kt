@@ -1,8 +1,11 @@
 package isel.rl.core.host
 
-import io.github.cdimascio.dotenv.dotenv
 import isel.rl.core.domain.Secrets
+import isel.rl.core.domain.config.DomainConfig
+import isel.rl.core.domain.config.GroupsDomainConfig
 import isel.rl.core.domain.config.LaboratoriesDomainConfig
+import isel.rl.core.domain.config.UsersDomainConfig
+import isel.rl.core.domain.user.token.Sha256TokenEncoder
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
 import isel.rl.core.http.pipeline.interceptors.AuthenticationInterceptor
@@ -10,6 +13,7 @@ import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -20,59 +24,80 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-const val API_KEY = "API_KEY"
-const val JWT_SECRET = "JWT_SECRET"
-
-const val MIN_LENGTH_LABNAME = "MIN_LENGTH_LABNAME"
-const val MAX_LENGTH_LABNAME = "MAX_LENGTH_LABNAME"
-const val MIN_LENGTH_LABDESCRIPTION = "MIN_LENGTH_LABDESCRIPTION"
-const val MAX_LENGTH_LABDESCRIPTION = "MAX_LENGTH_LABDESCRIPTION"
-const val MIN_LABDURATION = "MIN_LABDURATION"
-const val MAX_LABDURATION = "MAX_LABDURATION"
-const val MIN_LABQUEUE_LIMIT = "MIN_LABQUEUE_LIMIT"
-const val MAX_LABQUEUE_LIMIT = "MAX_LABQUEUE_LIMIT"
-
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
-    private val privateDirectory = "../private"
-    val domainEnv = "$privateDirectory/shared/domain"
-    val secretsEnv = "$privateDirectory/shared/secrets"
+    /**
+     * Helper function to load the domain-config.json file from the resources directory.
+     */
+    private final fun loadDomainConfigFile(): String {
+        val inputStream = object {}.javaClass.getResourceAsStream("/domain-config.json")
+        return inputStream?.bufferedReader()?.use { it.readText() }
+            ?: throw Exception("Unable to load domain-config.json")
+    }
 
     /**
      * Loads environment variables from a .env file located in the shared domain directory.
      * This variables are used to configure the application domain restrictions.
      */
     val domainConfigs =
-        dotenv {
-            directory = domainEnv
-            filename = ".env"
-        }
+        DomainConfig.parseDomainConfigs(
+            loadDomainConfigFile(),
+        )
+
+    /**
+     * Creates a Sha256TokenEncoder bean.
+     *
+     * @return the Sha256TokenEncoder instance
+     */
+    @Bean
+    fun tokenEncoder() = Sha256TokenEncoder()
+
+    @Value("\${api.key}")
+    private lateinit var apiKey: String
 
     @Bean
-    fun secrets(): Secrets {
-        val secrets =
-            dotenv {
-                directory = secretsEnv
-                filename = ".env"
-            }
+    fun secrets() =
+        Secrets(
+            apiKey = apiKey,
+        )
 
-        return Secrets(
-            apiKey = secrets[API_KEY]!!,
-            jwtSecret = secrets[JWT_SECRET]!!,
+    @Bean
+    fun usersDomainConfig(): UsersDomainConfig {
+        val usersConfig = domainConfigs.user
+        val tokenTtlDurationUnit = DurationUnit.valueOf(usersConfig.tokenTtlDurationUnit)
+
+        return UsersDomainConfig(
+            tokenSizeInBytes = usersConfig.tokenSizeInBytes,
+            tokenTtl = usersConfig.tokenTtl.toDuration(tokenTtlDurationUnit),
+            tokenRollingTtl = usersConfig.tokenRollingTtl.toDuration(tokenTtlDurationUnit),
+            maxTokensPerUser = usersConfig.maxTokensPerUser,
         )
     }
 
     @Bean
-    fun laboratoryDomainConfig() =
-        LaboratoriesDomainConfig(
-            minLengthLabName = domainConfigs[MIN_LENGTH_LABNAME]!!.toInt(),
-            maxLengthLabName = domainConfigs[MAX_LENGTH_LABNAME]!!.toInt(),
-            minLengthLabDescription = domainConfigs[MIN_LENGTH_LABDESCRIPTION]!!.toInt(),
-            maxLengthLabDescription = domainConfigs[MAX_LENGTH_LABDESCRIPTION]!!.toInt(),
-            minLabDuration = domainConfigs[MIN_LABDURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            maxLabDuration = domainConfigs[MAX_LABDURATION]!!.toLong().toDuration(DurationUnit.MINUTES),
-            minLabQueueLimit = domainConfigs[MIN_LABQUEUE_LIMIT]!!.toInt(),
-            maxLabQueueLimit = domainConfigs[MAX_LABQUEUE_LIMIT]!!.toInt(),
+    fun laboratoriesDomainConfig(): LaboratoriesDomainConfig {
+        val labsConfig = domainConfigs.laboratory
+        val labDurationUnit = DurationUnit.valueOf(labsConfig.labDurationUnit)
+
+        return LaboratoriesDomainConfig(
+            minLengthLabName = labsConfig.minLengthLabName,
+            maxLengthLabName = labsConfig.maxLengthLabName,
+            minLengthLabDescription = labsConfig.minLengthLabDescription,
+            maxLengthLabDescription = labsConfig.maxLengthLabDescription,
+            minLabDuration = labsConfig.minLabDuration.toDuration(labDurationUnit),
+            maxLabDuration = labsConfig.maxLabDuration.toDuration(labDurationUnit),
+            minLabQueueLimit = labsConfig.minLabQueueLimit,
+            maxLabQueueLimit = labsConfig.maxLabQueueLimit,
+        )
+    }
+
+    @Bean
+    fun groupsDomainConfig() =
+        GroupsDomainConfig(
+            minLengthGroupName = domainConfigs.group.minLengthGroupName,
+            maxLengthGroupName = domainConfigs.group.maxLengthGroupName,
+            minLengthGroupDescription = domainConfigs.group.minLengthGroupDescription,
+            maxLengthGroupDescription = domainConfigs.group.maxLengthGroupDescription,
         )
 
     /**
@@ -88,11 +113,14 @@ class RemoteLabApp {
      *
      * @return the configured Jdbi instance
      */
+    @Value("\${db.url}")
+    private lateinit var dbURL: String
+
     @Bean
     fun jdbi() =
         Jdbi.create(
             PGSimpleDataSource().apply {
-                setURL(Environment.getDbUrl())
+                setURL(dbURL)
             },
         ).configureWithAppRequirements()
 }

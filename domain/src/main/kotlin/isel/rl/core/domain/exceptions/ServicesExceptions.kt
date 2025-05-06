@@ -60,6 +60,14 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
         class InvalidLaboratoryQueueLimit(message: String) : ServicesExceptions(message)
     }
 
+    data object Groups {
+        class InvalidGroupName(message: String) : ServicesExceptions(message)
+
+        class InvalidGroupDescription(message: String) : ServicesExceptions(message)
+    }
+
+    class InvalidQueryParam(message: String) : ServicesExceptions(message)
+
     data object UnexpectedError : ServicesExceptions("Unexpected error") {
         private fun readResolve(): Any = UnexpectedError
     }

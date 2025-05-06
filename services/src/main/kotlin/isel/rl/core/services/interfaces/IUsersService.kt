@@ -4,13 +4,15 @@ import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
 
-typealias LoginUserResult = Either<ServicesExceptions, String>
+typealias AuthToken = String
+typealias UserAndToken = Pair<User, AuthToken>
+typealias LoginUserResult = Either<ServicesExceptions, UserAndToken>
 
 /**
  * Result of creating a user.
  * It can either be a [Either.Right] with the user ID or a [Either.Left] with an exception.
  */
-typealias CreateUserResult = Either<ServicesExceptions, Int>
+typealias CreateUserResult = Either<ServicesExceptions, User>
 
 /**
  * Result of getting a user.
@@ -31,15 +33,29 @@ interface IUsersService {
      * @param oauthId The OAuth ID of the user.
      * @param username The username of the user.
      * @param email The email of the user.
-     * @param accessToken The access token of the user.
      * @return A result indicating success or failure.
      */
     fun login(
         oauthId: String,
         username: String,
         email: String,
-        accessToken: String,
     ): LoginUserResult
+
+    /**
+     * Retrieves a user by token.
+     *
+     * @param token the token of the user
+     * @return the User if found, or null otherwise
+     */
+    fun getUserByToken(token: String): User?
+
+    /**
+     * Revokes a token.
+     *
+     * @param token the token to revoke
+     * @return true if the token was successfully revoked, false otherwise
+     */
+    fun revokeToken(token: String): Boolean
 
     /**
      * Creates a new user.

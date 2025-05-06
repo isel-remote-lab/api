@@ -1,7 +1,6 @@
 package isel.rl.core.repository.jdbi
 
-import isel.rl.core.domain.group.GroupDescription
-import isel.rl.core.domain.group.GroupName
+import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
@@ -10,8 +9,7 @@ import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.jdbi.mappers.InstantMapper
 import isel.rl.core.repository.jdbi.mappers.TokenValidationInfoMapper
-import isel.rl.core.repository.jdbi.mappers.group.GroupDescriptionMapper
-import isel.rl.core.repository.jdbi.mappers.group.GroupNameMapper
+import isel.rl.core.repository.jdbi.mappers.group.GroupMapper
 import isel.rl.core.repository.jdbi.mappers.hardware.HardwareNameMapper
 import isel.rl.core.repository.jdbi.mappers.hardware.HardwareStatusMapper
 import isel.rl.core.repository.jdbi.mappers.laboratory.LabMapper
@@ -31,8 +29,7 @@ fun Jdbi.configureWithAppRequirements(): Jdbi {
     registerColumnMapper(TokenValidationInfo::class.java, TokenValidationInfoMapper())
 
     // Group Mappers
-    registerColumnMapper(GroupName::class.java, GroupNameMapper())
-    registerColumnMapper(GroupDescription::class.java, GroupDescriptionMapper())
+    registerRowMapper(Group::class.java, GroupMapper())
 
     // Laboratory Mappers
     registerRowMapper(Laboratory::class.java, LabMapper())

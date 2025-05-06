@@ -6,7 +6,7 @@ import java.net.URI
 class Problem(
     val type: String = "",
     val title: String = "",
-    val details: String = "",
+    val detail: String = "",
 ) {
     companion object {
         private const val MEDIA_TYPE = "application/problem+json"

@@ -6,7 +6,7 @@ package isel.rl.core.repository
 interface Transaction {
     val usersRepository: UsersRepository
     val laboratoriesRepository: LaboratoriesRepository
-    val groupRepository: GroupRepository
+    val groupRepository: GroupsRepository
 
     /**
      * Rolls back the current transaction.

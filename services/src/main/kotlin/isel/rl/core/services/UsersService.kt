@@ -1,13 +1,15 @@
 package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
+import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.UsersDomain
+import isel.rl.core.domain.user.token.Token
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.security.JWTUtils
 import isel.rl.core.services.interfaces.CreateUserResult
 import isel.rl.core.services.interfaces.GetUserResult
 import isel.rl.core.services.interfaces.IUsersService
 import isel.rl.core.services.interfaces.LoginUserResult
+import isel.rl.core.services.utils.handleException
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
 import isel.rl.core.utils.failure
@@ -22,14 +24,12 @@ import org.springframework.stereotype.Service
 data class UsersService(
     private val transactionManager: TransactionManager,
     private val usersDomain: UsersDomain,
-    private val jwtUtils: JWTUtils,
     private val clock: Clock,
 ) : IUsersService {
     override fun login(
         oauthId: String,
         username: String,
         email: String,
-        accessToken: String,
     ): LoginUserResult =
         try {
             when (val getByOauthRes = getUserByOAuthId(oauthId)) {
@@ -39,15 +39,7 @@ data class UsersService(
 
                         if (createUserResult is Success) {
                             success(
-                                jwtUtils.generateJWTToken(
-                                    createUserResult.value.toString(),
-                                    oauthId,
-                                    INITIAL_USER_ROLE,
-                                    username,
-                                    email,
-                                    accessToken,
-                                    clock.now(),
-                                ),
+                                createUserResult.value to createToken(createUserResult.value.id),
                             )
                         } else {
                             failure((createUserResult as Failure).value)
@@ -60,15 +52,7 @@ data class UsersService(
                 is Success -> {
                     val user = getByOauthRes.value
                     success(
-                        jwtUtils.generateJWTToken(
-                            user.id.toString(),
-                            user.oauthId.oAuthIdInfo,
-                            user.role.char,
-                            user.username.usernameInfo,
-                            user.email.emailInfo,
-                            accessToken,
-                            clock.now(),
-                        ),
+                        user to createToken(user.id),
                     )
                 }
             }
@@ -76,6 +60,33 @@ data class UsersService(
             // Handle exceptions that may occur during the login process
             handleException(e)
         }
+
+    override fun getUserByToken(token: String): User? {
+        if (!usersDomain.canBeToken(token)) {
+            return null
+        }
+        return transactionManager.run {
+            val usersRepository = it.usersRepository
+            val tokenValidationInfo = usersDomain.createTokenValidationInformation(token)
+            val userAndToken = usersRepository.getUserByTokenValidationInfo(tokenValidationInfo)
+
+            if (userAndToken != null && usersDomain.isTokenTimeValid(clock, userAndToken.second)) {
+                usersRepository.updateTokenLastUsed(userAndToken.second, clock.now())
+                userAndToken.first
+            } else {
+                revokeToken(token)
+                null
+            }
+        }
+    }
+
+    override fun revokeToken(token: String): Boolean {
+        val tokenValidationInfo = usersDomain.createTokenValidationInformation(token)
+        return transactionManager.run {
+            it.usersRepository.removeTokenByValidationInfo(tokenValidationInfo)
+            true
+        }
+    }
 
     override fun createUser(
         oauthId: String,
@@ -94,9 +105,17 @@ data class UsersService(
                     clock.now(),
                 )
             transactionManager.run {
+                val userId = it.usersRepository.createUser(user)
                 // Create the user in the database and return the result as success
                 success(
-                    it.usersRepository.createUser(user),
+                    User(
+                        id = userId,
+                        oAuthId = user.oauthId,
+                        role = user.role,
+                        username = user.username,
+                        email = user.email,
+                        createdAt = user.createdAt,
+                    ),
                 )
             }
         } catch (e: Exception) {
@@ -181,6 +200,23 @@ data class UsersService(
             }
         } catch (e: Exception) {
             handleException(e)
+        }
+
+    private fun createToken(userId: Int) =
+        transactionManager.run {
+            val usersRepository = it.usersRepository
+            val tokenValue = usersDomain.generateTokenValue()
+            val createdAt = clock.now()
+            val newToken =
+                Token(
+                    usersDomain.createTokenValidationInformation(tokenValue),
+                    userId,
+                    createdAt = createdAt,
+                    lastUsedAt = createdAt,
+                )
+            usersRepository.createToken(newToken, usersDomain.maxNumberOfTokensPerUser)
+
+            tokenValue
         }
 
     companion object {

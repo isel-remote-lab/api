@@ -17,4 +17,39 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // For the domain configs and constants
+    testImplementation(project(":host"))
+}
+
+tasks.test {
+    useJUnitPlatform()
+    if (System.getenv("DB_URL") == null) {
+        environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+    }
+    dependsOn(":repository-jdbi:dbTestsWait")
+    finalizedBy(":repository-jdbi:dbTestsDown")
+}
+
+/**
+ * DB related tasks
+ * - To run `psql` inside the container, do
+ *      docker exec -ti db-tests psql -d db -U dbuser -W
+ *   and provide it with the same password as define on `tests/Dockerfile-db-test`
+ */
+
+val composeFileDir: Directory by parent!!.extra
+val dockerComposePath = composeFileDir.file("docker-compose.yml").toString()
+
+task<Exec>("dbTestsUp") {
+    commandLine("docker", "compose", "-f", dockerComposePath, "up", "-d", "--build", "--force-recreate", "db-tests")
+}
+
+task<Exec>("dbTestsWait") {
+    commandLine("docker", "exec", "db-tests", "/app/bin/wait-for-postgres.sh", "localhost")
+    dependsOn("dbTestsUp")
+}
+
+task<Exec>("dbTestsDown") {
+    commandLine("docker", "compose", "-f", dockerComposePath, "down", "db-tests")
 }

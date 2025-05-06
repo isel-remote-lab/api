@@ -1,8 +1,9 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
-import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
+import isel.rl.core.domain.laboratory.domain.ValidatedCreateLaboratory
+import isel.rl.core.domain.laboratory.domain.ValidatedUpdateLaboratory
 import isel.rl.core.domain.laboratory.props.LabName
 
 interface LaboratoriesRepository {
@@ -11,6 +12,11 @@ interface LaboratoriesRepository {
     fun getLaboratoryById(labId: Int): Laboratory?
 
     fun getLaboratoryByName(labName: LabName): Laboratory?
+
+    fun getLaboratoriesByUserId(
+        userId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Laboratory>
 
     fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean
 

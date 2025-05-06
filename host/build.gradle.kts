@@ -17,4 +17,19 @@ dependencies {
     // for JDBI and Postgres
     implementation("org.jdbi:jdbi3-core:3.37.1")
     implementation("org.postgresql:postgresql:42.7.2")
+
+    // To use WebTestClient on tests
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // To use JWT
+    testImplementation("com.auth0:java-jwt:4.5.0")
+
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
+    dependsOn(":repository-jdbi:dbTestsWait")
+    finalizedBy(":repository-jdbi:dbTestsDown")
 }

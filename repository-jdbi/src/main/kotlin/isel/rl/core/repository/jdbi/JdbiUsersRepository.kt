@@ -1,7 +1,7 @@
 package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.ValidatedUser
+import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
@@ -102,7 +102,7 @@ data class JdbiUsersRepository(
             .execute()
     }
 
-    override fun getTokenByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>? =
+    override fun getUserByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>? =
         handle.createQuery(
             """
                 SELECT users.id, 
@@ -128,7 +128,7 @@ data class JdbiUsersRepository(
     override fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int =
         handle.createUpdate(
             """
-                DELETE FROM rl.Tokens
+                DELETE FROM rl.token
                 WHERE token_validation = :validation_information
             """,
         )
@@ -165,21 +165,28 @@ data class JdbiUsersRepository(
 
     private data class UserAndTokenModel(
         val id: Int,
-        val oAuthId: OAuthId,
-        val role: Role,
-        val username: Username,
-        val email: Email,
+        val oAuthId: String,
+        val role: String,
+        val username: String,
+        val email: String,
         val userCreatedAt: Instant,
-        val tokenValidation: TokenValidationInfo,
+        val tokenValidation: String,
         val tokenCreatedAt: Instant,
         val lastUsedAt: Instant,
     ) {
         val userAndToken: Pair<User, Token>
             get() =
                 Pair(
-                    User(id, oAuthId, role, username, email, userCreatedAt),
+                    User(
+                        id,
+                        OAuthId(oAuthId),
+                        Role.entries.firstOrNull { it.char == role }!!,
+                        Username(username),
+                        Email(email),
+                        userCreatedAt,
+                    ),
                     Token(
-                        tokenValidation,
+                        TokenValidationInfo(tokenValidation),
                         id,
                         tokenCreatedAt,
                         lastUsedAt,

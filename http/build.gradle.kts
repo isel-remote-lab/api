@@ -1,7 +1,6 @@
 dependencies {
     // Module dependencies
     implementation(project(":domain"))
-    implementation(project(":security"))
     implementation(project(":services"))
 
     // To use Spring MVC and the Servlet API

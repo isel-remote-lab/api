@@ -2,7 +2,7 @@ package isel.rl.core.http.pipeline.interceptors
 
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
-import isel.rl.core.http.pipeline.RequestJWTProcessor
+import isel.rl.core.http.pipeline.RequestTokenProcessor
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
@@ -11,7 +11,7 @@ import org.springframework.web.servlet.HandlerInterceptor
 
 @Component
 class AuthenticationInterceptor(
-    private val jwtProcessor: RequestJWTProcessor,
+    private val authorizationCookieProcessor: RequestTokenProcessor,
 ) : HandlerInterceptor {
     override fun preHandle(
         request: HttpServletRequest,
@@ -24,16 +24,17 @@ class AuthenticationInterceptor(
             }
         ) {
             // check for the presence of the cookie in the request
-            val cookie = request.cookies?.find { it.name == "jwt-token" }
+            val cookie = request.cookies?.find { it.name == "token" }
 
             if (cookie == null) {
                 response.status = 401
-                response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, SCHEME)
+                response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
                 return false
             }
 
             // enforce authentication
-            val user = jwtProcessor.processAuthorizationCookieValue(cookie.value)
+            val authToken = cookie.value
+            val user = authorizationCookieProcessor.processAuthorizationCookieValue(authToken)
             return isUserAuthenticated(user, request, response)
         }
 
@@ -47,7 +48,7 @@ class AuthenticationInterceptor(
     ): Boolean {
         return if (user == null) {
             response.status = 401
-            response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, SCHEME)
+            response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
             false
         } else {
             AuthenticatedUserArgumentResolver.addUserTo(user, request)
@@ -56,7 +57,6 @@ class AuthenticationInterceptor(
     }
 
     companion object {
-        const val SCHEME = "Bearer"
         private const val NAME_WWW_AUTHENTICATE_COOKIE = "WWW-Authenticate"
     }
 }

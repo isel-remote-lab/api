@@ -1,8 +1,9 @@
 package isel.rl.core.repository.jdbi
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.ValidatedCreateLaboratory
-import isel.rl.core.domain.laboratory.ValidatedUpdateLaboratory
+import isel.rl.core.domain.laboratory.domain.ValidatedCreateLaboratory
+import isel.rl.core.domain.laboratory.domain.ValidatedUpdateLaboratory
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.repository.LaboratoriesRepository
 import kotlinx.datetime.toJavaInstant
@@ -51,6 +52,25 @@ data class JdbiLaboratoriesRepository(
             .bind("lab_name", labName.labNameInfo)
             .mapTo<Laboratory>()
             .singleOrNull()
+
+    override fun getLaboratoriesByUserId(
+        userId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Laboratory> =
+        handle.createQuery(
+            """
+            SELECT l.* FROM rl.laboratory AS l
+            JOIN rl.group_laboratory AS gl ON l.id = gl.lab_id
+            JOIN rl.user_group AS gu ON gl.group_id = gu.group_id
+            WHERE gu.user_id = :user_id
+            LIMIT :limit OFFSET :skip
+        """,
+        )
+            .bind("user_id", userId)
+            .bind("limit", limitAndSkip.limit)
+            .bind("skip", limitAndSkip.skip)
+            .mapTo<Laboratory>()
+            .list()
 
     override fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean {
         val updateQuery =

@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.ValidatedUser
+import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Username
@@ -36,7 +36,7 @@ interface UsersRepository {
         now: Instant,
     )
 
-    fun getTokenByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
+    fun getUserByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
 
     fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int
 
