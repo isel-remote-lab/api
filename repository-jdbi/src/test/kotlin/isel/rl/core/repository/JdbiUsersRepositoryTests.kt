@@ -2,8 +2,8 @@ package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
-import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
@@ -93,7 +93,7 @@ class JdbiUsersRepositoryTests {
             // Assert User
             assertNotNull(userAndToken)
             assertEquals(userId, userAndToken.first.id)
-            assertEquals(initialUser.username, userAndToken.first.username)
+            assertEquals(initialUser.name, userAndToken.first.name)
             assertEquals(initialUser.email, userAndToken.first.email)
             assertEquals(initialUser.createdAt, userAndToken.first.createdAt)
             assertEquals(initialUser.userRole, userAndToken.first.role)
@@ -175,7 +175,7 @@ class JdbiUsersRepositoryTests {
          */
         private data class InitialUserInfo(
             val clock: TestClock,
-            val username: Username = repoUtils.newTestUsername(),
+            val name: Name = repoUtils.newTestUsername(),
             val email: Email = repoUtils.newTestEmail(),
             val createdAt: Instant = clock.now(),
             val userRole: Role = repoUtils.randomUserRole(),
@@ -188,7 +188,7 @@ class JdbiUsersRepositoryTests {
          */
         private fun InitialUserInfo.assertUserWith(user: User?) {
             assertNotNull(user) { "No user retrieved" }
-            assertEquals(username, user.username, "Usernames do not match")
+            assertEquals(name, user.name, "Usernames do not match")
             assertEquals(email, user.email, "Emails do not match")
             assertEquals(createdAt, user.createdAt, "CreatedAt do not match")
             assertEquals(userRole, user.role, "Roles do not match")
@@ -205,7 +205,7 @@ class JdbiUsersRepositoryTests {
             createUser(
                 repoUtils.usersDomain.validateCreateUser(
                     user.userRole.char,
-                    user.username.usernameInfo,
+                    user.name.nameInfo,
                     user.email.emailInfo,
                     user.createdAt,
                 ),

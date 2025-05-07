@@ -45,7 +45,7 @@ class UsersServiceTests {
             is Either.Right -> {
                 val user = userByIdResult.value
                 assertEquals(user.id, userId, GET_USER_ID_ERROR)
-                assertEquals(user.username.usernameInfo, username, GET_USERNAME_ERROR)
+                assertEquals(user.name.nameInfo, username, GET_USERNAME_ERROR)
                 assertEquals(user.email.emailInfo, email, GET_USER_EMAIL_ERROR)
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATED_AT_ERROR)
@@ -59,7 +59,7 @@ class UsersServiceTests {
             is Either.Right -> {
                 val user = userByEmailResult.value
                 assertEquals(user.id, userId, GET_USER_ID_ERROR)
-                assertEquals(user.username.usernameInfo, username, GET_USERNAME_ERROR)
+                assertEquals(user.name.nameInfo, username, GET_USERNAME_ERROR)
                 assertEquals(user.email.emailInfo, email, GET_USER_EMAIL_ERROR)
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATED_AT_ERROR)

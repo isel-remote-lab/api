@@ -3,8 +3,8 @@ package isel.rl.core.repository.jdbi
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
-import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.UsersRepository
@@ -20,12 +20,12 @@ data class JdbiUsersRepository(
     override fun createUser(user: ValidatedUser): Int =
         handle.createUpdate(
             """
-           INSERT INTO rl.user (role, username, email, created_at)
-           VALUES (:role, :username, :email, :created_at)
+           INSERT INTO rl.user (role, name, email, created_at)
+           VALUES (:role, :name, :email, :created_at)
            """,
         )
             .bind("role", user.role.char)
-            .bind("username", user.username.usernameInfo)
+            .bind("name", user.name.nameInfo)
             .bind("email", user.email.emailInfo)
             .bind("created_at", user.createdAt.toJavaInstant())
             .executeAndReturnGeneratedKeys()
@@ -99,7 +99,7 @@ data class JdbiUsersRepository(
             """
                 SELECT users.id, 
                 users.role,
-                users.username, 
+                users.name, 
                 users.email, 
                 users.created_at AS user_created_at, 
                 tokens.token_validation, 
@@ -139,7 +139,7 @@ data class JdbiUsersRepository(
     private data class UserAndTokenModel(
         val id: Int,
         val role: String,
-        val username: String,
+        val name: String,
         val email: String,
         val userCreatedAt: Instant,
         val tokenValidation: String,
@@ -152,7 +152,7 @@ data class JdbiUsersRepository(
                     User(
                         id,
                         Role.entries.firstOrNull { it.char == role }!!,
-                        Username(username),
+                        Name(name),
                         Email(email),
                         userCreatedAt,
                     ),

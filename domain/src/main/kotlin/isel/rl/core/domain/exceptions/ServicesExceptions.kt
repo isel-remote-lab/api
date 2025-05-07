@@ -13,8 +13,8 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
             private fun readResolve(): Any = InvalidRole
         }
 
-        data object InvalidUsername : ServicesExceptions("Invalid username") {
-            private fun readResolve(): Any = InvalidUsername
+        data object InvalidName : ServicesExceptions("Invalid name") {
+            private fun readResolve(): Any = InvalidName
         }
 
         data object InvalidEmail : ServicesExceptions("Invalid email") {

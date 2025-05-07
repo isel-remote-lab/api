@@ -28,7 +28,9 @@ class ServicesUtils {
             PGSimpleDataSource().apply {
                 setURL("jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
             },
-        ).configureWithAppRequirements()
+        ).configureWithAppRequirements(
+            RemoteLabApp().laboratoriesDomainConfig(),
+        )
 
     private val usersDomain =
         UsersDomain(

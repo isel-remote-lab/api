@@ -3,8 +3,8 @@ package isel.rl.core.domain.user.domain
 import isel.rl.core.domain.config.UsersDomainConfig
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
-import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.domain.user.token.TokenEncoder
 import isel.rl.core.domain.user.token.TokenValidationInfo
@@ -93,13 +93,13 @@ class UsersDomain(
 
     fun validateCreateUser(
         role: String,
-        username: String,
+        name: String,
         email: String,
         createdAt: Instant,
     ): ValidatedUser =
         ValidatedUser(
             checkRole(role),
-            checkUsername(username),
+            checkName(name),
             checkEmail(email),
             createdAt,
         )
@@ -111,11 +111,11 @@ class UsersDomain(
             throw ServicesExceptions.Users.InvalidUserId
         }
 
-    fun checkUsername(username: String): Username =
-        if (username.isBlank()) {
-            throw ServicesExceptions.Users.InvalidUsername
+    fun checkName(name: String): Name =
+        if (name.isBlank()) {
+            throw ServicesExceptions.Users.InvalidName
         } else {
-            Username(username)
+            Name(name)
         }
 
     fun checkEmail(email: String): Email =

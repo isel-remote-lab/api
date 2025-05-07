@@ -54,7 +54,7 @@ class HttpUtils {
                 .header(apiHeader, apiKey)
                 .bodyValue(
                     mapOf(
-                        "username" to username,
+                        "name" to username,
                         "email" to email,
                     ),
                 )

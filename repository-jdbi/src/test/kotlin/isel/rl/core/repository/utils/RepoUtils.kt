@@ -13,8 +13,8 @@ import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
-import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
@@ -82,14 +82,16 @@ class RepoUtils {
             PGSimpleDataSource().apply {
                 setURL(Environment.getDbUrl())
             },
-        ).configureWithAppRequirements()
+        ).configureWithAppRequirements(
+            labDomainConfig,
+        )
 
     // User functions
 
     /**
      * Generates a random username for testing purposes.
      */
-    fun newTestUsername() = Username("user-${abs(Random.nextLong())}")
+    fun newTestUsername() = Name("user-${abs(Random.nextLong())}")
 
     /**
      * Generates a random email for testing purposes.
@@ -119,7 +121,7 @@ class RepoUtils {
         return userRepo.createUser(
             usersDomain.validateCreateUser(
                 userRole.char,
-                username.usernameInfo,
+                username.nameInfo,
                 email.emailInfo,
                 createdAt,
             ),

@@ -1,12 +1,12 @@
 START TRANSACTION;
 
 -- Insert test users
-INSERT INTO rl.user (o_auth_id, role, username, email, created_at)
+INSERT INTO rl.user (role, username, email, created_at)
 VALUES
-    (123, 'A', 'admin', 'admin@example.com', now()),
-    (1234, 'P','professor1', 'professor1@example.com' , now()),
-    (12345, 'S', 'student1', 'student1@example.com' , now()),
-    (123456, 'S', 'student2',  'student2@example.com' ,now());
+    ('A', 'admin', 'admin@example.com', now()),
+    ( 'P','professor1', 'professor1@example.com' , now()),
+    ( 'S', 'student1', 'student1@example.com' , now()),
+    ( 'S', 'student2',  'student2@example.com' ,now());
 
 -- Insert test tokens
 INSERT INTO rl.token (token_validation, user_id, created_at, last_used_at)

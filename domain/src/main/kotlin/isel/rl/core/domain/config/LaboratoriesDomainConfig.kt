@@ -11,4 +11,5 @@ data class LaboratoriesDomainConfig(
     val maxLabDuration: Duration,
     val minLabQueueLimit: Int,
     val maxLabQueueLimit: Int,
+    val labDurationUnit: String,
 )

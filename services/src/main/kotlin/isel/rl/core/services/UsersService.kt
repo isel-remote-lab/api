@@ -27,14 +27,14 @@ data class UsersService(
     private val clock: Clock,
 ) : IUsersService {
     override fun login(
-        username: String,
+        name: String,
         email: String,
     ): LoginUserResult =
         try {
             when (val getByOauthRes = getUserByEmail(email)) {
                 is Failure -> {
                     if (getByOauthRes.value == ServicesExceptions.Users.UserNotFound) {
-                        val createUserResult = createUser(INITIAL_USER_ROLE, username, email)
+                        val createUserResult = createUser(INITIAL_USER_ROLE, name, email)
 
                         if (createUserResult is Success) {
                             success(
@@ -89,7 +89,7 @@ data class UsersService(
 
     override fun createUser(
         role: String,
-        username: String,
+        name: String,
         email: String,
     ): CreateUserResult =
         try {
@@ -97,7 +97,7 @@ data class UsersService(
             val user =
                 usersDomain.validateCreateUser(
                     role,
-                    username,
+                    name,
                     email,
                     clock.now(),
                 )
@@ -108,7 +108,7 @@ data class UsersService(
                     User(
                         id = userId,
                         role = user.role,
-                        username = user.username,
+                        name = user.name,
                         email = user.email,
                         createdAt = user.createdAt,
                     ),

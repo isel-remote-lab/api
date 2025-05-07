@@ -5,7 +5,7 @@ import isel.rl.core.domain.user.User
 data class UserOutputModel(
     val id: Int,
     val role: String,
-    val username: String,
+    val name: String,
     val email: String,
     val createdAt: String,
 ) {
@@ -16,7 +16,7 @@ data class UserOutputModel(
                     UserOutputModel(
                         id = user.id,
                         role = user.role.char,
-                        username = user.username.usernameInfo,
+                        name = user.name.nameInfo,
                         email = user.email.emailInfo,
                         createdAt = user.createdAt.toString(),
                     ),

@@ -30,12 +30,12 @@ interface IUsersService {
      * The parameters are validated before creating the user with the user domain.
      * If the validation fails, a [ServicesExceptions] is returned as failure.
      *
-     * @param username The username of the user.
+     * @param name The username of the user.
      * @param email The email of the user.
      * @return A result indicating success or failure.
      */
     fun login(
-        username: String,
+        name: String,
         email: String,
     ): LoginUserResult
 
@@ -61,13 +61,13 @@ interface IUsersService {
      * If the validation fails, a [ServicesExceptions] is returned as failure.
      *
      * @param role The role of the user.
-     * @param username The username of the user.
+     * @param name The username of the user.
      * @param email The email of the user.
      * @return A result indicating success or failure.
      */
     fun createUser(
         role: String,
-        username: String,
+        name: String,
         email: String,
     ): CreateUserResult
 

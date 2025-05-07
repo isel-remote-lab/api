@@ -91,7 +91,7 @@ class UsersTests {
 
         val initialUser =
             InitialUserLogin(
-                username = "",
+                name = "",
             )
 
         // when: doing a POST
@@ -142,27 +142,24 @@ class UsersTests {
         private const val USER_OUTPUT_MAP_KEY = "user"
         private const val ID_PROP = "id"
         private const val ROLE_PROP = "role"
-        private const val USERNAME_PROP = "username"
+        private const val NAME_PROP = "name"
         private const val EMAIL_PROP = "email"
-        private const val ACCESS_TOKEN = "accessToken"
 
         private data class InitialUser(
             val role: String = httpUtils.randomUserRole(),
-            val username: String = httpUtils.newTestUsername(),
+            val name: String = httpUtils.newTestUsername(),
             val email: String = httpUtils.newTestEmail(),
         )
 
         private data class InitialUserLogin(
             val role: String = "S",
-            val username: String = httpUtils.newTestUsername(),
+            val name: String = httpUtils.newTestUsername(),
             val email: String = httpUtils.newTestEmail(),
-            val accessToken: String = httpUtils.newTestAccessToken(),
         ) {
             fun mapOf() =
                 mapOf(
-                    USERNAME_PROP to username,
+                    NAME_PROP to name,
                     EMAIL_PROP to email,
-                    ACCESS_TOKEN to accessToken,
                 )
         }
 
@@ -205,7 +202,7 @@ class UsersTests {
                     assertEquals("User found with the id $userId", response.message)
                     assertEquals(userId, responseBody[ID_PROP])
                     assertEquals(expectedUser.role, responseBody[ROLE_PROP])
-                    assertEquals(expectedUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(expectedUser.name, responseBody[NAME_PROP])
                     assertEquals(expectedUser.email, responseBody[EMAIL_PROP])
                 }
         }
@@ -231,7 +228,7 @@ class UsersTests {
                     assertNotNull(response)
                     assertEquals("User found with the email $userEmail", response.message)
                     assertEquals(expectedUser.role, responseBody[ROLE_PROP])
-                    assertEquals(expectedUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(expectedUser.name, responseBody[NAME_PROP])
                     assertEquals(expectedUser.email, responseBody[EMAIL_PROP])
                 }
         }
@@ -256,12 +253,12 @@ class UsersTests {
                     assertNotNull(actualMessage)
                     assertEquals("User logged in successfully", actualMessage.message)
                     assertEquals(initialUser.role, responseBody[ROLE_PROP])
-                    assertEquals(initialUser.username, responseBody[USERNAME_PROP])
+                    assertEquals(initialUser.name, responseBody[NAME_PROP])
                     assertEquals(initialUser.email, responseBody[EMAIL_PROP])
                     ret = responseBody[ID_PROP] as Int to
                         InitialUser(
                             role = responseBody[ROLE_PROP] as String,
-                            username = responseBody[USERNAME_PROP] as String,
+                            name = responseBody[NAME_PROP] as String,
                             email = responseBody[EMAIL_PROP] as String,
                         )
                 }
