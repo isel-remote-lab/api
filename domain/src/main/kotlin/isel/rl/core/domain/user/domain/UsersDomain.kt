@@ -3,7 +3,6 @@ package isel.rl.core.domain.user.domain
 import isel.rl.core.domain.config.UsersDomainConfig
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
@@ -93,14 +92,12 @@ class UsersDomain(
     val maxNumberOfTokensPerUser = domainConfig.maxTokensPerUser
 
     fun validateCreateUser(
-        oauthId: String,
         role: String,
         username: String,
         email: String,
         createdAt: Instant,
     ): ValidatedUser =
         ValidatedUser(
-            checkOAuthId(oauthId),
             checkRole(role),
             checkUsername(username),
             checkEmail(email),
@@ -126,13 +123,6 @@ class UsersDomain(
             throw ServicesExceptions.Users.InvalidEmail
         } else {
             Email(email)
-        }
-
-    fun checkOAuthId(oauthId: String): OAuthId =
-        if (oauthId.isBlank()) {
-            throw ServicesExceptions.Users.InvalidOauthId
-        } else {
-            OAuthId(oauthId)
         }
 
     fun checkRole(role: String): Role =

@@ -2,7 +2,6 @@ package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
@@ -13,7 +12,6 @@ import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -43,35 +41,6 @@ class JdbiUsersRepositoryTests {
 
             // then: verify the retrieved user details
             initialUser.assertUserWith(userByEmail)
-
-            // when: retrieving a user by oauthId
-            val userByOauthId = userRepo.getUserByOAuthId(initialUser.oAuthId)
-
-            // then: verify the retrieved user details
-            initialUser.assertUserWith(userByOauthId)
-        }
-    }
-
-    @Test
-    fun `update username`() {
-        repoUtils.runWithHandle { handle ->
-            // given: a user repo and user domain
-            val userRepo = JdbiUsersRepository(handle)
-
-            // and: a test clock
-            val clock = TestClock()
-
-            // when: storing a user
-            val initialUser = InitialUserInfo(clock)
-            val userId = userRepo.createUser(initialUser)
-
-            // when: updating username
-            val newUsername = repoUtils.newTestUsername()
-            val userWithNewUsername = userRepo.updateUserUsername(userId, newUsername)
-
-            // then: verify the updated username
-            assertEquals(newUsername, userWithNewUsername.username, "Usernames do not match")
-            assertNotEquals(initialUser.username, userWithNewUsername.username, "Usernames should be different")
         }
     }
 
@@ -128,7 +97,6 @@ class JdbiUsersRepositoryTests {
             assertEquals(initialUser.email, userAndToken.first.email)
             assertEquals(initialUser.createdAt, userAndToken.first.createdAt)
             assertEquals(initialUser.userRole, userAndToken.first.role)
-            assertEquals(initialUser.oAuthId, userAndToken.first.oAuthId)
 
             // Assert Token
             assertEquals(token, userAndToken.second)
@@ -211,7 +179,6 @@ class JdbiUsersRepositoryTests {
             val email: Email = repoUtils.newTestEmail(),
             val createdAt: Instant = clock.now(),
             val userRole: Role = repoUtils.randomUserRole(),
-            val oAuthId: OAuthId = repoUtils.newTestOauthId(),
         )
 
         /**
@@ -225,7 +192,6 @@ class JdbiUsersRepositoryTests {
             assertEquals(email, user.email, "Emails do not match")
             assertEquals(createdAt, user.createdAt, "CreatedAt do not match")
             assertEquals(userRole, user.role, "Roles do not match")
-            assertEquals(oAuthId, user.oAuthId, "OAuthIds do not match")
             assertTrue(user.id >= 0, "UserId must be >= 0")
         }
 
@@ -238,7 +204,6 @@ class JdbiUsersRepositoryTests {
         private fun JdbiUsersRepository.createUser(user: InitialUserInfo): Int =
             createUser(
                 repoUtils.usersDomain.validateCreateUser(
-                    user.oAuthId.oAuthIdInfo,
                     user.userRole.char,
                     user.username.usernameInfo,
                     user.email.emailInfo,

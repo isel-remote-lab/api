@@ -3,8 +3,6 @@ package isel.rl.core.repository
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
-import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import kotlinx.datetime.Instant
@@ -18,8 +16,6 @@ interface UsersRepository {
     fun getUserById(userId: Int): User?
 
     fun getUserByEmail(email: Email): User?
-
-    fun getUserByOAuthId(oauthId: OAuthId): User?
 
     /**
      * Creates a new token for a user.
@@ -39,11 +35,6 @@ interface UsersRepository {
     fun getUserByTokenValidationInfo(tokenValidationInfo: TokenValidationInfo): Pair<User, Token>?
 
     fun removeTokenByValidationInfo(tokenValidationInfo: TokenValidationInfo): Int
-
-    fun updateUserUsername(
-        userId: Int,
-        username: Username,
-    ): User
 
     fun deleteUser(userId: Int): Boolean
 }

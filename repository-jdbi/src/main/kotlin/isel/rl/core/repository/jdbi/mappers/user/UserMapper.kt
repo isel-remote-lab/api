@@ -2,7 +2,6 @@ package isel.rl.core.repository.jdbi.mappers.user
 
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import kotlinx.datetime.toKotlinInstant
@@ -20,7 +19,6 @@ class UserMapper : RowMapper<User> {
 
         return User(
             id = rs.getInt("id"),
-            oAuthId = OAuthId(rs.getString("o_auth_id")),
             role =
                 Role.entries.firstOrNull { it.char == roleChar }
                     ?: throw SQLException("Unknown role: $roleChar"),

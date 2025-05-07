@@ -39,12 +39,9 @@ class HttpUtils {
 
     fun randomUserRole() = Role.entries.random().char
 
-    fun newTestOauthId() = "oauth-${abs(Random.nextLong())}"
-
     fun newTestAccessToken() = "access-token-${abs(Random.nextLong())}"
 
     fun createTestUser(testClient: WebTestClient): String {
-        val oAuthId = newTestOauthId()
         val username = newTestUsername()
         val email = newTestEmail()
 
@@ -57,7 +54,6 @@ class HttpUtils {
                 .header(apiHeader, apiKey)
                 .bodyValue(
                     mapOf(
-                        "oauthId" to oAuthId,
                         "username" to username,
                         "email" to email,
                     ),

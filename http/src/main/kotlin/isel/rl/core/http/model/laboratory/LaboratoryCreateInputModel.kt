@@ -1,8 +1,5 @@
 package isel.rl.core.http.model.laboratory
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
-
 data class LaboratoryCreateInputModel(
     val labName: String,
     val labDescription: String,

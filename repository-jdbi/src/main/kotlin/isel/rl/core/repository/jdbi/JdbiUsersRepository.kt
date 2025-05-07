@@ -3,7 +3,6 @@ package isel.rl.core.repository.jdbi
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.domain.user.token.Token
@@ -21,11 +20,10 @@ data class JdbiUsersRepository(
     override fun createUser(user: ValidatedUser): Int =
         handle.createUpdate(
             """
-           INSERT INTO rl.user (o_auth_id, role, username, email, created_at)
-           VALUES (:o_auth_id, :role, :username, :email, :created_at)
+           INSERT INTO rl.user (role, username, email, created_at)
+           VALUES (:role, :username, :email, :created_at)
            """,
         )
-            .bind("o_auth_id", user.oauthId.oAuthIdInfo)
             .bind("role", user.role.char)
             .bind("username", user.username.usernameInfo)
             .bind("email", user.email.emailInfo)
@@ -43,12 +41,6 @@ data class JdbiUsersRepository(
     override fun getUserByEmail(email: Email): User? =
         handle.createQuery("SELECT * FROM rl.user WHERE email = :email")
             .bind("email", email.emailInfo)
-            .mapTo<User>()
-            .singleOrNull()
-
-    override fun getUserByOAuthId(oauthId: OAuthId): User? =
-        handle.createQuery("SELECT * FROM rl.user WHERE o_auth_id = :o_auth_id")
-            .bind("o_auth_id", oauthId.oAuthIdInfo)
             .mapTo<User>()
             .singleOrNull()
 
@@ -106,7 +98,6 @@ data class JdbiUsersRepository(
         handle.createQuery(
             """
                 SELECT users.id, 
-                users.o_auth_id,
                 users.role,
                 users.username, 
                 users.email, 
@@ -135,24 +126,6 @@ data class JdbiUsersRepository(
             .bind("validation_information", tokenValidationInfo.validationInfo)
             .execute()
 
-    override fun updateUserUsername(
-        userId: Int,
-        username: Username,
-    ): User {
-        handle.createUpdate(
-            """
-           UPDATE rl.user
-           SET username = :username
-           WHERE id = :id
-        """,
-        )
-            .bind("username", username.usernameInfo)
-            .bind("id", userId)
-            .execute()
-
-        return getUserById(userId)!!
-    }
-
     override fun deleteUser(userId: Int): Boolean =
         handle.createUpdate(
             """
@@ -165,7 +138,6 @@ data class JdbiUsersRepository(
 
     private data class UserAndTokenModel(
         val id: Int,
-        val oAuthId: String,
         val role: String,
         val username: String,
         val email: String,
@@ -179,7 +151,6 @@ data class JdbiUsersRepository(
                 Pair(
                     User(
                         id,
-                        OAuthId(oAuthId),
                         Role.entries.firstOrNull { it.char == role }!!,
                         Username(username),
                         Email(email),

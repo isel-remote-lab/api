@@ -13,7 +13,6 @@ import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
-import isel.rl.core.domain.user.props.OAuthId
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.props.Username
 import isel.rl.core.host.RemoteLabApp
@@ -103,11 +102,6 @@ class RepoUtils {
     fun randomUserRole() = Role.entries.random()
 
     /**
-     * Generates a random oauthId for testing purposes.
-     */
-    fun newTestOauthId() = OAuthId("oauth-${abs(Random.nextLong())}")
-
-    /**
      * Creates a new user in the database and returns its ID.
      * @param handle The [Handle] instance for database operations.
      * @return The ID of the created user.
@@ -121,11 +115,9 @@ class RepoUtils {
         val email = newTestEmail()
         val createdAt = clock.now()
         val userRole = randomUserRole()
-        val oAuthId = newTestOauthId()
 
         return userRepo.createUser(
             usersDomain.validateCreateUser(
-                oAuthId.oAuthIdInfo,
                 userRole.char,
                 username.usernameInfo,
                 email.emailInfo,

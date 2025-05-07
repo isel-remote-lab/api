@@ -28,7 +28,7 @@ data class AuthController(
         @RequestBody input: UserLoginInputModel,
     ): ResponseEntity<*> =
         when (
-            val result = usersService.login(input.oauthId, input.username, input.email)
+            val result = usersService.login(input.username, input.email)
         ) {
             is Success -> {
                 val user = result.value.first
