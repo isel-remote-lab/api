@@ -57,7 +57,7 @@ class HttpUtils {
                 .header(apiHeader, apiKey)
                 .bodyValue(
                     mapOf(
-                        "oauth_id" to oAuthId,
+                        "oauthId" to oAuthId,
                         "username" to username,
                         "email" to email,
                     ),

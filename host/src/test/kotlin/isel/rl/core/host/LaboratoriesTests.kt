@@ -8,6 +8,7 @@ import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.Nested
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
@@ -19,6 +20,7 @@ import kotlin.test.assertTrue
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [RemoteLabApp::class],
 )
+@TestPropertySource(locations = ["classpath:application-test.properties"])
 class LaboratoriesTests {
     // This is the port that will be used to run the tests
     // Property is injected by Spring
@@ -724,10 +726,10 @@ class LaboratoriesTests {
         private val httpUtils = HttpUtils()
         private const val LAB_OUTPUT_MAP_KEY = "laboratory"
         private const val UPDATED_SUCCESSFULLY_MSG = "Laboratory updated successfully"
-        private const val LAB_NAME_PROP = "lab_name"
-        private const val LAB_DESCRIPTION_PROP = "lab_description"
-        private const val LAB_DURATION_PROP = "lab_duration"
-        private const val LAB_QUEUE_LIMIT_PROP = "lab_queue_limit"
+        private const val LAB_NAME_PROP = "labName"
+        private const val LAB_DESCRIPTION_PROP = "labDescription"
+        private const val LAB_DURATION_PROP = "labDuration"
+        private const val LAB_QUEUE_LIMIT_PROP = "labQueueLimit"
 
         private data class InitialLaboratory(
             val ownerId: Int = 0,

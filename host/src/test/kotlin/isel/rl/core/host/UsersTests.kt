@@ -6,6 +6,7 @@ import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
@@ -16,6 +17,7 @@ import kotlin.test.assertNotNull
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [RemoteLabApp::class],
 )
+@TestPropertySource(locations = ["classpath:application-test.properties"])
 class UsersTests {
     // This is the port that will be used to run the tests
     // Property is injected by Spring
@@ -153,11 +155,11 @@ class UsersTests {
         private val httpUtils = HttpUtils()
         private const val USER_OUTPUT_MAP_KEY = "user"
         private const val ID_PROP = "id"
-        private const val OAUTH_ID_PROP = "oauth_id"
+        private const val OAUTH_ID_PROP = "oauthId"
         private const val ROLE_PROP = "role"
         private const val USERNAME_PROP = "username"
         private const val EMAIL_PROP = "email"
-        private const val ACCESS_TOKEN = "access_token"
+        private const val ACCESS_TOKEN = "accessToken"
 
         private data class InitialUser(
             val oAuthId: String = httpUtils.newTestOauthId(),

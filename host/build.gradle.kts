@@ -22,9 +22,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 
-    // To use JWT
-    testImplementation("com.auth0:java-jwt:4.5.0")
-
     testImplementation(kotlin("test"))
 }
 
