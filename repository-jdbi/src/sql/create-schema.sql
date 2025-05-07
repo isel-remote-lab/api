@@ -34,7 +34,6 @@ CREATE TABLE
         PRIMARY KEY (token_validation, user_id)
     );
 
--- Groups can be general groups, classes or student groups
 CREATE TABLE
     rl.group (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
