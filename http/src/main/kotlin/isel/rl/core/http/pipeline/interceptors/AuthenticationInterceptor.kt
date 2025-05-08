@@ -11,7 +11,7 @@ import org.springframework.web.servlet.HandlerInterceptor
 
 @Component
 class AuthenticationInterceptor(
-    private val authorizationCookieProcessor: RequestTokenProcessor,
+    private val authorizationTokenProcessor: RequestTokenProcessor,
 ) : HandlerInterceptor {
     override fun preHandle(
         request: HttpServletRequest,
@@ -23,40 +23,24 @@ class AuthenticationInterceptor(
                 it.parameterType == AuthenticatedUser::class.java
             }
         ) {
-            // check for the presence of the cookie in the request
-            val cookie = request.cookies?.find { it.name == "token" }
-
-            if (cookie == null) {
-                response.status = 401
-                response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
-                return false
-            }
-
             // enforce authentication
-            val authToken = cookie.value
-            val user = authorizationCookieProcessor.processAuthorizationCookieValue(authToken)
-            return isUserAuthenticated(user, request, response)
+            val user = authorizationTokenProcessor
+                .processAuthorizationValue(request.getHeader(NAME_AUTHORIZATION_HEADER))
+            return if (user == null) {
+                response.status = 401
+                response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
+                false
+            } else {
+                AuthenticatedUserArgumentResolver.addUserTo(user, request)
+                true
+            }
         }
 
         return true
     }
 
-    private fun isUserAuthenticated(
-        user: AuthenticatedUser?,
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-    ): Boolean {
-        return if (user == null) {
-            response.status = 401
-            response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
-            false
-        } else {
-            AuthenticatedUserArgumentResolver.addUserTo(user, request)
-            true
-        }
-    }
-
     companion object {
-        private const val NAME_WWW_AUTHENTICATE_COOKIE = "WWW-Authenticate"
+        const val NAME_AUTHORIZATION_HEADER = "Authorization"
+        private const val NAME_WWW_AUTHENTICATE_HEADER = "WWW-Authenticate"
     }
 }

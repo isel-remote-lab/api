@@ -1,7 +1,7 @@
 START TRANSACTION;
 
 -- Insert test users
-INSERT INTO rl.user (role, username, email, created_at)
+INSERT INTO rl.user (role, name, email, created_at)
 VALUES
     ('A', 'admin', 'admin@example.com', now()),
     ( 'P','professor1', 'professor1@example.com' , now()),

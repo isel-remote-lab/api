@@ -10,6 +10,15 @@ data class UserOutputModel(
     val createdAt: String,
 ) {
     companion object {
+        fun toOutputModel(user: User) =
+            UserOutputModel(
+                id = user.id,
+                role = user.role.char,
+                name = user.name.nameInfo,
+                email = user.email.emailInfo,
+                createdAt = user.createdAt.toString(),
+            )
+
         fun mapOf(user: User) =
             mapOf(
                 "user" to

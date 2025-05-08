@@ -9,6 +9,7 @@ import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.RemoteLabApp
+import isel.rl.core.host.UsersTests.Companion.USER_OUTPUT_MAP_KEY
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.springframework.test.web.reactive.server.EntityExchangeResult
@@ -18,13 +19,17 @@ import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.time.DurationUnit
+
+typealias UserId = Int
+typealias AuthToken = String
 
 class HttpUtils {
     val apiKey: String = "test_api_key"
     private val remoteLabApp = RemoteLabApp()
 
-    val authTokenName = "token"
+    val authHeader = "Authorization"
 
     val apiHeader = "X-API-Key"
 
@@ -41,33 +46,43 @@ class HttpUtils {
 
     fun newTestAccessToken() = "access-token-${abs(Random.nextLong())}"
 
-    fun createTestUser(testClient: WebTestClient): String {
+    fun createTestUser(testClient: WebTestClient): Pair<UserId, AuthToken> {
         val username = newTestUsername()
         val email = newTestEmail()
 
+        var userId: UserId = -1
+        var token: AuthToken = ""
         // when: doing a POST
         // then: the response is an 201 Created
-        val res =
-            testClient
-                .post()
-                .uri(Uris.Auth.LOGIN)
-                .header(apiHeader, apiKey)
-                .bodyValue(
-                    mapOf(
-                        "name" to username,
-                        "email" to email,
-                    ),
-                )
-                .exchange()
-                .expectStatus().isOk
-                .expectCookie().exists(authTokenName)
-                .expectBody<SuccessResponse>()
-                .returnResult()
+        testClient
+            .post()
+            .uri(Uris.Auth.LOGIN)
+            .header(apiHeader, apiKey)
+            .bodyValue(
+                mapOf(
+                    "name" to username,
+                    "email" to email,
+                ),
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<SuccessResponse>()
+            .consumeWith { result ->
+                assertNotNull(result)
+                val actualMessage = result.responseBody
+                assertNotNull(actualMessage)
+                val responseBodyUser = (actualMessage.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
+                assertEquals("User logged in successfully", actualMessage.message)
+                userId = responseBodyUser["id"] as Int
+                token = (actualMessage.data as Map<*, *>)["token"] as String
+            }
 
-        val cookie = res.responseCookies[authTokenName]?.first()?.value
-        assertNotNull(cookie)
-        return cookie
+        assertNotNull(userId)
+        assertTrue(token.isNotBlank())
+
+        return userId to token
     }
+
 
     // Group functions
     fun newTestGroupName() = GroupName("group-${abs(Random.nextLong())}")

@@ -45,6 +45,34 @@ class LaboratoriesTests {
             )
         }
 
+        @Test
+        fun `get user laboratories (empty)`() {
+            // given: a test client
+            val testClient = httpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val (userId, authToken) = httpUtils.createTestUser(testClient)
+
+            // when: retrieving the laboratories by userId with default limit and skip
+            testClient
+                .get()
+                .uri(Uris.Laboratories.GET_ALL_BY_USER)
+                .header(httpUtils.authHeader, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    assertEquals(
+                        "Laboratories found for user with id $userId",
+                        result.responseBody?.message,
+                    )
+                    assertNotNull(result.responseBody?.data)
+                    val laboratories = result.responseBody?.data as List<*>
+                    assertTrue(laboratories.isEmpty())
+                }
+        }
+
         /*
         TODO: Change this test to use the groups routes
         @Test
@@ -93,13 +121,13 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, "a")
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .exchange()
                 .expectStatus().isBadRequest
                 .expectBody<Problem>()
@@ -111,13 +139,13 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, 9999)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .exchange()
                 .expectStatus().isNotFound
                 .expectBody<Problem>()
@@ -129,7 +157,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -146,7 +174,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -163,7 +191,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -180,7 +208,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -197,7 +225,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -214,7 +242,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -231,7 +259,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -248,7 +276,7 @@ class LaboratoriesTests {
             val testClient = httpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             val invalidLaboratory =
                 InitialLaboratory(
@@ -310,7 +338,7 @@ class LaboratoriesTests {
             val (labId, initialLab, _) = testClient.createTestLaboratory()
 
             // when: creating a second user
-            val authToken = httpUtils.createTestUser(testClient)
+            val (_, authToken) = httpUtils.createTestUser(testClient)
 
             // when: updating the laboratory
             val updateLab =
@@ -323,7 +351,7 @@ class LaboratoriesTests {
             testClient
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .bodyValue(
                     mapOf(
                         "labName" to updateLab.labName,
@@ -771,7 +799,7 @@ class LaboratoriesTests {
 
         private fun WebTestClient.createTestLaboratory(): CreateTestLabResult {
             // when: creating a user to be the owner of the laboratory
-            val authToken = httpUtils.createTestUser(this)
+            val (_, authToken) = httpUtils.createTestUser(this)
 
             val initialLaboratory = InitialLaboratory()
 
@@ -780,7 +808,7 @@ class LaboratoriesTests {
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .bodyValue(
                     initialLaboratory.mapOf(),
                 )
@@ -815,7 +843,7 @@ class LaboratoriesTests {
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .bodyValue(
                     initialLaboratory.mapOf(),
                 )
@@ -832,7 +860,7 @@ class LaboratoriesTests {
         ) {
             this.get()
                 .uri(Uris.Laboratories.GET, labId)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<SuccessResponse>()
@@ -860,7 +888,7 @@ class LaboratoriesTests {
             this
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .bodyValue(
                     updateLab.mapOf(),
                 )
@@ -885,7 +913,7 @@ class LaboratoriesTests {
             this
                 .patch()
                 .uri(Uris.Laboratories.UPDATE, labId)
-                .cookie(httpUtils.authTokenName, authToken)
+                .header(httpUtils.authHeader, "Bearer $authToken")
                 .bodyValue(
                     updateLab.mapOf(),
                 )

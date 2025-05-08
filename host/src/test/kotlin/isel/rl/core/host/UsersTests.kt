@@ -12,6 +12,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -139,7 +140,7 @@ class UsersTests {
 
     companion object {
         private val httpUtils = HttpUtils()
-        private const val USER_OUTPUT_MAP_KEY = "user"
+        const val USER_OUTPUT_MAP_KEY = "user"
         private const val ID_PROP = "id"
         private const val ROLE_PROP = "role"
         private const val NAME_PROP = "name"
@@ -244,23 +245,25 @@ class UsersTests {
                 )
                 .exchange()
                 .expectStatus().isOk
-                .expectCookie().exists(httpUtils.authTokenName)
                 .expectBody<SuccessResponse>()
                 .consumeWith { result ->
                     assertNotNull(result)
                     val actualMessage = result.responseBody
-                    val responseBody = (actualMessage?.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
                     assertNotNull(actualMessage)
+                    val responseBodyUser = (actualMessage.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
                     assertEquals("User logged in successfully", actualMessage.message)
-                    assertEquals(initialUser.role, responseBody[ROLE_PROP])
-                    assertEquals(initialUser.name, responseBody[NAME_PROP])
-                    assertEquals(initialUser.email, responseBody[EMAIL_PROP])
-                    ret = responseBody[ID_PROP] as Int to
-                        InitialUser(
-                            role = responseBody[ROLE_PROP] as String,
-                            name = responseBody[NAME_PROP] as String,
-                            email = responseBody[EMAIL_PROP] as String,
-                        )
+                    assertEquals(initialUser.role, responseBodyUser[ROLE_PROP])
+                    assertEquals(initialUser.name, responseBodyUser[NAME_PROP])
+                    assertEquals(initialUser.email, responseBodyUser[EMAIL_PROP])
+                    ret = responseBodyUser[ID_PROP] as Int to
+                            InitialUser(
+                                role = responseBodyUser[ROLE_PROP] as String,
+                                name = responseBodyUser[NAME_PROP] as String,
+                                email = responseBodyUser[EMAIL_PROP] as String,
+                            )
+
+                    val token = (actualMessage.data as Map<*, *>)["token"] as String
+                    assertTrue(token.isNotBlank())
                 }
 
             assertNotNull(ret)
