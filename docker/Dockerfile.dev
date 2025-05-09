@@ -1,0 +1,13 @@
+FROM gradle:8.5-jdk21
+
+WORKDIR /app
+
+# Copy the Gradle files
+COPY build.gradle.kts settings.gradle.kts ./
+COPY gradle ./gradle
+
+# Copy the source code
+COPY . .
+
+# Run the application with Gradle
+CMD ["./gradlew", "run"] 
