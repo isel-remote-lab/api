@@ -245,8 +245,12 @@ class UsersTests {
                 )
                 .exchange()
                 .expectStatus().isOk
+                .expectCookie().exists("token")
                 .expectBody<SuccessResponse>()
                 .consumeWith { result ->
+                    val cookies = result.responseCookies["token"]
+                    assertNotNull(cookies)
+                    val cookie = cookies[0].value
                     assertNotNull(result)
                     val actualMessage = result.responseBody
                     assertNotNull(actualMessage)
@@ -264,6 +268,7 @@ class UsersTests {
 
                     val token = (actualMessage.data as Map<*, *>)["token"] as String
                     assertTrue(token.isNotBlank())
+                    assertEquals(cookie, token)
                 }
 
             assertNotNull(ret)

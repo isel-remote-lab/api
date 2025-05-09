@@ -23,20 +23,36 @@ class AuthenticationInterceptor(
                 it.parameterType == AuthenticatedUser::class.java
             }
         ) {
-            // enforce authentication
-            val user = authorizationTokenProcessor
-                .processAuthorizationValue(request.getHeader(NAME_AUTHORIZATION_HEADER))
-            return if (user == null) {
+            // check for the presence of the cookie in the request
+            val cookie = request.cookies?.find { it.name == "token" }
+
+            // check for the presence of the token in the authorization header
+            val token = request.getHeader(NAME_AUTHORIZATION_HEADER)
+
+            if (cookie == null && token == null) {
                 response.status = 401
                 response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
-                false
-            } else {
-                AuthenticatedUserArgumentResolver.addUserTo(user, request)
-                true
+                return false
             }
+
+            // enforce authentication
+            val authToken = cookie?.value ?: token
+            val user = authorizationTokenProcessor.processAuthorizationValue(authToken, cookie != null)
+            return isUserAuthenticated(user, request, response)
         }
 
         return true
+    }
+
+    private fun isUserAuthenticated(user: AuthenticatedUser?, request: HttpServletRequest, response: HttpServletResponse): Boolean {
+        return if (user == null) {
+            response.status = 401
+            response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
+            false
+        } else {
+            AuthenticatedUserArgumentResolver.addUserTo(user, request)
+            true
+        }
     }
 
     companion object {

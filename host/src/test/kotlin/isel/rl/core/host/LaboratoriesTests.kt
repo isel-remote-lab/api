@@ -289,7 +289,7 @@ class LaboratoriesTests {
     }
 
     @Nested
-    inner class UpdateLaboratoryTests {
+    inner class UpdateLaboratoryTestsWithAuthHeader {
         @Test
         fun `update laboratory`() {
             // given: a test client
@@ -759,7 +759,7 @@ class LaboratoriesTests {
         private const val LAB_DURATION_PROP = "labDuration"
         private const val LAB_QUEUE_LIMIT_PROP = "labQueueLimit"
 
-        private data class InitialLaboratory(
+        data class InitialLaboratory(
             val ownerId: Int = 0,
             val labName: String? = httpUtils.newTestLabName(),
             val labDescription: String? = httpUtils.newTestLabDescription(),
@@ -791,7 +791,7 @@ class LaboratoriesTests {
                 )
         }
 
-        private data class CreateTestLabResult(
+        data class CreateTestLabResult(
             val labId: Int,
             val initialLab: InitialLaboratory,
             val authToken: String,
