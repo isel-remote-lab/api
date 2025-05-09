@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.HandlerInterceptor
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Component
 class AuthenticationInterceptor(
@@ -26,6 +28,10 @@ class AuthenticationInterceptor(
             // check for the presence of the cookie in the request
             val cookie = request.cookies?.find { it.name == "token" }
 
+            val decodedCookieValue = cookie?.value?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.name())
+            }
+
             // check for the presence of the token in the authorization header
             val token = request.getHeader(NAME_AUTHORIZATION_HEADER)
 
@@ -36,7 +42,7 @@ class AuthenticationInterceptor(
             }
 
             // enforce authentication
-            val authToken = cookie?.value ?: token
+            val authToken = decodedCookieValue ?: token
             val user = authorizationTokenProcessor.processAuthorizationValue(authToken, cookie != null)
             return isUserAuthenticated(user, request, response)
         }
