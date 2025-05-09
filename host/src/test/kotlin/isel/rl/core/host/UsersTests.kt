@@ -260,11 +260,11 @@ class UsersTests {
                     assertEquals(initialUser.name, responseBodyUser[NAME_PROP])
                     assertEquals(initialUser.email, responseBodyUser[EMAIL_PROP])
                     ret = responseBodyUser[ID_PROP] as Int to
-                            InitialUser(
-                                role = responseBodyUser[ROLE_PROP] as String,
-                                name = responseBodyUser[NAME_PROP] as String,
-                                email = responseBodyUser[EMAIL_PROP] as String,
-                            )
+                        InitialUser(
+                            role = responseBodyUser[ROLE_PROP] as String,
+                            name = responseBodyUser[NAME_PROP] as String,
+                            email = responseBodyUser[EMAIL_PROP] as String,
+                        )
 
                     val token = (actualMessage.data as Map<*, *>)["token"] as String
                     assertTrue(token.isNotBlank())

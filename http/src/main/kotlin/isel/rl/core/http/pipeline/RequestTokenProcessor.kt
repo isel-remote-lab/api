@@ -8,7 +8,10 @@ import org.springframework.stereotype.Component
 class RequestTokenProcessor(
     val usersService: UsersService,
 ) {
-    fun processAuthorizationValue(authorizationValue: String?, isCookie: Boolean): AuthenticatedUser? {
+    fun processAuthorizationValue(
+        authorizationValue: String?,
+        isCookie: Boolean,
+    ): AuthenticatedUser? {
         if (authorizationValue == null) {
             return null
         }

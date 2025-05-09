@@ -44,7 +44,11 @@ class AuthenticationInterceptor(
         return true
     }
 
-    private fun isUserAuthenticated(user: AuthenticatedUser?, request: HttpServletRequest, response: HttpServletResponse): Boolean {
+    private fun isUserAuthenticated(
+        user: AuthenticatedUser?,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): Boolean {
         return if (user == null) {
             response.status = 401
             response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)

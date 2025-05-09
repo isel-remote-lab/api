@@ -83,7 +83,6 @@ class HttpUtils {
         return userId to token
     }
 
-
     // Group functions
     fun newTestGroupName() = GroupName("group-${abs(Random.nextLong())}")
 

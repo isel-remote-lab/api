@@ -27,7 +27,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-
 @SpringBootApplication(scanBasePackages = ["isel.rl.core"])
 class RemoteLabApp {
     /**
@@ -155,18 +154,14 @@ class CorsConfig {
         val source = UrlBasedCorsConfigurationSource()
         val config = CorsConfiguration()
 
-
         // Allow all origins for development
         config.addAllowedOrigin("http://localhost:3000")
-
 
         // Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
         config.addAllowedMethod("*")
 
-
         // Allow all headers
         config.addAllowedHeader("*")
-
 
         // Allow credentials (cookies, authorization headers, etc.)
         config.allowCredentials = true

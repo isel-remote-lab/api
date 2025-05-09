@@ -11,17 +11,17 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [RemoteLabApp::class],
-)
-@TestPropertySource(locations = ["classpath:application-test.properties"])
 /**
  * This class contains tests for the authentication system of the application.
  * It tests the creation of laboratories using both authToken and cookies.
  * It uses the laboratories creation endpoint to test the authentication system. Every controller that has the
  * authenticatedUser parameter uses automatically the authentication system.
  */
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = [RemoteLabApp::class],
+)
+@TestPropertySource(locations = ["classpath:application-test.properties"])
 class AuthTests {
     // This is the port that will be used to run the tests
     // Property is injected by Spring

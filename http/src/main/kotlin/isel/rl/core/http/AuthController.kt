@@ -34,22 +34,24 @@ data class AuthController(
                 val user = result.value.first
                 val token = result.value.second
 
-                val cookie = ResponseCookie.from("token", token)
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Strict")
-                    .path("/")
-                    .build()
+                val cookie =
+                    ResponseCookie.from("token", token)
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("Strict")
+                        .path("/")
+                        .build()
 
                 ResponseEntity.status(HttpStatus.OK)
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(
                         SuccessResponse(
                             message = "User logged in successfully",
-                            data = UserLoginOutputModel.mapOf(
-                                token,
-                                user
-                            )
+                            data =
+                                UserLoginOutputModel.mapOf(
+                                    token,
+                                    user,
+                                ),
                         ),
                     )
             }
