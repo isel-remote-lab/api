@@ -1,13 +1,8 @@
 package isel.rl.core.domain
 
 object Uris {
-    /**
-     * Prefix of the URI
-     */
-    private const val PREFIX = "/api/v1"
-
     object Auth {
-        private const val BASE = "$PREFIX/auth"
+        private const val BASE = "/auth"
 
         /**
          * URI for login
@@ -21,7 +16,7 @@ object Uris {
     }
 
     object Users {
-        private const val BASE = "$PREFIX/users"
+        private const val BASE = "/users"
 
         /**
          * URI for getting a user by ID
@@ -35,7 +30,7 @@ object Uris {
     }
 
     object Laboratories {
-        private const val BASE = "$PREFIX/laboratories"
+        private const val BASE = "/laboratories"
 
         /**
          * URI for creating a laboratory
@@ -69,7 +64,7 @@ object Uris {
     }
 
     object Groups {
-        const val BASE = "$PREFIX/groups"
+        const val BASE = "/groups"
 
         /**
          * URI for creating a group
