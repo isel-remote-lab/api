@@ -4,10 +4,10 @@ object Uris {
     /**
      * Prefix of the URI
      */
-    //private const val PREFIX = "/api/v1"
+    private const val PREFIX = "/api/v1"
 
     object Auth {
-        private const val BASE = "/auth"
+        private const val BASE = "$PREFIX/auth"
 
         /**
          * URI for login
@@ -21,7 +21,7 @@ object Uris {
     }
 
     object Users {
-        private const val BASE = "/users"
+        private const val BASE = "$PREFIX/users"
 
         /**
          * URI for getting a user by ID
@@ -35,7 +35,7 @@ object Uris {
     }
 
     object Laboratories {
-        private const val BASE = "/laboratories"
+        private const val BASE = "$PREFIX/laboratories"
 
         /**
          * URI for creating a laboratory
@@ -69,7 +69,7 @@ object Uris {
     }
 
     object Groups {
-        private const val BASE = "/groups"
+        private const val BASE = "$PREFIX/groups"
 
         /**
          * URI for creating a group
