@@ -5,7 +5,7 @@ import isel.rl.core.http.annotations.RequireApiKey
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.model.user.UserLoginInputModel
-import isel.rl.core.http.model.user.UserOutputModel
+import isel.rl.core.http.model.user.UserLoginOutputModel
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.IUsersService
 import isel.rl.core.utils.Failure
@@ -28,11 +28,12 @@ data class AuthController(
         @RequestBody input: UserLoginInputModel,
     ): ResponseEntity<*> =
         when (
-            val result = usersService.login(input.oauthId, input.username, input.email)
+            val result = usersService.login(input.name, input.email)
         ) {
             is Success -> {
                 val user = result.value.first
                 val token = result.value.second
+
                 val cookie =
                     ResponseCookie.from("token", token)
                         .httpOnly(true)
@@ -47,7 +48,8 @@ data class AuthController(
                         SuccessResponse(
                             message = "User logged in successfully",
                             data =
-                                UserOutputModel.mapOf(
+                                UserLoginOutputModel.mapOf(
+                                    token,
                                     user,
                                 ),
                         ),

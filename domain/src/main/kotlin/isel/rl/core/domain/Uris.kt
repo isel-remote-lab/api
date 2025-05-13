@@ -69,7 +69,7 @@ object Uris {
     }
 
     object Groups {
-        const val BASE = "$PREFIX/groups"
+        private const val BASE = "$PREFIX/groups"
 
         /**
          * URI for creating a group

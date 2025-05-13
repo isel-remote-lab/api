@@ -30,14 +30,12 @@ interface IUsersService {
      * The parameters are validated before creating the user with the user domain.
      * If the validation fails, a [ServicesExceptions] is returned as failure.
      *
-     * @param oauthId The OAuth ID of the user.
-     * @param username The username of the user.
+     * @param name The username of the user.
      * @param email The email of the user.
      * @return A result indicating success or failure.
      */
     fun login(
-        oauthId: String,
-        username: String,
+        name: String,
         email: String,
     ): LoginUserResult
 
@@ -62,16 +60,14 @@ interface IUsersService {
      * The parameters are validated before creating the user with the user domain.
      * If the validation fails, a [ServicesExceptions] is returned as failure.
      *
-     * @param oauthId The OAuth ID of the user.
      * @param role The role of the user.
-     * @param username The username of the user.
+     * @param name The username of the user.
      * @param email The email of the user.
      * @return A result indicating success or failure.
      */
     fun createUser(
-        oauthId: String,
         role: String,
-        username: String,
+        name: String,
         email: String,
     ): CreateUserResult
 
@@ -87,18 +83,13 @@ interface IUsersService {
     fun getUserById(id: String): GetUserResult
 
     /**
-     * Retrieves a user by their OAuth ID or email.
-     * If both are provided, the OAuth ID takes precedence.
-     * The parameters are validated before retrieving the user from the database.
+     * Retrieves a user by their email.
+     * The email is validated before retrieving the user from the database.
      * If the validation fails, a [ServicesExceptions] is returned as failure.
      * If the user is not found, a [ServicesExceptions.Users.UserNotFound] is returned.
      *
-     * @param oAuthId The OAuth ID of the user.
      * @param email The email of the user.
      * @return A result containing the user or an exception.
      */
-    fun getUserByEmailOrAuthId(
-        oAuthId: String? = null,
-        email: String? = null,
-    ): GetUserResult
+    fun getUserByEmail(email: String): GetUserResult
 }

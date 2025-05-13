@@ -11,7 +11,7 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
          */
         ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidEmail)
         ServicesExceptions.Users.InvalidRole -> Problem.response(400, Problem.invalidRole)
-        ServicesExceptions.Users.InvalidUsername -> Problem.response(400, Problem.invalidUsername)
+        ServicesExceptions.Users.InvalidName -> Problem.response(400, Problem.invalidUsername)
         ServicesExceptions.Users.InvalidOauthId -> Problem.response(400, Problem.invalidOauthId)
         ServicesExceptions.Users.InvalidUserId -> Problem.response(400, Problem.invalidUserId)
         ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)

@@ -19,9 +19,8 @@ DROP TABLE IF EXISTS rl.group_laboratory CASCADE;
 CREATE TABLE
     rl.user (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        o_auth_id VARCHAR(255) NOT NULL UNIQUE,
         role CHAR(1) NOT NULL,
-        username VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         created_at TIMESTAMPTZ NOT NULL
     );
@@ -35,7 +34,6 @@ CREATE TABLE
         PRIMARY KEY (token_validation, user_id)
     );
 
--- Groups can be general groups, classes or student groups
 CREATE TABLE
     rl.group (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

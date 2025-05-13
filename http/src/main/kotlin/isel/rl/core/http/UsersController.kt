@@ -39,7 +39,7 @@ data class UsersController(
     fun getByEmail(
         @RequestParam email: String,
     ): ResponseEntity<*> =
-        when (val result = usersService.getUserByEmailOrAuthId(email = email)) {
+        when (val result = usersService.getUserByEmail(email)) {
             is Success -> {
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(

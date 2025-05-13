@@ -8,10 +8,12 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.HandlerInterceptor
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Component
 class AuthenticationInterceptor(
-    private val authorizationCookieProcessor: RequestTokenProcessor,
+    private val authorizationTokenProcessor: RequestTokenProcessor,
 ) : HandlerInterceptor {
     override fun preHandle(
         request: HttpServletRequest,
@@ -26,15 +28,22 @@ class AuthenticationInterceptor(
             // check for the presence of the cookie in the request
             val cookie = request.cookies?.find { it.name == "token" }
 
-            if (cookie == null) {
+            val decodedCookieValue = cookie?.value?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.name())
+            }
+
+            // check for the presence of the token in the authorization header
+            val token = request.getHeader(NAME_AUTHORIZATION_HEADER)
+
+            if (cookie == null && token == null) {
                 response.status = 401
-                response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
+                response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
                 return false
             }
 
             // enforce authentication
-            val authToken = cookie.value
-            val user = authorizationCookieProcessor.processAuthorizationCookieValue(authToken)
+            val authToken = decodedCookieValue ?: token
+            val user = authorizationTokenProcessor.processAuthorizationValue(authToken, cookie != null)
             return isUserAuthenticated(user, request, response)
         }
 
@@ -48,7 +57,7 @@ class AuthenticationInterceptor(
     ): Boolean {
         return if (user == null) {
             response.status = 401
-            response.addHeader(NAME_WWW_AUTHENTICATE_COOKIE, RequestTokenProcessor.SCHEME)
+            response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
             false
         } else {
             AuthenticatedUserArgumentResolver.addUserTo(user, request)
@@ -57,6 +66,7 @@ class AuthenticationInterceptor(
     }
 
     companion object {
-        private const val NAME_WWW_AUTHENTICATE_COOKIE = "WWW-Authenticate"
+        const val NAME_AUTHORIZATION_HEADER = "Authorization"
+        private const val NAME_WWW_AUTHENTICATE_HEADER = "WWW-Authenticate"
     }
 }

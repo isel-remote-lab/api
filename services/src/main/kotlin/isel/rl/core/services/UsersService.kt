@@ -27,15 +27,14 @@ data class UsersService(
     private val clock: Clock,
 ) : IUsersService {
     override fun login(
-        oauthId: String,
-        username: String,
+        name: String,
         email: String,
     ): LoginUserResult =
         try {
-            when (val getByOauthRes = getUserByOAuthId(oauthId)) {
+            when (val getByOauthRes = getUserByEmail(email)) {
                 is Failure -> {
                     if (getByOauthRes.value == ServicesExceptions.Users.UserNotFound) {
-                        val createUserResult = createUser(oauthId, INITIAL_USER_ROLE, username, email)
+                        val createUserResult = createUser(INITIAL_USER_ROLE, name, email)
 
                         if (createUserResult is Success) {
                             success(
@@ -89,18 +88,16 @@ data class UsersService(
     }
 
     override fun createUser(
-        oauthId: String,
         role: String,
-        username: String,
+        name: String,
         email: String,
     ): CreateUserResult =
         try {
             // Validate the user data
             val user =
                 usersDomain.validateCreateUser(
-                    oauthId,
                     role,
-                    username,
+                    name,
                     email,
                     clock.now(),
                 )
@@ -110,9 +107,8 @@ data class UsersService(
                 success(
                     User(
                         id = userId,
-                        oAuthId = user.oauthId,
                         role = user.role,
-                        username = user.username,
+                        name = user.name,
                         email = user.email,
                         createdAt = user.createdAt,
                     ),
@@ -140,24 +136,6 @@ data class UsersService(
             handleException(e)
         }
 
-    override fun getUserByEmailOrAuthId(
-        oAuthId: String?,
-        email: String?,
-    ): GetUserResult {
-        // Validate the input parameters
-        if (oAuthId == null && email == null) {
-            return failure(ServicesExceptions.Users.InvalidQueryParams)
-        }
-
-        // Check if the OAuth ID is provided and retrieve the user by OAuth ID
-        // Otherwise, retrieve the user by email
-        return if (oAuthId != null) {
-            getUserByOAuthId(oAuthId)
-        } else {
-            getUserByEmail(email!!)
-        }
-    }
-
     /**
      * This function retrieves a user by their email address.
      * It validates the email and checks if the user exists in the database.
@@ -167,7 +145,7 @@ data class UsersService(
      * @param email The email address of the user to be retrieved.
      * @return A result containing either the user data or an error.
      */
-    private fun getUserByEmail(email: String): GetUserResult =
+    override fun getUserByEmail(email: String): GetUserResult =
         try {
             // Validate the email
             val validatedEmail = usersDomain.checkEmail(email)
@@ -179,26 +157,6 @@ data class UsersService(
             }
         } catch (e: Exception) {
             // Handle exceptions that may occur during the retrieval process
-            handleException(e)
-        }
-
-    /**
-     * This function retrieves a user by their OAuthID.
-     * It validates the OAuth ID and checks if the user exists in the database.
-     * If the user is found, it returns a [success] result with the user data.
-     * If the user is not found, it returns a [failure] result with a [ServicesExceptions.Users.UserNotFound] exception.
-     *
-     * @param oauthId The OAuth ID of the user to be retrieved.
-     * @return A result containing either the user data or an error.
-     */
-    private fun getUserByOAuthId(oauthId: String): GetUserResult =
-        try {
-            val validatedOAuthId = usersDomain.checkOAuthId(oauthId)
-            transactionManager.run {
-                it.usersRepository.getUserByOAuthId(validatedOAuthId)
-                    ?.let(::success) ?: failure(ServicesExceptions.Users.UserNotFound)
-            }
-        } catch (e: Exception) {
             handleException(e)
         }
 

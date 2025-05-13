@@ -88,6 +88,7 @@ class RemoteLabApp {
             maxLabDuration = labsConfig.maxLabDuration.toDuration(labDurationUnit),
             minLabQueueLimit = labsConfig.minLabQueueLimit,
             maxLabQueueLimit = labsConfig.maxLabQueueLimit,
+            labDurationUnit = labsConfig.labDurationUnit,
         )
     }
 
@@ -122,7 +123,9 @@ class RemoteLabApp {
             PGSimpleDataSource().apply {
                 setURL(dbURL)
             },
-        ).configureWithAppRequirements()
+        ).configureWithAppRequirements(
+            laboratoriesDomainConfig(),
+        )
 }
 
 @Configuration
