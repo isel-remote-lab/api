@@ -14,17 +14,14 @@ data class LaboratoryOutputModel(
 ) {
     companion object {
         fun mapOf(lab: Laboratory) =
-            mapOf(
-                "laboratory" to
-                    LaboratoryOutputModel(
-                        id = lab.id,
-                        labName = lab.labName.labNameInfo,
-                        labDescription = lab.labDescription.labDescriptionInfo,
-                        labDuration = lab.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
-                        labQueueLimit = lab.labQueueLimit.labQueueLimitInfo,
-                        ownerId = lab.ownerId,
-                        createdAt = lab.createdAt.toString(),
-                    ),
+            LaboratoryOutputModel(
+                id = lab.id,
+                labName = lab.labName.labNameInfo,
+                labDescription = lab.labDescription.labDescriptionInfo,
+                labDuration = lab.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                labQueueLimit = lab.labQueueLimit.labQueueLimitInfo,
+                ownerId = lab.ownerId,
+                createdAt = lab.createdAt.toString(),
             )
     }
 }
