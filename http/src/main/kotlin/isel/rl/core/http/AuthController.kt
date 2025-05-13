@@ -65,7 +65,15 @@ data class AuthController(
      * @param user the authenticated user
      */
     @PostMapping(Uris.Auth.LOGOUT)
-    fun logout(user: AuthenticatedUser) {
+    fun logout(user: AuthenticatedUser): ResponseEntity<*> {
         usersService.revokeToken(user.token)
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(
+                SuccessResponse(
+                    message = "User logged out successfully",
+                    data = null,
+                ),
+            )
     }
 }
