@@ -111,18 +111,18 @@ project(":host") {
  * Docker images names
  */
 data class DockerImages(
-    val jvm: String,
+    val api: String,
 )
 
 val dockerImages =
     DockerImages(
-        jvm = "rl-jvm",
+        api = "rl-api",
     )
 
 object DockerFiles {
     private const val DOCKER_FOLDER = "docker"
 
-    const val JVM = "$DOCKER_FOLDER/Dockerfile-jvm"
+    const val JVM = "$DOCKER_FOLDER/Dockerfile"
 }
 
 /**
@@ -130,7 +130,7 @@ object DockerFiles {
  */
 task<Exec>("buildImageJvm") {
     dependsOn(":host:extractUberJar")
-    commandLine("docker", "build", "-t", dockerImages.jvm, "-f", DockerFiles.JVM, ".")
+    commandLine("docker", "build", "-t", dockerImages.api, "-f", DockerFiles.API, ".")
 }
 
 /**
