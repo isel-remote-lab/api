@@ -28,9 +28,10 @@ class AuthenticationInterceptor(
             // check for the presence of the cookie in the request
             val cookie = request.cookies?.find { it.name == "token" }
 
-            val decodedCookieValue = cookie?.value?.let {
-                URLDecoder.decode(it, StandardCharsets.UTF_8.name())
-            }
+            val decodedCookieValue =
+                cookie?.value?.let {
+                    URLDecoder.decode(it, StandardCharsets.UTF_8.name())
+                }
 
             // check for the presence of the token in the authorization header
             val token = request.getHeader(NAME_AUTHORIZATION_HEADER)

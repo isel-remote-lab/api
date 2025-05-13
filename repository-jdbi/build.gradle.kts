@@ -17,6 +17,19 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // For the domain configs and constants
+    testImplementation(project(":host"))
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
+    if (System.getenv("DB_URL") == null) {
+        environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+    }
+    dependsOn(":repository-jdbi:dbTestsWait")
+    finalizedBy(":repository-jdbi:dbTestsDown")
 }
 
 /**

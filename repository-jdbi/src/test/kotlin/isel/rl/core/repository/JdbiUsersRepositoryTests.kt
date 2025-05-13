@@ -10,7 +10,7 @@ import isel.rl.core.repository.jdbi.JdbiUsersRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
 import kotlinx.datetime.Instant
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull

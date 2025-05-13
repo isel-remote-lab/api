@@ -15,6 +15,7 @@ import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
+import isel.rl.core.host.Environment
 import isel.rl.core.host.RemoteLabApp
 import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository

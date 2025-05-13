@@ -73,6 +73,41 @@ class LaboratoriesTests {
                 }
         }
 
+        @Test
+        fun `get user laboratories (user is owner)`() {
+            // given: a test client
+            val testClient = httpUtils.buildTestClient(port)
+
+            // when: creating a laboratory
+            val (labId, initialLab, authToken) = testClient.createTestLaboratory()
+
+            // when: retrieving the laboratories by userId with default limit and skip
+            testClient
+                .get()
+                .uri(Uris.Laboratories.GET_ALL_BY_USER)
+                .header(httpUtils.authHeader, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    assertNotNull(result.responseBody)
+                    assertTrue(
+                        result.responseBody!!.message.contains("Laboratories found for user with id"),
+                    )
+                    assertNotNull(result.responseBody!!.data)
+                    val laboratories = result.responseBody!!.data as List<*>
+                    assertTrue(laboratories.isNotEmpty())
+                    assertTrue(laboratories.size == 1)
+                    val laboratory = laboratories[0] as Map<*, *>
+                    assertEquals(labId, laboratory["id"])
+                    assertEquals(laboratory["labName"], initialLab.labName)
+                    assertEquals(laboratory["labDescription"], initialLab.labDescription)
+                    assertEquals(laboratory["labDuration"], initialLab.labDuration)
+                    assertEquals(laboratory["labQueueLimit"], initialLab.labQueueLimit)
+                }
+        }
+
         /*
         TODO: Change this test to use the groups routes
         @Test
@@ -872,7 +907,7 @@ class LaboratoriesTests {
                     )
                     assertNotNull(result.responseBody?.data)
                     val lab =
-                        (result.responseBody?.data as Map<*, *>)[LAB_OUTPUT_MAP_KEY] as Map<*, *>
+                        (result.responseBody?.data as Map<*, *>)
                     assertEquals(expectedLab.labName, lab[LAB_NAME_PROP])
                     assertEquals(expectedLab.labDescription, lab[LAB_DESCRIPTION_PROP])
                     assertEquals(expectedLab.labDuration, lab[LAB_DURATION_PROP])
