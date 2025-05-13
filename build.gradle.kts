@@ -111,7 +111,7 @@ val dockerImages =
 object DockerFiles {
     private const val DOCKER_FOLDER = "docker"
 
-    const val JVM = "$DOCKER_FOLDER/Dockerfile"
+    const val API = "$DOCKER_FOLDER/Dockerfile"
 }
 
 /**
