@@ -59,10 +59,11 @@ data class JdbiLaboratoriesRepository(
     ): List<Laboratory> =
         handle.createQuery(
             """
-            SELECT l.* FROM rl.laboratory AS l
-            JOIN rl.group_laboratory AS gl ON l.id = gl.lab_id
-            JOIN rl.user_group AS gu ON gl.group_id = gu.group_id
-            WHERE gu.user_id = :user_id
+            SELECT DISTINCT l.* FROM rl.laboratory AS l
+            LEFT JOIN rl.group_laboratory AS gl ON l.id = gl.lab_id
+            LEFT JOIN rl.user_group AS gu ON gl.group_id = gu.group_id
+            WHERE gu.user_id = :user_id OR l.owner_id = :user_id
+            ORDER BY l.id
             LIMIT :limit OFFSET :skip
         """,
         )
