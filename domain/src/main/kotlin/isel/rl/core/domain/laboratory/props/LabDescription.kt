@@ -1,5 +1,5 @@
 package isel.rl.core.domain.laboratory.props
 
 data class LabDescription(
-    val labDescriptionInfo: String,
+    val labDescriptionInfo: String? = null,
 )

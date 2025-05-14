@@ -41,10 +41,10 @@ interface ILaboratoriesService {
      * @return A result indicating success or failure.
      */
     fun createLaboratory(
-        labName: String,
-        labDescription: String,
-        labDuration: Int,
-        labQueueLimit: Int,
+        labName: String?,
+        labDescription: String?,
+        labDuration: Int?,
+        labQueueLimit: Int?,
         ownerId: Int,
     ): CreateLaboratoryResult
 

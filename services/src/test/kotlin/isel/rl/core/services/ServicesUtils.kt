@@ -19,6 +19,8 @@ import kotlin.time.toDuration
  */
 class ServicesUtils {
     // General
+    private val remoteLab = RemoteLabApp()
+    private val domainConfigs = remoteLab.domainConfigs
 
     /**
      * [Jdbi] instance configured with a PostgreSQL data source.
@@ -29,7 +31,7 @@ class ServicesUtils {
                 setURL("jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
             },
         ).configureWithAppRequirements(
-            RemoteLabApp().laboratoriesDomainConfig(),
+            domainConfigs,
         )
 
     private val usersDomain =

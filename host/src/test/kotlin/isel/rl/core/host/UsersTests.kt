@@ -1,7 +1,10 @@
 package isel.rl.core.host
 
 import isel.rl.core.domain.Uris
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.host.utils.AuthToken
 import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.UserId
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.springframework.boot.test.context.SpringBootTest
@@ -133,6 +136,69 @@ class UsersTests {
             .header(httpUtils.apiHeader, "invalid-api-key")
             .bodyValue(
                 initialUser.mapOf(),
+            )
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `update user role`() {
+        // given: a test client
+        val testClient = httpUtils.buildTestClient(port)
+
+        // when: creating the actor user directly in the DB to be Admin
+        val actorUsername = httpUtils.newTestUsername()
+        val actorEmail = httpUtils.newTestEmail()
+        httpUtils.createDBUser(
+            actorUsername,
+            actorEmail,
+            Role.ADMIN.char,
+        )
+        // when: logging the actor user
+        val (_, authToken) = testClient.loginExistingUser(actorUsername, actorEmail)
+
+        // when: creating the target user
+        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
+
+        // when: updating the user role
+        val newRole = httpUtils.randomUserRole()
+        testClient
+            .patch()
+            .uri(Uris.Users.UPDATE_USER_ROLE, userId)
+            .header(httpUtils.authHeader, "Bearer $authToken")
+            .bodyValue(
+                mapOf(
+                    ROLE_PROP to newRole,
+                ),
+            )
+            .exchange()
+            .expectStatus().isOk
+
+        // then: the user role is updated
+        testClient.getUserByIdAndVerify(userId, expectedUser.copy(role = newRole))
+    }
+
+    @Test
+    fun `update user role (not enough permission)`() {
+        // given: a test client
+        val testClient = httpUtils.buildTestClient(port)
+
+        // when: creating the actor user
+        val (_, authToken) = httpUtils.createTestUser(testClient)
+
+        // when: creating the target user
+        val (userId, _) = testClient.loginUser(InitialUserLogin())
+
+        // when: updating the user role
+        val newRole = httpUtils.randomUserRole()
+        testClient
+            .patch()
+            .uri(Uris.Users.UPDATE_USER_ROLE, userId)
+            .header(httpUtils.authHeader, "Bearer $authToken")
+            .bodyValue(
+                mapOf(
+                    ROLE_PROP to newRole,
+                ),
             )
             .exchange()
             .expectStatus().isForbidden
@@ -273,6 +339,42 @@ class UsersTests {
 
             assertNotNull(ret)
             return ret!!
+        }
+
+        private fun WebTestClient.loginExistingUser(
+            username: String,
+            email: String,
+        ): Pair<UserId, AuthToken> {
+            var userId: UserId = -1
+            var token: AuthToken = ""
+            // when: doing a POST
+            // then: the response is an 201 Created
+            post()
+                .uri(Uris.Auth.LOGIN)
+                .header(httpUtils.apiHeader, httpUtils.apiKey)
+                .bodyValue(
+                    mapOf(
+                        "name" to username,
+                        "email" to email,
+                    ),
+                )
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .consumeWith { result ->
+                    assertNotNull(result)
+                    val actualMessage = result.responseBody
+                    assertNotNull(actualMessage)
+                    val responseBodyUser = (actualMessage.data as Map<*, *>)[USER_OUTPUT_MAP_KEY] as Map<*, *>
+                    assertEquals("User logged in successfully", actualMessage.message)
+                    userId = responseBodyUser["id"] as Int
+                    token = (actualMessage.data as Map<*, *>)["token"] as String
+                }
+
+            assertNotNull(userId)
+            assertTrue(token.isNotBlank())
+
+            return userId to token
         }
     }
 }

@@ -55,5 +55,7 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
         ServicesExceptions.Laboratories.LaboratoryNotFound -> Problem.response(404, Problem.laboratoryNotFound)
         ServicesExceptions.Laboratories.LaboratoryNotOwned -> Problem.response(403, Problem.laboratoryNotOwned)
 
+        is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
+
         else -> Problem.response(500, Problem.unexpectedBehaviour)
     }

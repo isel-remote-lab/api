@@ -20,15 +20,10 @@ data class DomainConfig(
 
     @Serializable
     data class LaboratoryRestrictions(
-        val minLengthLabName: Int,
-        val maxLengthLabName: Int,
-        val minLengthLabDescription: Int,
-        val maxLengthLabDescription: Int,
-        val minLabDuration: Int,
-        val maxLabDuration: Int,
-        val labDurationUnit: String,
-        val minLabQueueLimit: Int,
-        val maxLabQueueLimit: Int,
+        val labName: Properties,
+        val labDescription: Properties,
+        val labDuration: Properties,
+        val labQueueLimit: Properties,
     )
 
     @Serializable
@@ -37,6 +32,13 @@ data class DomainConfig(
         val maxLengthGroupName: Int,
         val minLengthGroupDescription: Int,
         val maxLengthGroupDescription: Int,
+    )
+
+    @Serializable data class Properties(
+        val min: Int = 0,
+        val max: Int = 0,
+        val optional: Boolean = false,
+        val unit: String = "",
     )
 
     companion object {

@@ -1,6 +1,6 @@
 package isel.rl.core.repository.jdbi
 
-import isel.rl.core.domain.config.LaboratoriesDomainConfig
+import isel.rl.core.domain.config.DomainConfig
 import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.hardware.HardwareName
 import isel.rl.core.domain.hardware.HardwareStatus
@@ -21,7 +21,7 @@ import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.postgres.PostgresPlugin
 
-fun Jdbi.configureWithAppRequirements(labDomainConfig: LaboratoriesDomainConfig): Jdbi {
+fun Jdbi.configureWithAppRequirements(domainConfig: DomainConfig): Jdbi {
     installPlugin(KotlinPlugin())
     installPlugin(PostgresPlugin())
 
@@ -33,7 +33,7 @@ fun Jdbi.configureWithAppRequirements(labDomainConfig: LaboratoriesDomainConfig)
     registerRowMapper(Group::class.java, GroupMapper())
 
     // Laboratory Mappers
-    registerRowMapper(Laboratory::class.java, LabMapper(labDomainConfig))
+    registerRowMapper(Laboratory::class.java, LabMapper(domainConfig.laboratory))
     registerColumnMapper(LabSessionState::class.java, LabSessionStateMapper())
 
     // Hardware Mappers

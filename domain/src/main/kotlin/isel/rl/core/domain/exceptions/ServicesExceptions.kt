@@ -33,8 +33,8 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
             private fun readResolve(): Any = UserNotFound
         }
 
-        data object InvalidQueryParams : ServicesExceptions("Invalid query params") {
-            private fun readResolve(): Any = InvalidQueryParams
+        data object ErrorWhenUpdatingUser : ServicesExceptions("An error occurred when updating the user") {
+            private fun readResolve(): Any = ErrorWhenUpdatingUser
         }
     }
 
@@ -67,6 +67,8 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
     }
 
     class InvalidQueryParam(message: String) : ServicesExceptions(message)
+
+    class Forbidden(message: String) : ServicesExceptions(message)
 
     data object UnexpectedError : ServicesExceptions("Unexpected error") {
         private fun readResolve(): Any = UnexpectedError

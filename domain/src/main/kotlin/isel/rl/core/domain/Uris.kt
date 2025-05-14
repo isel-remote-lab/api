@@ -32,6 +32,11 @@ object Uris {
          * URI for getting a user by email or oAuth id with query parameters
          */
         const val GET_BY_EMAIL = BASE
+
+        /**
+         * URI for updating a user role by ID
+         */
+        const val UPDATE_USER_ROLE = "$BASE/{id}/role"
     }
 
     object Laboratories {

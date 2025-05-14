@@ -41,11 +41,6 @@ class JdbiGroupsRepositoryTests {
 
             // then: verify the retrieved group details
             initialGroup.assertGroupWith(groupByName)
-
-            // then: verify if user is in user_group relation
-            val groupUsers = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers.size == 1, "Expected group to have 1 user but had ${groupUsers.size}")
-            assertTrue(groupUsers.contains(ownerId), "Expected group to have user $ownerId but it didn't")
         }
     }
 
@@ -73,8 +68,7 @@ class JdbiGroupsRepositoryTests {
 
             // then: verify the user is in the group
             val groupUsers = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers.size == 2, "Expected group to have 2 users but had ${groupUsers.size}")
-            assertTrue(groupUsers.contains(ownerId), "Expected group to have user $ownerId but it didn't")
+            assertTrue(groupUsers.size == 1, "Expected group to have 1 user but had ${groupUsers.size}")
             assertTrue(groupUsers.contains(userId), "Expected group to have user $userId but it didn't")
 
             // when: Removing user from group
@@ -85,8 +79,7 @@ class JdbiGroupsRepositoryTests {
 
             // then: verify the user is not in the group anymore
             val groupUsers2 = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers2.size == 1, "Expected group to have 1 user but had ${groupUsers2.size}")
-            assertTrue(groupUsers2.contains(ownerId), "Expected group to have user $ownerId but it didn't")
+            assertTrue(groupUsers2.isEmpty(), "Expected group to have 0 users but had ${groupUsers2.size}")
         }
     }
 
@@ -189,14 +182,6 @@ class JdbiGroupsRepositoryTests {
             // when: storing a group
             val initialGroup = InitialGroup(clock, ownerId)
             val groupId = groupRepo.createGroup(initialGroup)
-
-            assertTrue(groupRepo.getGroupUsers(groupId).size == 1, "Expected group to have 1 user")
-
-            // when: removing the only user in the group
-            assertTrue(
-                groupRepo.removeUserFromGroup(ownerId, groupId),
-                "Failed to remove user $ownerId from group $groupId",
-            )
 
             // then: delete group
             assertTrue(groupRepo.deleteGroup(groupId), "Failed to delete group $groupId")

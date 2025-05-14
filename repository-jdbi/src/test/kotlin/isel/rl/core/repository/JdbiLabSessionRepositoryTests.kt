@@ -88,8 +88,8 @@ class JdbiLabSessionRepositoryTests {
                 )
 
             // when: updating the lab session
-            val newStartTime = initialLabSession.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo)
-            val newEndTime = newStartTime.plus(repoUtils.newTestLabDuration().labDurationInfo)
+            val newStartTime = initialLabSession.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo!!)
+            val newEndTime = newStartTime.plus(repoUtils.newTestLabDuration().labDurationInfo!!)
             val newLabSessionState = repoUtils.randomLabSessionState()
             labSessionRepo.updateLabSession(labSessionId, newStartTime, newEndTime, newLabSessionState)
 
@@ -179,8 +179,8 @@ class JdbiLabSessionRepositoryTests {
                     clock,
                     labId,
                     userId,
-                    initialLabSession1.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
-                    initialLabSession1.endTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+                    initialLabSession1.startTime.plus(repoUtils.newTestLabDuration().labDurationInfo!!),
+                    initialLabSession1.endTime.plus(repoUtils.newTestLabDuration().labDurationInfo!!),
                     repoUtils.randomLabSessionState(),
                 )
             val labSessionId2 =
@@ -224,7 +224,7 @@ class JdbiLabSessionRepositoryTests {
             val labId: Int,
             val userId: Int,
             val startTime: Instant = clock.now(),
-            val endTime: Instant = startTime.plus(repoUtils.newTestLabDuration().labDurationInfo),
+            val endTime: Instant = startTime.plus(repoUtils.newTestLabDuration().labDurationInfo!!),
             val labSessionState: LabSessionState = repoUtils.randomLabSessionState(),
         )
 

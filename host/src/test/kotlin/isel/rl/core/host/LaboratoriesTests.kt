@@ -213,7 +213,7 @@ class LaboratoriesTests {
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    labName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1),
+                    labName = "a".repeat(httpUtils.labDomainConfig.maxLabNameLength + 1),
                 )
 
             // when: creating a laboratory
@@ -230,7 +230,7 @@ class LaboratoriesTests {
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    labDescription = "",
+                    labDescription = "a",
                 )
 
             // when: creating a laboratory
@@ -247,7 +247,7 @@ class LaboratoriesTests {
 
             val invalidLaboratory =
                 InitialLaboratory(
-                    labDescription = "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1),
+                    labDescription = "a".repeat(httpUtils.labDomainConfig.maxLabDescriptionLength + 1),
                 )
 
             // when: creating a laboratory
@@ -649,7 +649,7 @@ class LaboratoriesTests {
 
             // when: creating a laboratory
             val (labId, initialLab, jwt) = testClient.createTestLaboratory()
-            val newLabName = "a".repeat(httpUtils.labDomainConfig.maxLengthLabName + 1) // Invalid name
+            val newLabName = "a".repeat(httpUtils.labDomainConfig.maxLabNameLength + 1) // Invalid name
 
             // when: updating the laboratory with invalid name
             val updateLab =
@@ -669,7 +669,7 @@ class LaboratoriesTests {
 
             // when: creating a laboratory
             val (labId, initialLab, jwt) = testClient.createTestLaboratory()
-            val newLabDescription = "" // Invalid description
+            val newLabDescription = "a" // Invalid description
 
             // when: updating the laboratory with invalid description
             val updateLab =
@@ -690,7 +690,7 @@ class LaboratoriesTests {
             // when: creating a laboratory
             val (labId, initialLab, jwt) = testClient.createTestLaboratory()
             val newLabDescription =
-                "a".repeat(httpUtils.labDomainConfig.maxLengthLabDescription + 1) // Invalid description
+                "a".repeat(httpUtils.labDomainConfig.maxLabDescriptionLength + 1) // Invalid description
 
             // when: updating the laboratory with invalid description
             val updateLab =
@@ -959,8 +959,8 @@ class LaboratoriesTests {
         }
 
         private val INVALID_LAB_NAME_MSG =
-            "Laboratory name must be between ${httpUtils.labDomainConfig.minLengthLabName} and " +
-                "${httpUtils.labDomainConfig.maxLengthLabName} characters"
+            "Laboratory name must be between ${httpUtils.labDomainConfig.minLabNameLength} and " +
+                "${httpUtils.labDomainConfig.maxLabNameLength} characters"
 
         val expectedInvalidLabNameProblem =
             Problem.invalidLaboratoryName(
@@ -968,8 +968,8 @@ class LaboratoriesTests {
             )
 
         private val INVALID_LAB_DESCRIPTION_MSG =
-            "Laboratory description must be between ${httpUtils.labDomainConfig.minLengthLabDescription} " +
-                "and ${httpUtils.labDomainConfig.maxLengthLabDescription} characters"
+            "Laboratory description must be between ${httpUtils.labDomainConfig.minLabDescriptionLength} " +
+                "and ${httpUtils.labDomainConfig.maxLabDescriptionLength} characters"
 
         val expectedInvalidLabDescriptionProblem =
             Problem.invalidLaboratoryDescription(

@@ -23,7 +23,7 @@ data class JdbiLaboratoriesRepository(
         )
             .bind("lab_name", validatedCreateLaboratory.labName.labNameInfo)
             .bind("lab_description", validatedCreateLaboratory.labDescription.labDescriptionInfo)
-            .bind("lab_duration", validatedCreateLaboratory.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES))
+            .bind("lab_duration", validatedCreateLaboratory.labDuration.labDurationInfo?.toInt(DurationUnit.MINUTES))
             .bind("lab_queue_limit", validatedCreateLaboratory.labQueueLimit.labQueueLimitInfo)
             .bind("created_at", validatedCreateLaboratory.createdAt.toJavaInstant())
             .bind("owner_id", validatedCreateLaboratory.ownerId)
@@ -93,7 +93,7 @@ data class JdbiLaboratoriesRepository(
         }
         validatedUpdateLaboratory.labDuration?.let {
             updateQuery.append("lab_duration = :lab_duration, ")
-            params["lab_duration"] = it.labDurationInfo.toInt(DurationUnit.MINUTES)
+            params["lab_duration"] = it.labDurationInfo?.toInt(DurationUnit.MINUTES)
         }
         validatedUpdateLaboratory.labQueueLimit?.let {
             updateQuery.append("lab_queue_limit = :lab_queue_limit, ")

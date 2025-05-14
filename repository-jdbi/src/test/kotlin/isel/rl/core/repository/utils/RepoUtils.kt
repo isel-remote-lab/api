@@ -37,10 +37,12 @@ import kotlin.time.toDuration
  */
 @Component
 class RepoUtils {
-    private val userDomainConfig = RemoteLabApp().usersDomainConfig()
-    private val labDomainConfig = RemoteLabApp().laboratoriesDomainConfig()
-    private val groupDomainConfig = RemoteLabApp().groupsDomainConfig()
-    private val tokenEncoder = RemoteLabApp().tokenEncoder()
+    private val remoteLab = RemoteLabApp()
+    private val userDomainConfig = remoteLab.usersDomainConfig()
+    private val labDomainConfig = remoteLab.laboratoriesDomainConfig()
+    private val groupDomainConfig = remoteLab.groupsDomainConfig()
+    private val domainConfigs = remoteLab.domainConfigs
+    private val tokenEncoder = remoteLab.tokenEncoder()
 
     /**
      * Provides a [UsersDomain] instance for validating user-related operations.
@@ -84,7 +86,7 @@ class RepoUtils {
                 setURL(Environment.getDbUrl())
             },
         ).configureWithAppRequirements(
-            labDomainConfig,
+            domainConfigs,
         )
 
     // User functions
@@ -221,7 +223,7 @@ class RepoUtils {
             labDomain.validateCreateLaboratory(
                 labName.labNameInfo,
                 labDescription.labDescriptionInfo,
-                labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                labDuration.labDurationInfo?.toInt(DurationUnit.MINUTES),
                 randomLabQueueLimit.labQueueLimitInfo,
                 labCreatedAt,
                 userId,

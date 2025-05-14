@@ -45,6 +45,30 @@ class JdbiUsersRepositoryTests {
     }
 
     @Test
+    fun `update user role`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a user repo
+            val userRepo = JdbiUsersRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val initialUser = InitialUserInfo(clock)
+            val userId = userRepo.createUser(initialUser)
+
+            // when: updating the user's role
+            val newRole = repoUtils.randomUserRole()
+            userRepo.updateUserRole(userId, newRole)
+
+            // then: verify the updated role
+            val updatedUser = userRepo.getUserById(userId)
+            assertNotNull(updatedUser)
+            assertEquals(newRole, updatedUser.role)
+        }
+    }
+
+    @Test
     fun `delete user`() {
         repoUtils.runWithHandle { handle ->
             // given: a user repo and user domain

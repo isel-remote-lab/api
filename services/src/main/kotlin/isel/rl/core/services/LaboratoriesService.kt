@@ -31,10 +31,10 @@ data class LaboratoriesService(
     private val laboratoriesDomain: LaboratoriesDomain,
 ) : ILaboratoriesService {
     override fun createLaboratory(
-        labName: String,
-        labDescription: String,
-        labDuration: Int,
-        labQueueLimit: Int,
+        labName: String?,
+        labDescription: String?,
+        labDuration: Int?,
+        labQueueLimit: Int?,
         ownerId: Int,
     ): CreateLaboratoryResult =
         try {
@@ -69,6 +69,7 @@ data class LaboratoriesService(
 
             transactionManager.run {
                 val laboratoriesRepo = it.laboratoriesRepository
+
                 // Retrieve the laboratory by ID from the database and return the result as success
                 // If the laboratory is not found, return failure with LaboratoryNotFound exception
                 laboratoriesRepo.getLaboratoryById(validatedLabId)

@@ -3,12 +3,10 @@ package isel.rl.core.services
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.UsersDomain
+import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.services.interfaces.CreateUserResult
-import isel.rl.core.services.interfaces.GetUserResult
-import isel.rl.core.services.interfaces.IUsersService
-import isel.rl.core.services.interfaces.LoginUserResult
+import isel.rl.core.services.interfaces.*
 import isel.rl.core.services.utils.handleException
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
@@ -57,6 +55,41 @@ data class UsersService(
             }
         } catch (e: Exception) {
             // Handle exceptions that may occur during the login process
+            handleException(e)
+        }
+
+    override fun updateUserRole(
+        actorUserId: User,
+        targetUserId: String,
+        newRole: String?,
+    ): UpdateUserRoleResult =
+        try {
+            // Validate the targetUserId and newRole
+            val validatedTargetUserId = usersDomain.validateUserId(targetUserId)
+            val validatedNewRole = usersDomain.checkRole(newRole)
+
+            transactionManager.run {
+                val usersRepository = it.usersRepository
+                usersRepository.getUserById(validatedTargetUserId)
+                    ?: failure(ServicesExceptions.Users.UserNotFound)
+
+                if (actorUserId.role.char != Role.ADMIN.char) { // Check if the actor is an Admin
+                    return@run failure(
+                        ServicesExceptions.Forbidden(
+                            "User with id ${actorUserId.id} don't " +
+                                "have permission to update user role",
+                        ),
+                    )
+                }
+
+                if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
+                    success(true)
+                } else {
+                    failure(ServicesExceptions.Users.ErrorWhenUpdatingUser)
+                }
+            }
+        } catch (e: Exception) {
+            // Handle exceptions that may occur during the update process
             handleException(e)
         }
 
@@ -178,6 +211,6 @@ data class UsersService(
         }
 
     companion object {
-        const val INITIAL_USER_ROLE = "S"
+        val INITIAL_USER_ROLE = Role.STUDENT.char
     }
 }

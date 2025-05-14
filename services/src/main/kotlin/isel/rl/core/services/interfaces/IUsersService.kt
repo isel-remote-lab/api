@@ -7,6 +7,7 @@ import isel.rl.core.utils.Either
 typealias AuthToken = String
 typealias UserAndToken = Pair<User, AuthToken>
 typealias LoginUserResult = Either<ServicesExceptions, UserAndToken>
+typealias UpdateUserRoleResult = Either<ServicesExceptions, Boolean>
 
 /**
  * Result of creating a user.
@@ -38,6 +39,22 @@ interface IUsersService {
         name: String,
         email: String,
     ): LoginUserResult
+
+    /**
+     * Updates the role of a user.
+     * The parameters are validated before updating the user with the user domain.
+     * If the validation fails, a [ServicesExceptions] is returned as failure.
+     *
+     * @param actorUserId The ID of the user performing the action.
+     * @param targetUserId The ID of the user whose role is being updated.
+     * @param newRole The new role to assign to the user.
+     * @return A result indicating success or failure.
+     */
+    fun updateUserRole(
+        actorUserId: User,
+        targetUserId: String,
+        newRole: String?,
+    ): UpdateUserRoleResult
 
     /**
      * Retrieves a user by token.

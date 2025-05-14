@@ -44,6 +44,21 @@ data class JdbiUsersRepository(
             .mapTo<User>()
             .singleOrNull()
 
+    override fun updateUserRole(
+        userId: Int,
+        role: Role,
+    ): Boolean =
+        handle.createUpdate(
+            """
+            UPDATE rl.user
+            SET role = :role
+            WHERE id = :id
+        """,
+        )
+            .bind("role", role.char)
+            .bind("id", userId)
+            .execute() == 1 // Check if 1 update was performed
+
     override fun createToken(
         token: Token,
         maxTokens: Int,

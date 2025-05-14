@@ -125,8 +125,8 @@ class UsersDomain(
             Email(email)
         }
 
-    fun checkRole(role: String): Role =
-        when (role.uppercase(Locale.getDefault())) {
+    fun checkRole(role: String?): Role =
+        when (role?.uppercase(Locale.getDefault())) {
             "S" -> Role.STUDENT
             "T" -> Role.TEACHER
             "A" -> Role.ADMIN

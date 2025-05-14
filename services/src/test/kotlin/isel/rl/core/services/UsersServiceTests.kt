@@ -1,6 +1,8 @@
 package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
+import isel.rl.core.domain.user.User
+import isel.rl.core.domain.user.props.Role
 import isel.rl.core.utils.Either
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,7 +20,6 @@ class UsersServiceTests {
         val username = servicesUtils.newTestUsername()
         val email = servicesUtils.newTestEmail()
         val userRole = servicesUtils.randomUserRole()
-        val oAuthId = servicesUtils.newTestOauthId()
         val createdUserResult =
             service.createUser(
                 userRole,
@@ -64,6 +65,92 @@ class UsersServiceTests {
                 assertEquals(user.role.char, userRole, GET_USER_ROLE_ERROR)
                 assertEquals(user.createdAt, clock.now(), GET_USER_CREATED_AT_ERROR)
             }
+        }
+    }
+
+    @Test
+    fun `update user role`() {
+        // given: a user service
+        val clock = TestClock()
+        val service = servicesUtils.createUsersServices(clock)
+
+        // when: creating the actor user
+        val actorCreateUser = CreateUserInfo(userRole = Role.ADMIN.char)
+        val actorUser = service.createUser(actorCreateUser)
+
+        // when: creating a target user
+        val targetUser = service.createUser(CreateUserInfo())
+
+        // when: updating the target user role
+        val newRole = servicesUtils.randomUserRole()
+        val updateResult =
+            service.updateUserRole(
+                actorUserId = actorUser,
+                targetUserId = targetUser.id.toString(),
+                newRole = newRole,
+            )
+
+        // then: Verify if the user role was updated
+        when (updateResult) {
+            is Either.Left -> fail("User role update failed: ${updateResult.value}")
+            is Either.Right -> assertTrue(updateResult.value)
+        }
+    }
+
+    @Test
+    fun `update user role (not enough permissions)`() {
+        // given: a user service
+        val clock = TestClock()
+        val service = servicesUtils.createUsersServices(clock)
+
+        // when: creating the actor user
+        val actorCreateUser = CreateUserInfo(userRole = Role.STUDENT.char)
+        val actorUser = service.createUser(actorCreateUser)
+
+        // when: creating a target user
+        val targetUser = service.createUser(CreateUserInfo())
+
+        // when: updating the target user role
+        val newRole = servicesUtils.randomUserRole()
+        val updateResult =
+            service.updateUserRole(
+                actorUserId = actorUser,
+                targetUserId = targetUser.id.toString(),
+                newRole = newRole,
+            )
+
+        // then: Verify if the user role update failed due to insufficient permissions
+        when (updateResult) {
+            is Either.Left -> assertTrue(updateResult.value is ServicesExceptions.Forbidden)
+            is Either.Right -> fail("Expected insufficient permissions error, but got success")
+        }
+    }
+
+    @Test
+    fun `update user role (null role)`() {
+        // given: a user service
+        val clock = TestClock()
+        val service = servicesUtils.createUsersServices(clock)
+
+        // when: creating the actor user
+        val actorCreateUser = CreateUserInfo(userRole = Role.ADMIN.char)
+        val actorUser = service.createUser(actorCreateUser)
+
+        // when: creating a target user
+        val targetUser = service.createUser(CreateUserInfo())
+
+        // when: updating the target user role with null role
+        val updateResult =
+            service.updateUserRole(
+                actorUserId = actorUser,
+                targetUserId = targetUser.id.toString(),
+                newRole = null,
+            )
+
+        // then: Verify if the user role update failed due to invalid role
+        when (updateResult) {
+            is Either.Left -> assertTrue(updateResult.value is ServicesExceptions.Users.InvalidRole)
+            is Either.Right -> fail("Expected invalid role error, but got success")
         }
     }
 
@@ -132,6 +219,33 @@ class UsersServiceTests {
 
     companion object {
         private val servicesUtils = ServicesUtils()
+
+        data class CreateUserInfo(
+            val userRole: String = servicesUtils.randomUserRole(),
+            val username: String = servicesUtils.newTestUsername(),
+            val email: String = servicesUtils.newTestEmail(),
+        )
+
+        fun UsersService.createUser(createUser: CreateUserInfo): User {
+            val user =
+                createUser(
+                    createUser.userRole,
+                    createUser.username,
+                    createUser.email,
+                )
+
+            // then: Verify if the user was created
+            when (user) {
+                is Either.Left -> fail("User creation failed: ${user.value}")
+                is Either.Right ->
+                    assertTrue(
+                        user.value.id >= 0,
+                        CREATE_ID_ERROR,
+                    )
+            }
+
+            return user.value
+        }
 
         const val CREATE_ID_ERROR = "Unexpected error occurred when creating the User. UserId should be >= 0"
 

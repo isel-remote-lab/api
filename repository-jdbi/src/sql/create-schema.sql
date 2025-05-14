@@ -53,10 +53,10 @@ CREATE TABLE
 CREATE TABLE
     rl.laboratory (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        lab_name VARCHAR(255) NOT NULL,
+        lab_name VARCHAR(255),
         lab_description TEXT,
-        lab_duration INT NOT NULL,
-        lab_queue_limit INT NOT NULL,
+        lab_duration INT,
+        lab_queue_limit INT,
         created_at TIMESTAMPTZ NOT NULL,
         owner_id INT NOT NULL REFERENCES rl.user (id)
     );

@@ -26,9 +26,6 @@ data class JdbiGroupsRepository(
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
-            .also { groupId ->
-                addUserToGroup(validatedCreateGroup.ownerId, groupId)
-            }
 
     override fun getGroupById(groupId: Int): Group? =
         handle.createQuery("""SELECT * FROM rl.group WHERE id = :id""")

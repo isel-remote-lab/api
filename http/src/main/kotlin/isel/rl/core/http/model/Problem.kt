@@ -17,6 +17,15 @@ class Problem(
         ): ResponseEntity<Any> = ResponseEntity.status(status).header("Content-Type", MEDIA_TYPE).body(problem)
 
         // General
+        fun forbidden(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Forbidden",
+                message,
+            )
+
         val unexpectedBehaviour =
             Problem(
                 URI(

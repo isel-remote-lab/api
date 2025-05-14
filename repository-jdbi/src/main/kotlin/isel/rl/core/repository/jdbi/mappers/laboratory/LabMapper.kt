@@ -1,6 +1,6 @@
 package isel.rl.core.repository.jdbi.mappers.laboratory
 
-import isel.rl.core.domain.config.LaboratoriesDomainConfig
+import isel.rl.core.domain.config.DomainConfig
 import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
@@ -14,7 +14,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 class LabMapper(
-    private val labsDomainConfig: LaboratoriesDomainConfig,
+    private val labsDomainConfig: DomainConfig.LaboratoryRestrictions,
 ) : RowMapper<Laboratory> {
     override fun map(
         rs: ResultSet,
@@ -27,7 +27,7 @@ class LabMapper(
             labDuration =
                 LabDuration(
                     rs.getInt(Laboratory.LAB_DURATION_PROP)
-                        .toDuration(DurationUnit.valueOf(labsDomainConfig.labDurationUnit)),
+                        .toDuration(DurationUnit.valueOf(labsDomainConfig.labDuration.unit)),
                 ),
             labQueueLimit = LabQueueLimit(rs.getInt(Laboratory.LAB_QUEUE_LIMIT_PROP)),
             createdAt = rs.getTimestamp(Laboratory.CREATED_AT_PROP).toInstant().toKotlinInstant(),

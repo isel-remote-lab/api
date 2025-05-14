@@ -20,10 +20,14 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 
     testImplementation(kotlin("test"))
+    testImplementation(project(":repository"))
 }
 
 tasks.test {
     useJUnitPlatform()
+    if (System.getenv("DB_URL") == null) {
+        environment("DB_URL", "jdbc:postgresql://localhost:5432/db?user=dbuser&password=changeit")
+    }
     dependsOn(":repository-jdbi:dbTestsWait")
     finalizedBy(":repository-jdbi:dbTestsDown")
 }

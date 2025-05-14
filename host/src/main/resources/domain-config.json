@@ -7,15 +7,27 @@
     "maxTokensPerUser": 3
   },
   "laboratory": {
-    "minLengthLabName": 3,
-    "maxLengthLabName": 100,
-    "minLengthLabDescription": 10,
-    "maxLengthLabDescription": 1000,
-    "minLabDuration": 1,
-    "maxLabDuration": 480,
-    "minLabQueueLimit": 1,
-    "maxLabQueueLimit": 100,
-    "labDurationUnit": "MINUTES"
+    "labName": {
+      "min": 3,
+      "max": 100,
+      "optional": false
+    },
+    "labDescription": {
+      "min": 10,
+      "max": 1000,
+      "optional": true
+    },
+    "labDuration": {
+      "min": 1,
+      "max": 480,
+      "optional": false,
+      "unit": "MINUTES"
+    },
+    "labQueueLimit": {
+      "min": 1,
+      "max": 100,
+      "optional": false
+    }
   },
   "group": {
     "minLengthGroupName": 3,

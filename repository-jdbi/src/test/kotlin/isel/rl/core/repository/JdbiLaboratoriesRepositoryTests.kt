@@ -140,7 +140,7 @@ class JdbiLaboratoriesRepositoryTests {
                 laboratoryRepo.updateLaboratory(
                     repoUtils.laboratoriesDomain.validateUpdateLaboratory(
                         labId,
-                        labDuration = newLabDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                        labDuration = newLabDuration.labDurationInfo!!.toInt(DurationUnit.MINUTES),
                     ),
                 ),
             )
@@ -404,7 +404,7 @@ class JdbiLaboratoriesRepositoryTests {
                 repoUtils.laboratoriesDomain.validateCreateLaboratory(
                     initialLaboratoryInfo.labName.labNameInfo,
                     initialLaboratoryInfo.labDescription.labDescriptionInfo,
-                    initialLaboratoryInfo.labDuration.labDurationInfo.toInt(DurationUnit.MINUTES),
+                    initialLaboratoryInfo.labDuration.labDurationInfo!!.toInt(DurationUnit.MINUTES),
                     initialLaboratoryInfo.labQueueLimit.labQueueLimitInfo,
                     initialLaboratoryInfo.labCreatedAt,
                     initialLaboratoryInfo.userId,

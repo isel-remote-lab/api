@@ -75,22 +75,10 @@ class RemoteLabApp {
     }
 
     @Bean
-    fun laboratoriesDomainConfig(): LaboratoriesDomainConfig {
-        val labsConfig = domainConfigs.laboratory
-        val labDurationUnit = DurationUnit.valueOf(labsConfig.labDurationUnit)
-
-        return LaboratoriesDomainConfig(
-            minLengthLabName = labsConfig.minLengthLabName,
-            maxLengthLabName = labsConfig.maxLengthLabName,
-            minLengthLabDescription = labsConfig.minLengthLabDescription,
-            maxLengthLabDescription = labsConfig.maxLengthLabDescription,
-            minLabDuration = labsConfig.minLabDuration.toDuration(labDurationUnit),
-            maxLabDuration = labsConfig.maxLabDuration.toDuration(labDurationUnit),
-            minLabQueueLimit = labsConfig.minLabQueueLimit,
-            maxLabQueueLimit = labsConfig.maxLabQueueLimit,
-            labDurationUnit = labsConfig.labDurationUnit,
+    fun laboratoriesDomainConfig(): LaboratoriesDomainConfig =
+        LaboratoriesDomainConfig.from(
+            config = domainConfigs.laboratory,
         )
-    }
 
     @Bean
     fun groupsDomainConfig() =
@@ -123,9 +111,7 @@ class RemoteLabApp {
             PGSimpleDataSource().apply {
                 setURL(dbURL)
             },
-        ).configureWithAppRequirements(
-            laboratoriesDomainConfig(),
-        )
+        ).configureWithAppRequirements(domainConfigs)
 }
 
 @Configuration
