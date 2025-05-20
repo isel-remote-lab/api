@@ -2,12 +2,13 @@ package isel.rl.core.repository
 
 import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.domain.ValidatedCreateLaboratory
-import isel.rl.core.domain.laboratory.domain.ValidatedUpdateLaboratory
+import isel.rl.core.domain.laboratory.props.LabDescription
+import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
+import isel.rl.core.domain.laboratory.props.LabQueueLimit
 
 interface LaboratoriesRepository {
-    fun createLaboratory(validatedCreateLaboratory: ValidatedCreateLaboratory): Int
+    fun createLaboratory(validatedCreateLaboratory: Laboratory): Int
 
     fun getLaboratoryById(labId: Int): Laboratory?
 
@@ -18,7 +19,13 @@ interface LaboratoriesRepository {
         limitAndSkip: LimitAndSkip,
     ): List<Laboratory>
 
-    fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean
+    fun updateLaboratory(
+        labId: Int,
+        labName: LabName? = null,
+        labDescription: LabDescription? = null,
+        labDuration: LabDuration? = null,
+        labQueueLimit: LabQueueLimit? = null,
+    ): Boolean
 
     fun checkIfLaboratoryExists(labId: Int): Boolean
 

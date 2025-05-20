@@ -5,7 +5,7 @@ import isel.rl.core.domain.group.props.GroupName
 import kotlinx.datetime.Instant
 
 data class Group(
-    val id: Int,
+    val id: Int = 0,
     val groupName: GroupName,
     val groupDescription: GroupDescription,
     val createdAt: Instant,

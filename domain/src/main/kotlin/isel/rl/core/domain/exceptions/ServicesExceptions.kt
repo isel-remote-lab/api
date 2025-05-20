@@ -61,6 +61,22 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
     }
 
     data object Groups {
+        data object InvalidGroupId : ServicesExceptions("Invalid group id") {
+            private fun readResolve(): Any = InvalidGroupId
+        }
+
+        data object GroupNotFound : ServicesExceptions("Group not found") {
+            private fun readResolve(): Any = GroupNotFound
+        }
+
+        data object UserAlreadyInGroup : ServicesExceptions("User already in group") {
+            private fun readResolve(): Any = UserAlreadyInGroup
+        }
+
+        data object UserNotInGroup : ServicesExceptions("User not in group") {
+            private fun readResolve(): Any = UserNotInGroup
+        }
+
         class InvalidGroupName(message: String) : ServicesExceptions(message)
 
         class InvalidGroupDescription(message: String) : ServicesExceptions(message)

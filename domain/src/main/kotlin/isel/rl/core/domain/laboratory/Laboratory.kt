@@ -7,7 +7,7 @@ import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import kotlinx.datetime.Instant
 
 data class Laboratory(
-    val id: Int,
+    val id: Int = 0,
     val labName: LabName,
     val labDescription: LabDescription,
     val labDuration: LabDuration,

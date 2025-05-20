@@ -46,13 +46,13 @@ class Problem(
                     "The roles supported are: 'S' for student, 'T' for teacher and 'A' for admin.",
             )
 
-        val invalidUsername =
+        val invalidName =
             Problem(
                 URI(
                     "TODO",
                 ).toASCIIString(),
-                "Invalid username",
-                "The username provided is invalid.",
+                "Invalid name",
+                "The name provided is invalid.",
             )
 
         val invalidEmail =

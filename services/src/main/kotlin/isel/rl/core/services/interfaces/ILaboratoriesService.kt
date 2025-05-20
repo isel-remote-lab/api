@@ -8,7 +8,7 @@ import isel.rl.core.utils.Either
  * Result of creating a laboratory.
  * It can either be a success with the laboratory ID or a failure with an exception.
  */
-typealias CreateLaboratoryResult = Either<ServicesExceptions, Int>
+typealias CreateLaboratoryResult = Either<ServicesExceptions, Laboratory>
 
 /**
  * Result of getting a laboratory.

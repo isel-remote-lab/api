@@ -1,6 +1,7 @@
 package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
+import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.repository.TransactionManager
 import isel.rl.core.services.interfaces.CreateLaboratoryResult
@@ -50,8 +51,17 @@ data class LaboratoriesService(
                 )
             transactionManager.run {
                 // Create the laboratory in the database and return the result as success
+                val labId = it.laboratoriesRepository.createLaboratory(laboratory)
                 success(
-                    it.laboratoriesRepository.createLaboratory(laboratory),
+                    Laboratory(
+                        labId,
+                        laboratory.labName,
+                        laboratory.labDescription,
+                        laboratory.labDuration,
+                        laboratory.labQueueLimit,
+                        laboratory.createdAt,
+                        ownerId,
+                    ),
                 )
             }
         } catch (e: Exception) {
@@ -98,8 +108,15 @@ data class LaboratoriesService(
         ownerId: Int,
     ): UpdateLaboratoryResult =
         try {
-            // Validate the laboratory ID
+            // Validate received parameters
+            // Since validate methods of domain verify if the parameters are null or empty,
+            // a let is used to avoid the null verification
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+            val validatedLabName = labName?.let { laboratoriesDomain.validateLaboratoryName(labName) }
+            val validatedLabDescription =
+                labDescription?.let { laboratoriesDomain.validateLabDescription(labDescription) }
+            val validatedLabDuration = labDuration?.let { laboratoriesDomain.validateLabDuration(labDuration) }
+            val validatedLabQueueLimit = labQueueLimit?.let { laboratoriesDomain.validateLabQueueLimit(labQueueLimit) }
 
             transactionManager.run {
                 val laboratoriesRepo = it.laboratoriesRepository
@@ -114,19 +131,16 @@ data class LaboratoriesService(
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 }
 
-                // Validate the laboratory update data
-                val validatedUpdateLaboratory =
-                    laboratoriesDomain.validateUpdateLaboratory(
-                        labId = validatedLabId,
-                        labName = labName,
-                        labDescription = labDescription,
-                        labDuration = labDuration,
-                        labQueueLimit = labQueueLimit,
-                    )
-
                 // If update is successful, return success
                 // Otherwise, return failure with unexpected error
-                if (laboratoriesRepo.updateLaboratory(validatedUpdateLaboratory)) {
+                if (laboratoriesRepo.updateLaboratory(
+                        validatedLabId,
+                        validatedLabName,
+                        validatedLabDescription,
+                        validatedLabDuration,
+                        validatedLabQueueLimit,
+                    )
+                ) {
                     success(Unit)
                 } else {
                     failure(ServicesExceptions.UnexpectedError)

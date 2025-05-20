@@ -28,10 +28,8 @@ data class DomainConfig(
 
     @Serializable
     data class GroupRestrictions(
-        val minLengthGroupName: Int,
-        val maxLengthGroupName: Int,
-        val minLengthGroupDescription: Int,
-        val maxLengthGroupDescription: Int,
+        val groupName: Properties,
+        val groupDescription: Properties,
     )
 
     @Serializable data class Properties(

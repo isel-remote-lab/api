@@ -1,5 +1,6 @@
 package isel.rl.core.services
 
+import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.hardware.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.user.domain.UsersDomain
@@ -40,6 +41,8 @@ class ServicesUtils {
             RemoteLabApp().tokenEncoder(),
         )
 
+    private val groupsDomain = GroupsDomain(remoteLab.groupsDomainConfig())
+
     // User functions
 
     /**
@@ -51,8 +54,8 @@ class ServicesUtils {
     fun createUsersServices(testClock: TestClock): UsersService =
         UsersService(
             JdbiTransactionManager(jdbi),
-            usersDomain,
             testClock,
+            usersDomain,
         )
 
     /**
@@ -77,15 +80,33 @@ class ServicesUtils {
 
     // Group functions
 
+    fun createGroupsServices(testClock: TestClock): GroupsService =
+        GroupsService(
+            JdbiTransactionManager(jdbi),
+            testClock,
+            groupsDomain,
+            usersDomain,
+        )
+
+    val isGroupDescriptionOptional = domainConfigs.group.groupDescription.optional
+
     /**
      * Generates a random group name for testing purposes.
      */
     fun newTestGroupName() = "group-${abs(Random.nextLong())}"
 
+    fun newTestInvalidGroupNameMax() = "a".repeat(domainConfigs.group.groupName.max + 1)
+
+    fun newTestInvalidGroupNameMin() = ""
+
     /**
      * Generates a random group description for testing purposes.
      */
     fun newTestGroupDescription() = "description-${abs(Random.nextLong())}"
+
+    fun newTestInvalidGroupDescriptionMax() = "a".repeat(domainConfigs.group.groupDescription.max + 1)
+
+    fun newTestInvalidGroupDescriptionMin() = ""
 
     // Lab functions
 

@@ -1,9 +1,12 @@
 package isel.rl.core.host
 
 import isel.rl.core.domain.Uris
+import isel.rl.core.domain.user.props.Email
+import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.utils.AuthToken
 import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.HttpUtilsTest
 import isel.rl.core.host.utils.UserId
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
@@ -31,83 +34,83 @@ class UsersTests {
     @Test
     fun `login user test`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: logging a user that does not exist
-        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
+        val user = usersHelper.createTestUser(testClient)
 
         // then: the user is created
-        testClient.getUserByIdAndVerify(userId, expectedUser)
+        usersHelper.getUserById(testClient, user)
     }
 
     @Test
     fun `login already created user`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: logging a user that does not exist
-        val initialUser = InitialUserLogin()
-        val (userId, expectedUser) = testClient.loginUser(initialUser)
+        val user = usersHelper.createTestUser(testClient)
 
         // then: the user is created
-        testClient.getUserByIdAndVerify(userId, expectedUser)
+        usersHelper.getUserById(testClient, user)
 
         // when: logging the same user again
-        val (actualUserId, _) = testClient.loginUser(initialUser)
+        val userSecondLogin = usersHelper.createTestUser(testClient, user)
 
         // then: the user is the same
-        assertEquals(userId, actualUserId)
+        assertEquals(user.id, userSecondLogin.id)
     }
 
     @Test
     fun `create user test and get by Id and Email`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: creating a user
-        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
+        val user = usersHelper.createTestUser(testClient)
 
         // when: doing a GET by id
-        testClient.getUserByIdAndVerify(userId, expectedUser)
+        usersHelper.getUserById(testClient, user)
 
         // when: doing a GET by email
-        testClient.getUserByEmailAndVerify(expectedUser.email, expectedUser)
+        usersHelper.getUserByEmail(testClient, user)
     }
 
     @Test
     fun `create user with invalid email`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         val initialUser =
-            InitialUserLogin(
-                email = "",
+            HttpUtilsTest.Users.InitialUser(
+                email = Email(""),
             )
 
         // when: doing a POST
-        testClient.createInvalidUser(initialUser, Problem.invalidEmail)
+        usersHelper.createInvalidUser(testClient, initialUser, Problem.invalidEmail)
     }
 
     @Test
     fun `create user with invalid username`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         val initialUser =
-            InitialUserLogin(
-                name = "",
+            HttpUtilsTest.Users.InitialUser(
+                name = Name(""),
             )
 
         // when: doing a POST
-        testClient.createInvalidUser(initialUser, Problem.invalidUsername)
+        usersHelper.createInvalidUser(testClient, initialUser, Problem.invalidName)
     }
 
     @Test
     fun `create user without api key`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
-        val initialUser = InitialUserLogin()
+        val initialUser =
+            HttpUtilsTest.Users.InitialUser()
 
         // when: doing a POST
         // then: the response is an 403 Forbidden
@@ -115,7 +118,7 @@ class UsersTests {
             .post()
             .uri(Uris.Auth.LOGIN)
             .bodyValue(
-                initialUser.mapOf(),
+                HttpUtilsTest.Users.InitialUser.createBodyValue(initialUser),
             )
             .exchange()
             .expectStatus().isForbidden
@@ -144,60 +147,70 @@ class UsersTests {
     @Test
     fun `update user role`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: creating the actor user directly in the DB to be Admin
-        val actorUsername = httpUtils.newTestUsername()
-        val actorEmail = httpUtils.newTestEmail()
-        httpUtils.createDBUser(
-            actorUsername,
-            actorEmail,
+        val actorUserInitialInfo = HttpUtilsTest.Users.InitialUser()
+
+        HttpUtilsTest.Users.createDBUser(
+            actorUserInitialInfo.name.nameInfo,
+            actorUserInitialInfo.email.emailInfo,
             Role.ADMIN.char,
         )
+
         // when: logging the actor user
-        val (_, authToken) = testClient.loginExistingUser(actorUsername, actorEmail)
+        val actorUser = usersHelper.createTestUser(testClient, actorUserInitialInfo)
 
         // when: creating the target user
-        val (userId, expectedUser) = testClient.loginUser(InitialUserLogin())
+        val targetUser = usersHelper.createTestUser(testClient)
 
         // when: updating the user role
-        val newRole = httpUtils.randomUserRole()
+        val newRole = usersHelper.randomUserRole()
         testClient
             .patch()
-            .uri(Uris.Users.UPDATE_USER_ROLE, userId)
-            .header(httpUtils.authHeader, "Bearer $authToken")
+            .uri(Uris.Users.UPDATE_USER_ROLE, targetUser.id)
+            .header(httpUtils.authHeader, "Bearer ${actorUser.authToken}")
             .bodyValue(
                 mapOf(
-                    ROLE_PROP to newRole,
+                    ROLE_PROP to newRole.char,
                 ),
             )
             .exchange()
             .expectStatus().isOk
 
         // then: the user role is updated
-        testClient.getUserByIdAndVerify(userId, expectedUser.copy(role = newRole))
+        usersHelper.getUserById(testClient, targetUser.copy(role = newRole))
     }
 
     @Test
     fun `update user role (not enough permission)`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
-        // when: creating the actor user
-        val (_, authToken) = httpUtils.createTestUser(testClient)
+        // when: creating the actor user directly in the DB to be User
+        val actorUserInitialInfo = HttpUtilsTest.Users.InitialUser()
+
+        HttpUtilsTest.Users.createDBUser(
+            actorUserInitialInfo.name.nameInfo,
+            actorUserInitialInfo.email.emailInfo,
+            Role.STUDENT.char,
+        )
+
+        // when: logging the actor user
+        val actorUser = usersHelper.createTestUser(testClient, actorUserInitialInfo)
 
         // when: creating the target user
-        val (userId, _) = testClient.loginUser(InitialUserLogin())
+        val targetUser = usersHelper.createTestUser(testClient)
 
         // when: updating the user role
-        val newRole = httpUtils.randomUserRole()
+        val newRole = usersHelper.randomUserRole()
         testClient
             .patch()
-            .uri(Uris.Users.UPDATE_USER_ROLE, userId)
-            .header(httpUtils.authHeader, "Bearer $authToken")
+            .uri(Uris.Users.UPDATE_USER_ROLE, targetUser.id)
+            .header(httpUtils.authHeader, "Bearer ${actorUser.authToken}")
             .bodyValue(
                 mapOf(
-                    ROLE_PROP to newRole,
+                    ROLE_PROP to newRole.char,
                 ),
             )
             .exchange()
@@ -206,6 +219,7 @@ class UsersTests {
 
     companion object {
         private val httpUtils = HttpUtils()
+        private val usersHelper = HttpUtilsTest.Users
         const val USER_OUTPUT_MAP_KEY = "user"
         private const val ID_PROP = "id"
         private const val ROLE_PROP = "role"

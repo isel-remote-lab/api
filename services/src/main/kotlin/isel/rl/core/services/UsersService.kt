@@ -6,7 +6,11 @@ import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.token.Token
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.services.interfaces.*
+import isel.rl.core.services.interfaces.CreateUserResult
+import isel.rl.core.services.interfaces.GetUserResult
+import isel.rl.core.services.interfaces.IUsersService
+import isel.rl.core.services.interfaces.LoginUserResult
+import isel.rl.core.services.interfaces.UpdateUserRoleResult
 import isel.rl.core.services.utils.handleException
 import isel.rl.core.utils.Failure
 import isel.rl.core.utils.Success
@@ -21,8 +25,8 @@ import org.springframework.stereotype.Service
 @Service
 data class UsersService(
     private val transactionManager: TransactionManager,
-    private val usersDomain: UsersDomain,
     private val clock: Clock,
+    private val usersDomain: UsersDomain,
 ) : IUsersService {
     override fun login(
         name: String,
@@ -134,6 +138,7 @@ data class UsersService(
                     email,
                     clock.now(),
                 )
+
             transactionManager.run {
                 val userId = it.usersRepository.createUser(user)
                 // Create the user in the database and return the result as success
