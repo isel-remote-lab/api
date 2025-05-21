@@ -1,7 +1,6 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.domain.user.token.Token
@@ -12,11 +11,13 @@ import kotlinx.datetime.Instant
  * Repository for users.
  */
 interface UsersRepository {
-    fun createUser(user: ValidatedUser): Int
+    fun createUser(user: User): Int
 
     fun getUserById(userId: Int): User?
 
     fun getUserByEmail(email: Email): User?
+
+    fun checkIfUserExists(userId: Int): Boolean
 
     fun updateUserRole(
         userId: Int,

@@ -82,11 +82,8 @@ class RemoteLabApp {
 
     @Bean
     fun groupsDomainConfig() =
-        GroupsDomainConfig(
-            minLengthGroupName = domainConfigs.group.minLengthGroupName,
-            maxLengthGroupName = domainConfigs.group.maxLengthGroupName,
-            minLengthGroupDescription = domainConfigs.group.minLengthGroupDescription,
-            maxLengthGroupDescription = domainConfigs.group.maxLengthGroupDescription,
+        GroupsDomainConfig.from(
+            config = domainConfigs.group,
         )
 
     /**

@@ -1,7 +1,6 @@
 package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.user.User
-import isel.rl.core.domain.user.domain.ValidatedUser
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
@@ -17,7 +16,7 @@ import org.slf4j.LoggerFactory
 data class JdbiUsersRepository(
     val handle: Handle,
 ) : UsersRepository {
-    override fun createUser(user: ValidatedUser): Int =
+    override fun createUser(user: User): Int =
         handle.createUpdate(
             """
            INSERT INTO rl.user (role, name, email, created_at)
@@ -43,6 +42,20 @@ data class JdbiUsersRepository(
             .bind("email", email.emailInfo)
             .mapTo<User>()
             .singleOrNull()
+
+    override fun checkIfUserExists(userId: Int): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM rl.user 
+                WHERE id = :id
+            )
+        """,
+        )
+            .bind("id", userId)
+            .mapTo<Boolean>()
+            .one()
 
     override fun updateUserRole(
         userId: Int,

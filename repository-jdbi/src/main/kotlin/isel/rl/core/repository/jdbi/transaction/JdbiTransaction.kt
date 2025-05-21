@@ -20,7 +20,7 @@ class JdbiTransaction(
 ) : Transaction {
     override val usersRepository: UsersRepository = JdbiUsersRepository(handle)
     override val laboratoriesRepository: LaboratoriesRepository = JdbiLaboratoriesRepository(handle)
-    override val groupRepository: GroupsRepository = JdbiGroupsRepository(handle)
+    override val groupsRepository: GroupsRepository = JdbiGroupsRepository(handle)
 
     override fun rollback() {
         handle.rollback()

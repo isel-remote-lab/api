@@ -2,9 +2,10 @@ package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.laboratory.Laboratory
-import isel.rl.core.domain.laboratory.domain.ValidatedCreateLaboratory
-import isel.rl.core.domain.laboratory.domain.ValidatedUpdateLaboratory
+import isel.rl.core.domain.laboratory.props.LabDescription
+import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
+import isel.rl.core.domain.laboratory.props.LabQueueLimit
 import isel.rl.core.repository.LaboratoriesRepository
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
@@ -14,7 +15,7 @@ import kotlin.time.DurationUnit
 data class JdbiLaboratoriesRepository(
     val handle: Handle,
 ) : LaboratoriesRepository {
-    override fun createLaboratory(validatedCreateLaboratory: ValidatedCreateLaboratory): Int =
+    override fun createLaboratory(validatedCreateLaboratory: Laboratory): Int =
         handle.createUpdate(
             """
             INSERT INTO rl.laboratory (lab_name, lab_description, lab_duration, lab_queue_limit, created_at, owner_id)
@@ -73,7 +74,13 @@ data class JdbiLaboratoriesRepository(
             .mapTo<Laboratory>()
             .list()
 
-    override fun updateLaboratory(validatedUpdateLaboratory: ValidatedUpdateLaboratory): Boolean {
+    override fun updateLaboratory(
+        labId: Int,
+        labName: LabName?,
+        labDescription: LabDescription?,
+        labDuration: LabDuration?,
+        labQueueLimit: LabQueueLimit?,
+    ): Boolean {
         val updateQuery =
             StringBuilder(
                 """
@@ -83,19 +90,19 @@ data class JdbiLaboratoriesRepository(
             )
         val params = mutableMapOf<String, Any?>()
 
-        validatedUpdateLaboratory.labName?.let {
+        labName?.let {
             updateQuery.append("lab_name = :lab_name, ")
             params["lab_name"] = it.labNameInfo
         }
-        validatedUpdateLaboratory.labDescription?.let {
+        labDescription?.let {
             updateQuery.append("lab_description = :lab_description, ")
             params["lab_description"] = it.labDescriptionInfo
         }
-        validatedUpdateLaboratory.labDuration?.let {
+        labDuration?.let {
             updateQuery.append("lab_duration = :lab_duration, ")
             params["lab_duration"] = it.labDurationInfo?.toInt(DurationUnit.MINUTES)
         }
-        validatedUpdateLaboratory.labQueueLimit?.let {
+        labQueueLimit?.let {
             updateQuery.append("lab_queue_limit = :lab_queue_limit, ")
             params["lab_queue_limit"] = it.labQueueLimitInfo
         }
@@ -106,7 +113,7 @@ data class JdbiLaboratoriesRepository(
         }
 
         updateQuery.append(" WHERE id = :id")
-        params["id"] = validatedUpdateLaboratory.labId
+        params["id"] = labId
 
         return handle.createUpdate(updateQuery.toString())
             .bindMap(params)

@@ -30,9 +30,15 @@
     }
   },
   "group": {
-    "minLengthGroupName": 3,
-    "maxLengthGroupName": 100,
-    "minLengthGroupDescription": 10,
-    "maxLengthGroupDescription": 1000
+    "groupName": {
+      "min": 3,
+      "max": 100,
+      "optional": false
+    },
+    "groupDescription": {
+      "min": 10,
+      "max": 1000,
+      "optional": true
+    }
   }
 }

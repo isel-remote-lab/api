@@ -39,17 +39,13 @@ data class LaboratoriesController(
                     ownerId = user.user.id,
                 )
         ) {
-            is Success -> {
+            is Success ->
                 ResponseEntity.status(HttpStatus.CREATED).body(
                     SuccessResponse(
                         message = "Laboratory created successfully",
-                        data =
-                            mapOf(
-                                "laboratory_id" to result.value,
-                            ),
+                        data = LaboratoryOutputModel.mapOf(result.value),
                     ),
                 )
-            }
 
             is Failure -> handleServicesExceptions(result.value)
         }
@@ -60,14 +56,13 @@ data class LaboratoriesController(
         @PathVariable id: String,
     ): ResponseEntity<*> =
         when (val result = laboratoriesService.getLaboratoryById(id, user.user.id)) {
-            is Success -> {
+            is Success ->
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratory found with the id $id",
                         data = LaboratoryOutputModel.mapOf(result.value),
                     ),
                 )
-            }
 
             is Failure -> handleServicesExceptions(result.value)
         }
@@ -89,13 +84,12 @@ data class LaboratoriesController(
                     ownerId = user.user.id,
                 )
         ) {
-            is Success -> {
+            is Success ->
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratory updated successfully",
                     ),
                 )
-            }
 
             is Failure -> handleServicesExceptions(result.value)
         }

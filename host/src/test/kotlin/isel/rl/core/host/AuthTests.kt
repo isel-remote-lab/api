@@ -1,8 +1,9 @@
 package isel.rl.core.host
 
 import isel.rl.core.domain.Uris
-import isel.rl.core.host.LaboratoriesTests.Companion.InitialLaboratory
+import isel.rl.core.host.AuthTests.Companion.createLabWithAuthToken
 import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.HttpUtilsTest
 import isel.rl.core.http.model.SuccessResponse
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -31,7 +32,7 @@ class AuthTests {
     @Test
     fun `create lab with authToken`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: creating a lab with authToken
         testClient.createLabWithAuthToken()
@@ -40,7 +41,7 @@ class AuthTests {
     @Test
     fun `create lab with cookie`() {
         // given: a test client
-        val testClient = httpUtils.buildTestClient(port)
+        val testClient = HttpUtilsTest.buildTestClient(port)
 
         // when: creating a lab with cookie
         testClient.createLabWithCookie()
@@ -51,16 +52,16 @@ class AuthTests {
 
         private fun WebTestClient.createLabWithAuthToken() {
             // when: creating a user to be the owner of the laboratory
-            val (_, authToken) = httpUtils.createTestUser(this)
+            val user = HttpUtilsTest.Users.createTestUser(this)
 
-            val initialLaboratory = InitialLaboratory()
+            val initialLab = HttpUtilsTest.Laboratories.InitialLab()
 
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .header(httpUtils.authHeader, "Bearer $authToken")
+                .header(httpUtils.authHeader, "Bearer ${user.authToken}")
                 .bodyValue(
-                    initialLaboratory.mapOf(),
+                    HttpUtilsTest.Laboratories.InitialLab.createBodyValue(initialLab),
                 )
                 .exchange()
                 .expectStatus().isCreated
@@ -69,16 +70,16 @@ class AuthTests {
 
         private fun WebTestClient.createLabWithCookie() {
             // when: creating a user to be the owner of the laboratory
-            val (_, authToken) = httpUtils.createTestUser(this)
+            val user = HttpUtilsTest.Users.createTestUser(this)
 
-            val initialLaboratory = InitialLaboratory()
+            val initialLab = HttpUtilsTest.Laboratories.InitialLab()
 
             this
                 .post()
                 .uri(Uris.Laboratories.CREATE)
-                .cookie("token", authToken)
+                .cookie("token", user.authToken)
                 .bodyValue(
-                    initialLaboratory.mapOf(),
+                    HttpUtilsTest.Laboratories.InitialLab.createBodyValue(initialLab),
                 )
                 .exchange()
                 .expectStatus().isCreated

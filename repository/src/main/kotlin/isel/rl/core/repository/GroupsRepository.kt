@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.domain.ValidatedCreateGroup
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
 
@@ -9,13 +9,22 @@ import isel.rl.core.domain.group.props.GroupName
  * Repository for groups
  */
 interface GroupsRepository {
-    fun createGroup(validatedCreateGroup: ValidatedCreateGroup): Int
+    fun createGroup(validatedCreateGroup: Group): Int
 
     fun getGroupById(groupId: Int): Group?
 
     fun getGroupByName(groupName: GroupName): Group?
 
     fun getGroupUsers(groupId: Int): List<Int>
+
+    fun getUserGroups(
+        userId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Group>
+
+    fun checkIfGroupExists(groupId: Int): Boolean
+
+    fun getGroupOwnerId(groupId: Int): Int?
 
     fun addUserToGroup(
         userId: Int,

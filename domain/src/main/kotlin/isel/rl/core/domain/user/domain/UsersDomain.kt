@@ -2,6 +2,7 @@ package isel.rl.core.domain.user.domain
 
 import isel.rl.core.domain.config.UsersDomainConfig
 import isel.rl.core.domain.exceptions.ServicesExceptions
+import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
@@ -96,12 +97,12 @@ class UsersDomain(
         name: String,
         email: String,
         createdAt: Instant,
-    ): ValidatedUser =
-        ValidatedUser(
-            checkRole(role),
-            checkName(name),
-            checkEmail(email),
-            createdAt,
+    ): User =
+        User(
+            role = checkRole(role),
+            name = checkName(name),
+            email = checkEmail(email),
+            createdAt = createdAt,
         )
 
     fun validateUserId(userId: String): Int =

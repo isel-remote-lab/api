@@ -1,7 +1,7 @@
 package isel.rl.core.repository.jdbi
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.domain.ValidatedCreateGroup
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
 import isel.rl.core.repository.GroupsRepository
@@ -12,7 +12,7 @@ import org.jdbi.v3.core.kotlin.mapTo
 data class JdbiGroupsRepository(
     val handle: Handle,
 ) : GroupsRepository {
-    override fun createGroup(validatedCreateGroup: ValidatedCreateGroup): Int =
+    override fun createGroup(validatedCreateGroup: Group): Int =
         handle.createUpdate(
             """
            INSERT INTO rl.group (group_name, group_description, created_at, owner_id)
@@ -26,6 +26,9 @@ data class JdbiGroupsRepository(
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
+            .also {
+                addUserToGroup(validatedCreateGroup.ownerId, it)
+            }
 
     override fun getGroupById(groupId: Int): Group? =
         handle.createQuery("""SELECT * FROM rl.group WHERE id = :id""")
@@ -49,6 +52,49 @@ data class JdbiGroupsRepository(
             .bind("group_id", groupId)
             .mapTo<Int>()
             .list()
+
+    override fun getUserGroups(
+        userId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Group> =
+        handle.createQuery(
+            """
+            SELECT g.* FROM rl.group g
+            JOIN rl.user_group ug ON g.id = ug.group_id
+            WHERE ug.user_id = :user_id
+            LIMIT :limit OFFSET :skip
+        """,
+        )
+            .bind("user_id", userId)
+            .bind("limit", limitAndSkip.limit)
+            .bind("skip", limitAndSkip.skip)
+            .mapTo<Group>()
+            .list()
+
+    override fun checkIfGroupExists(groupId: Int): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM rl.group 
+                WHERE id = :id
+            )
+        """,
+        )
+            .bind("id", groupId)
+            .mapTo<Boolean>()
+            .one()
+
+    override fun getGroupOwnerId(groupId: Int): Int =
+        handle.createQuery(
+            """
+            SELECT owner_id FROM rl.group 
+            WHERE id = :id
+        """,
+        )
+            .bind("id", groupId)
+            .mapTo<Int>()
+            .one()
 
     override fun addUserToGroup(
         userId: Int,

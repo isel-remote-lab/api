@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-class UsersServiceTests {
+class UsersServicesTests {
     @Test
     fun `create user and get by id and email`() {
         // given: a user service

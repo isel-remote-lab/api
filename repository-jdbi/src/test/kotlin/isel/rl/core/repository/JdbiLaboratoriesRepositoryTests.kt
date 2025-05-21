@@ -64,10 +64,8 @@ class JdbiLaboratoriesRepositoryTests {
             val newLabName = repoUtils.newTestLabName()
             assertTrue(
                 laboratoryRepo.updateLaboratory(
-                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
-                        labId,
-                        newLabName.labNameInfo,
-                    ),
+                    labId,
+                    newLabName,
                 ),
             )
 
@@ -104,10 +102,8 @@ class JdbiLaboratoriesRepositoryTests {
             val newLabDescription = repoUtils.newTestLabDescription()
             assertTrue(
                 laboratoryRepo.updateLaboratory(
-                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
-                        labId,
-                        labDescription = newLabDescription.labDescriptionInfo,
-                    ),
+                    labId,
+                    labDescription = newLabDescription,
                 ),
             )
 
@@ -138,10 +134,8 @@ class JdbiLaboratoriesRepositoryTests {
             val newLabDuration = repoUtils.newTestLabDuration()
             assertTrue(
                 laboratoryRepo.updateLaboratory(
-                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
-                        labId,
-                        labDuration = newLabDuration.labDurationInfo!!.toInt(DurationUnit.MINUTES),
-                    ),
+                    labId,
+                    labDuration = newLabDuration,
                 ),
             )
 
@@ -172,10 +166,8 @@ class JdbiLaboratoriesRepositoryTests {
             val newLabQueueLimit = repoUtils.randomLabQueueLimit()
             assertTrue(
                 laboratoryRepo.updateLaboratory(
-                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
-                        labId,
-                        labQueueLimit = newLabQueueLimit.labQueueLimitInfo,
-                    ),
+                    labId,
+                    labQueueLimit = newLabQueueLimit,
                 ),
             )
 
@@ -206,11 +198,9 @@ class JdbiLaboratoriesRepositoryTests {
             val newLabDescription = repoUtils.newTestLabDescription()
             assertTrue(
                 laboratoryRepo.updateLaboratory(
-                    repoUtils.laboratoriesDomain.validateUpdateLaboratory(
-                        labId,
-                        newLabName.labNameInfo,
-                        newLabDescription.labDescriptionInfo,
-                    ),
+                    labId,
+                    labName = newLabName,
+                    labDescription = newLabDescription,
                 ),
             )
 
