@@ -101,7 +101,6 @@ class GroupsService(
                     return@run failure(ServicesExceptions.Users.UserNotFound)
                 }
 
-
                 return@run success(it.groupsRepository.getUserGroups(validatedUserId, limitAndSkip))
             }
         } catch (e: Exception) {
