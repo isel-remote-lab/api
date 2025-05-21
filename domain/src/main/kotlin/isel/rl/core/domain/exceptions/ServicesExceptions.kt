@@ -4,50 +4,48 @@ package isel.rl.core.domain.exceptions
  * This file contains the definition of the ServicesExceptions class and its subclasses.
  * The ServicesExceptions class is a sealed class that represents various exceptions that can occur in the services layer.
  * Each subclass represents a specific type of exception.
- * The data object subclasses implement the readResolve method to ensure that they are singleton instances, since Java Serialization calls this method.
+ * The data object subclasses implement the readResolve method to ensure that they are singleton instances, since Java Serialization calls this method
+ * and they are data objects because they are used to represent a single instance of the exception.
+ * There are other types of services exceptions that are not data objects but class because they carry a message.
  * The UnexpectedError subclass represents an unexpected error that may occur.
  */
-sealed class ServicesExceptions(message: String) : Exception(message) {
+sealed class ServicesExceptions(message: String = "") : Exception(message) {
     data object Users {
-        data object InvalidRole : ServicesExceptions("Invalid role") {
+        data object InvalidRole : ServicesExceptions() {
             private fun readResolve(): Any = InvalidRole
         }
 
-        data object InvalidName : ServicesExceptions("Invalid name") {
+        data object InvalidName : ServicesExceptions() {
             private fun readResolve(): Any = InvalidName
         }
 
-        data object InvalidEmail : ServicesExceptions("Invalid email") {
+        data object InvalidEmail : ServicesExceptions() {
             private fun readResolve(): Any = InvalidEmail
         }
 
-        data object InvalidOauthId : ServicesExceptions("Invalid oauthId") {
-            private fun readResolve(): Any = InvalidOauthId
-        }
-
-        data object InvalidUserId : ServicesExceptions("Invalid userId") {
+        data object InvalidUserId : ServicesExceptions() {
             private fun readResolve(): Any = InvalidUserId
         }
 
-        data object UserNotFound : ServicesExceptions("User not found") {
+        data object UserNotFound : ServicesExceptions() {
             private fun readResolve(): Any = UserNotFound
         }
 
-        data object ErrorWhenUpdatingUser : ServicesExceptions("An error occurred when updating the user") {
+        data object ErrorWhenUpdatingUser : ServicesExceptions() {
             private fun readResolve(): Any = ErrorWhenUpdatingUser
         }
     }
 
     data object Laboratories {
-        data object InvalidLaboratoryId : ServicesExceptions("Invalid laboratory id") {
+        data object InvalidLaboratoryId : ServicesExceptions() {
             private fun readResolve(): Any = InvalidLaboratoryId
         }
 
-        data object LaboratoryNotFound : ServicesExceptions("Laboratory not found") {
+        data object LaboratoryNotFound : ServicesExceptions() {
             private fun readResolve(): Any = LaboratoryNotFound
         }
 
-        data object LaboratoryNotOwned : ServicesExceptions("Laboratory not owned") {
+        data object LaboratoryNotOwned : ServicesExceptions() {
             private fun readResolve(): Any = LaboratoryNotOwned
         }
 
@@ -61,19 +59,19 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
     }
 
     data object Groups {
-        data object InvalidGroupId : ServicesExceptions("Invalid group id") {
+        data object InvalidGroupId : ServicesExceptions() {
             private fun readResolve(): Any = InvalidGroupId
         }
 
-        data object GroupNotFound : ServicesExceptions("Group not found") {
+        data object GroupNotFound : ServicesExceptions() {
             private fun readResolve(): Any = GroupNotFound
         }
 
-        data object UserAlreadyInGroup : ServicesExceptions("User already in group") {
+        data object UserAlreadyInGroup : ServicesExceptions() {
             private fun readResolve(): Any = UserAlreadyInGroup
         }
 
-        data object UserNotInGroup : ServicesExceptions("User not in group") {
+        data object UserNotInGroup : ServicesExceptions() {
             private fun readResolve(): Any = UserNotInGroup
         }
 
@@ -86,7 +84,7 @@ sealed class ServicesExceptions(message: String) : Exception(message) {
 
     class Forbidden(message: String) : ServicesExceptions(message)
 
-    data object UnexpectedError : ServicesExceptions("Unexpected error") {
+    data object UnexpectedError : ServicesExceptions() {
         private fun readResolve(): Any = UnexpectedError
     }
 }

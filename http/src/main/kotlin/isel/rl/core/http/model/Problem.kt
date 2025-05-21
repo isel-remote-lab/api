@@ -16,7 +16,10 @@ class Problem(
             problem: Problem,
         ): ResponseEntity<Any> = ResponseEntity.status(status).header("Content-Type", MEDIA_TYPE).body(problem)
 
-        // General
+        /**
+         * Common Problems
+         */
+
         fun forbidden(message: String) =
             Problem(
                 URI(
@@ -26,16 +29,28 @@ class Problem(
                 message,
             )
 
-        val unexpectedBehaviour =
+        val unexpectedError =
             Problem(
                 URI(
                     "TODO",
                 ).toASCIIString(),
-                "Unexpected behaviour",
-                "An unexpected behaviour occurred",
+                "Unexpected error",
+                "An unexpected error occurred",
             )
 
-        // User Related
+        fun invalidQueryParam(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid query parameters",
+                message,
+            )
+
+        /**
+         * Users Related
+         */
+
         val invalidRole =
             Problem(
                 URI(
@@ -64,15 +79,6 @@ class Problem(
                 "The email provided is invalid.",
             )
 
-        val invalidOauthId =
-            Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
-                "Invalid oauthId",
-                "The oauthId provided is invalid.",
-            )
-
         val invalidUserId =
             Problem(
                 URI(
@@ -91,7 +97,18 @@ class Problem(
                 "The user with the provided information was not found.",
             )
 
-        // Laboratory Related
+        val errorWhenUpdatingUser =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Error when updating user",
+                "An error occurred when updating the user.",
+            )
+
+        /**
+         * Laboratories Related
+         */
         val invalidLaboratoryId =
             Problem(
                 URI(
@@ -152,6 +169,63 @@ class Problem(
                     "TODO",
                 ).toASCIIString(),
                 "Invalid laboratory queue limit",
+                message,
+            )
+
+        /**
+         * Groups Related
+         */
+        val invalidGroupId =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid group id",
+                "The group id provided is invalid. It should be a number.",
+            )
+
+        val groupNotFound =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Group not found",
+                "The group with the provided information was not found.",
+            )
+
+        val userAlreadyInGroup =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "User already in group",
+                "The user with the provided information is already in the group.",
+            )
+
+        val userNotInGroup =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "User not in group",
+                "The user with the provided information is not in the group.",
+            )
+
+        fun invalidGroupName(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid group name",
+                message,
+            )
+
+        fun invalidGroupDescription(message: String) =
+            Problem(
+                URI(
+                    "TODO",
+                ).toASCIIString(),
+                "Invalid group description",
                 message,
             )
     }

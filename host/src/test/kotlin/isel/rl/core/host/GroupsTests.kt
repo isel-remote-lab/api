@@ -1,8 +1,17 @@
 package isel.rl.core.host
 
-import isel.rl.core.host.utils.HttpUtilsTest
+import isel.rl.core.domain.group.props.GroupDescription
+import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.host.utils.GroupsTestsUtils
+import isel.rl.core.host.utils.GroupsTestsUtils.expectedRequiredGroupDescriptionProblem
+import isel.rl.core.host.utils.GroupsTestsUtils.expectedRequiredGroupNameProblem
+import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.UsersTestsUtils
+import isel.rl.core.http.model.Problem
+import org.junit.jupiter.api.Nested
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
 import kotlin.test.Test
 
@@ -17,21 +26,471 @@ class GroupsTests {
     @LocalServerPort
     var port: Int = 0
 
-    @Test
-    fun `create group`() {
-        // given: a test client
-        val testClient = HttpUtilsTest.buildTestClient(port)
+    @Nested
+    inner class GroupCreation {
+        @Test
+        fun `create group`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
 
-        val user = HttpUtilsTest.Users.createTestUser(testClient)
+            // when: crating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
 
-        groupsHelper.createGroup(
-            testClient,
-            HttpUtilsTest.Groups.InitialGroup(),
-            user.authToken,
-        )
+            // then: creating a group
+            GroupsTestsUtils.createGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(),
+                user.authToken,
+            )
+        }
+
+        @Test
+        fun `create group with invalid name (blank)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid name (min)
+            GroupsTestsUtils.createInvalidGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(name = GroupName()),
+                user.authToken,
+                expectedRequiredGroupNameProblem,
+            )
+        }
+
+        @Test
+        fun `create group with invalid name (min)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid name (min)
+            GroupsTestsUtils.createInvalidGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(name = GroupsTestsUtils.newTestInvalidGroupNameMin()),
+                user.authToken,
+                GroupsTestsUtils.expectedInvalidGroupNameProblem,
+            )
+        }
+
+        @Test
+        fun `create group with invalid name (max)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid name (max)
+            GroupsTestsUtils.createInvalidGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(name = GroupsTestsUtils.newTestInvalidGroupNameMax()),
+                user.authToken,
+                GroupsTestsUtils.expectedInvalidGroupNameProblem,
+            )
+        }
+
+        /**
+         * This test has in consideration the group description optionality
+         */
+        @Test
+        fun `create group with blank description`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid description
+            if (HttpUtils.domainConfigs.group.groupDescription.optional) {
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(description = GroupDescription()),
+                    user.authToken,
+                )
+            } else {
+                GroupsTestsUtils.createInvalidGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(description = GroupDescription()),
+                    user.authToken,
+                    expectedRequiredGroupDescriptionProblem,
+                )
+            }
+        }
+
+        @Test
+        fun `create group with invalid description (min)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid description (min)
+            GroupsTestsUtils.createInvalidGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(description = GroupsTestsUtils.newTestInvalidGroupDescriptionMin()),
+                user.authToken,
+                GroupsTestsUtils.expectedInvalidGroupDescriptionProblem,
+            )
+        }
+
+        @Test
+        fun `create group with invalid description (max)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group with invalid description (max)
+            GroupsTestsUtils.createInvalidGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(description = GroupsTestsUtils.newTestInvalidGroupDescriptionMax()),
+                user.authToken,
+                GroupsTestsUtils.expectedInvalidGroupDescriptionProblem,
+            )
+        }
     }
 
-    companion object {
-        private val groupsHelper = HttpUtilsTest.Groups
+    @Nested
+    inner class GroupRetrieval {
+        @Test
+        fun `get group by id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: getting the group by id
+            GroupsTestsUtils.getGroupById(
+                testClient,
+                user.authToken,
+                group,
+                listOf(user),
+            )
+        }
+
+        @Test
+        fun `get group by id with invalid id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: getting the group by id with invalid id
+            GroupsTestsUtils.getGroupByInvalidId(
+                testClient,
+                user.authToken,
+                "invalidId",
+                Problem.invalidGroupId,
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        @Test
+        fun `get non existent group by id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: getting the group by id with not found id
+            GroupsTestsUtils.getGroupByInvalidId(
+                testClient,
+                user.authToken,
+                "999999",
+                Problem.groupNotFound,
+            )
+        }
+
+        @Test
+        fun `get user groups (authenticated user groups)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: getting the user groups
+            GroupsTestsUtils.getUserGroups(
+                testClient,
+                user.authToken,
+                listOf(group),
+            )
+        }
+
+        @Test
+        fun `get user groups (no existent user)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: getting the user groups with not found id
+            GroupsTestsUtils.getInvalidUserGroups(
+                testClient,
+                user.authToken,
+                expectedProblem = Problem.userNotFound,
+                targetUserId = 999999,
+            )
+        }
+    }
+
+    @Nested
+    inner class AddUserToGroup {
+        @Test
+        fun `add user to group`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: creating a new user
+            val newUser = UsersTestsUtils.createTestUser(testClient)
+
+            // and: adding the user to the group
+            GroupsTestsUtils.addUserToGroup(
+                testClient,
+                user.authToken,
+                group.id,
+                newUser.id,
+            )
+
+            // and: getting the group by id
+            GroupsTestsUtils.getGroupById(
+                testClient,
+                user.authToken,
+                group,
+                listOf(user, newUser),
+            )
+        }
+
+        @Test
+        fun `add user to group with invalid user id (null)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+            val groupId = "1" // Does not matter in this test case
+
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                user.authToken,
+                groupId,
+                null,
+                GroupsTestsUtils.expectedInvalidUserIdQueryParamProblem,
+            )
+        }
+
+        @Test
+        fun `add user to group with invalid group id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+            val userId = "1" // Does not matter in this test case
+
+            // and: adding the user to the group with invalid id
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                user.authToken,
+                "invalid_id",
+                userId,
+                Problem.invalidGroupId,
+            )
+        }
+
+        @Test
+        fun `add a non existing user to group`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+            val groupId = "1" // Does not matter in this test case
+
+            // and: adding a non existing user to the group
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                user.authToken,
+                groupId,
+                "999999",
+                Problem.userNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `add user to a non existing group`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: creating another user
+            val newUser = UsersTestsUtils.createTestUser(testClient)
+
+            // and: adding the user to a non existing group
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                user.authToken,
+                "999999",
+                newUser.id.toString(),
+                Problem.groupNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `add a user to a group (user already in)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: creating a new user
+            val newUser = UsersTestsUtils.createTestUser(testClient)
+
+            // and: adding the user to the group
+            GroupsTestsUtils.addUserToGroup(
+                testClient,
+                user.authToken,
+                group.id,
+                newUser.id,
+            )
+
+            // and: adding the same user to the group again
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                user.authToken,
+                group.id.toString(),
+                newUser.id.toString(),
+                Problem.userAlreadyInGroup,
+            )
+        }
+
+        @Test
+        fun `add a user to a group (actor user is not the owner)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: creating another user (not the owner)
+            val anotherUser = UsersTestsUtils.createTestUser(testClient)
+
+            // and: trying to add the user to the group (not the owner)
+            GroupsTestsUtils.addInvalidUserToGroup(
+                testClient,
+                anotherUser.authToken,
+                group.id.toString(),
+                anotherUser.id.toString(),
+                Problem.groupNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+    }
+
+    @Nested
+    inner class RemoveUserFromGroup {
+        @Test
+        fun `remove user from group`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: creating a new user
+            val newUser = UsersTestsUtils.createTestUser(testClient)
+
+            // and: adding the user to the group
+            GroupsTestsUtils.addUserToGroup(
+                testClient,
+                user.authToken,
+                group.id,
+                newUser.id,
+            )
+
+            // and: removing the user from the group
+            GroupsTestsUtils.removeUserFromGroup(
+                testClient,
+                user.authToken,
+                group.id,
+                newUser.id,
+            )
+
+            // and: getting the group by id
+            GroupsTestsUtils.getGroupById(
+                testClient,
+                user.authToken,
+                group,
+                listOf(user),
+            )
+        }
     }
 }

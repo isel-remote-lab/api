@@ -89,7 +89,7 @@ object Uris {
         /**
          * URI for getting all groups of a user
          */
-        const val GET_ALL_BY_USER = BASE
+        const val GET_USER_GROUPS = BASE
 
         /**
          * URI for adding a user to a group

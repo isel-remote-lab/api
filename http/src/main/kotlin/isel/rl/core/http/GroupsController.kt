@@ -59,8 +59,8 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
-    @GetMapping(Uris.Groups.GET_ALL_BY_USER)
-    fun getAllByUser(
+    @GetMapping(Uris.Groups.GET_USER_GROUPS)
+    fun getUserGroups(
         user: AuthenticatedUser,
         @RequestParam userId: String?,
         @RequestParam limit: String?,
@@ -83,7 +83,7 @@ class GroupsController(
         user: AuthenticatedUser,
         // Group Id
         @PathVariable id: String,
-        @RequestParam userId: String,
+        @RequestParam userId: String?,
     ): ResponseEntity<*> =
         when (val result = groupsService.addUserToGroup(user.user.id, userId, id)) {
             is Success ->
@@ -102,7 +102,7 @@ class GroupsController(
         user: AuthenticatedUser,
         // Group Id
         @PathVariable id: String,
-        @RequestParam userId: String,
+        @RequestParam userId: String?,
     ): ResponseEntity<*> =
         when (val result = groupsService.removeUserFromGroup(user.user.id, userId, id)) {
             is Success ->

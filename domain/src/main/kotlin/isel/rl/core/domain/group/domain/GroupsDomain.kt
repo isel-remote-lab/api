@@ -21,14 +21,14 @@ data class GroupsDomain(
         val validatedGroupName =
             when {
                 domainConfig.isGroupNameOptional && groupName.isNullOrBlank() -> GroupName()
-                groupName.isNullOrBlank() -> throw ServicesExceptions.Groups.InvalidGroupName("Group name is required.")
+                groupName.isNullOrBlank() -> throw ServicesExceptions.Groups.InvalidGroupName("Group name is required")
                 else -> validateGroupName(groupName)
             }
         val validatedGroupDescription =
             when {
                 domainConfig.isGroupDescriptionOptional && groupDescription.isNullOrBlank() -> GroupDescription()
                 groupDescription.isNullOrBlank() -> throw ServicesExceptions.Groups.InvalidGroupDescription(
-                    "Group description is required.",
+                    "Group description is required",
                 )
                 else -> validateGroupDescription(groupDescription)
             }
@@ -54,7 +54,7 @@ data class GroupsDomain(
         } else {
             throw ServicesExceptions.Groups.InvalidGroupName(
                 "Group name must be between ${domainConfig.minLengthGroupName} " +
-                    "and ${domainConfig.maxLengthGroupName} characters.",
+                    "and ${domainConfig.maxLengthGroupName} characters",
             )
         }
 
@@ -64,7 +64,7 @@ data class GroupsDomain(
         } else {
             throw ServicesExceptions.Groups.InvalidGroupDescription(
                 "Group description must be between ${domainConfig.minLengthGroupDescription} " +
-                    "and ${domainConfig.maxLengthGroupDescription} characters.",
+                    "and ${domainConfig.maxLengthGroupDescription} characters",
             )
         }
 }

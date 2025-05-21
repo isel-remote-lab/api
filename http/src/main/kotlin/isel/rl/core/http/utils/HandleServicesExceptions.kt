@@ -12,9 +12,13 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
         ServicesExceptions.Users.InvalidEmail -> Problem.response(400, Problem.invalidEmail)
         ServicesExceptions.Users.InvalidRole -> Problem.response(400, Problem.invalidRole)
         ServicesExceptions.Users.InvalidName -> Problem.response(400, Problem.invalidName)
-        ServicesExceptions.Users.InvalidOauthId -> Problem.response(400, Problem.invalidOauthId)
         ServicesExceptions.Users.InvalidUserId -> Problem.response(400, Problem.invalidUserId)
         ServicesExceptions.Users.UserNotFound -> Problem.response(404, Problem.userNotFound)
+        ServicesExceptions.Users.ErrorWhenUpdatingUser ->
+            Problem.response(
+                400,
+                Problem.errorWhenUpdatingUser,
+            )
 
         /**
          * Laboratories Exceptions
@@ -51,11 +55,25 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
                 ),
             )
 
-        ServicesExceptions.Laboratories.InvalidLaboratoryId -> Problem.response(400, Problem.invalidLaboratoryId)
+        is ServicesExceptions.Laboratories.InvalidLaboratoryId -> Problem.response(400, Problem.invalidLaboratoryId)
         ServicesExceptions.Laboratories.LaboratoryNotFound -> Problem.response(404, Problem.laboratoryNotFound)
         ServicesExceptions.Laboratories.LaboratoryNotOwned -> Problem.response(403, Problem.laboratoryNotOwned)
 
-        is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
+        /**
+         * Groups Exceptions
+         */
+        ServicesExceptions.Groups.InvalidGroupId -> Problem.response(400, Problem.invalidGroupId)
+        ServicesExceptions.Groups.GroupNotFound -> Problem.response(404, Problem.groupNotFound)
+        ServicesExceptions.Groups.UserAlreadyInGroup -> Problem.response(400, Problem.userAlreadyInGroup)
+        ServicesExceptions.Groups.UserNotInGroup -> Problem.response(400, Problem.userNotInGroup)
+        is ServicesExceptions.Groups.InvalidGroupName -> Problem.response(400, Problem.invalidGroupName(exception.message!!))
+        is ServicesExceptions.Groups.InvalidGroupDescription ->
+            Problem.response(
+                400,
+                Problem.invalidGroupDescription(exception.message!!),
+            )
 
-        else -> Problem.response(500, Problem.unexpectedBehaviour)
+        is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
+        is ServicesExceptions.InvalidQueryParam -> Problem.response(400, Problem.invalidQueryParam(exception.message!!))
+        ServicesExceptions.UnexpectedError -> Problem.response(500, Problem.unexpectedError)
     }

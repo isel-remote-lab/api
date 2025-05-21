@@ -5,7 +5,9 @@ import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
-import isel.rl.core.host.utils.HttpUtilsTest
+import isel.rl.core.host.utils.HttpUtils
+import isel.rl.core.host.utils.LabsTestsUtils
+import isel.rl.core.host.utils.UsersTestsUtils
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.Nested
@@ -35,31 +37,31 @@ class LaboratoriesTests {
         @Test
         fun `create laboratory and retrieve it by id`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient = testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient = testClient, authToken = user.authToken)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, lab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, lab)
         }
 
         @Test
         fun `get user laboratories (empty)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: retrieving the laboratories by userId with default limit and skip
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET_ALL_BY_USER)
-                .header(HttpUtilsTest.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
+                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<SuccessResponse>()
@@ -78,19 +80,19 @@ class LaboratoriesTests {
         @Test
         fun `get user laboratories (user is owner)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: retrieving the laboratories by userId with default limit and skip
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET_ALL_BY_USER)
-                .header(HttpUtilsTest.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
+                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<SuccessResponse>()
@@ -158,220 +160,220 @@ class LaboratoriesTests {
         @Test
         fun `get laboratory by invalid id`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, "a")
-                .header(HttpUtilsTest.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
+                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
                 .exchange()
                 .expectStatus().isBadRequest
                 .expectBody<Problem>()
-                .consumeWith { HttpUtilsTest.assertProblem(Problem.invalidLaboratoryId, it) }
+                .consumeWith { HttpUtils.assertProblem(Problem.invalidLaboratoryId, it) }
         }
 
         @Test
         fun `get non existent laboratory by id`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: retrieving the laboratory by id
             testClient
                 .get()
                 .uri(Uris.Laboratories.GET, 9999)
-                .header(HttpUtilsTest.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
+                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
                 .exchange()
                 .expectStatus().isNotFound
                 .expectBody<Problem>()
-                .consumeWith { HttpUtilsTest.assertProblem(Problem.laboratoryNotFound, it) }
+                .consumeWith { HttpUtils.assertProblem(Problem.laboratoryNotFound, it) }
         }
 
         @Test
         fun `create laboratory with invalid labName length (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     name = LabName(""),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedRequiredLabNameProblem,
+                LabsTestsUtils.expectedRequiredLabNameProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labName length (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
-                    name = LabName("a".repeat(HttpUtilsTest.labDomainConfig.maxLabNameLength + 1)),
+                LabsTestsUtils.InitialLab(
+                    name = LabName("a".repeat(HttpUtils.labDomainConfig.maxLabNameLength + 1)),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabNameProblem,
+                LabsTestsUtils.expectedInvalidLabNameProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labDescription length (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     description = LabDescription("a"),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabDescriptionProblem,
+                LabsTestsUtils.expectedInvalidLabDescriptionProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labDescription length (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
-                    description = LabDescription("a".repeat(HttpUtilsTest.labDomainConfig.maxLabDescriptionLength + 1)),
+                LabsTestsUtils.InitialLab(
+                    description = LabDescription("a".repeat(HttpUtils.labDomainConfig.maxLabDescriptionLength + 1)),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabDescriptionProblem,
+                LabsTestsUtils.expectedInvalidLabDescriptionProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labDuration value (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     duration =
                         LabDuration(
-                            (HttpUtilsTest.labDomainConfig.minLabDuration.minus(1.minutes)),
+                            (HttpUtils.labDomainConfig.minLabDuration.minus(1.minutes)),
                         ),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabDurationProblem,
+                LabsTestsUtils.expectedInvalidLabDurationProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labDuration value (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     duration =
                         LabDuration(
-                            (HttpUtilsTest.labDomainConfig.maxLabDuration.plus(1.minutes)),
+                            (HttpUtils.labDomainConfig.maxLabDuration.plus(1.minutes)),
                         ),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabDurationProblem,
+                LabsTestsUtils.expectedInvalidLabDurationProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labQueueLimit value (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
-                    queueLimit = LabQueueLimit(HttpUtilsTest.labDomainConfig.minLabQueueLimit - 1),
+                LabsTestsUtils.InitialLab(
+                    queueLimit = LabQueueLimit(HttpUtils.labDomainConfig.minLabQueueLimit - 1),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabQueueLimitProblem,
+                LabsTestsUtils.expectedInvalidLabQueueLimitProblem,
             )
         }
 
         @Test
         fun `create laboratory with invalid labQueueLimit value (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             val invalidLaboratory =
-                HttpUtilsTest.Laboratories.InitialLab(
-                    queueLimit = LabQueueLimit(HttpUtilsTest.labDomainConfig.maxLabQueueLimit + 1),
+                LabsTestsUtils.InitialLab(
+                    queueLimit = LabQueueLimit(HttpUtils.labDomainConfig.maxLabQueueLimit + 1),
                 )
 
             // when: creating a laboratory
-            laboratoriesHelper.createInvalidLab(
+            LabsTestsUtils.createInvalidLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
-                laboratoriesHelper.expectedInvalidLabQueueLimitProblem,
+                LabsTestsUtils.expectedInvalidLabQueueLimitProblem,
             )
         }
     }
@@ -381,286 +383,286 @@ class LaboratoriesTests {
         @Test
         fun `update laboratory`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
                     createdAt = lab.createdAt,
                     ownerId = user.id,
                 )
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id adn verify
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory not owned`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory and other user
-            val user = usersHelper.createTestUser(testClient)
-            val user2 = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
+            val user2 = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    name = HttpUtilsTest.Laboratories.newTestLabName(),
+                    name = LabsTestsUtils.newTestLabName(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(testClient, user2.authToken, updateLab, Problem.laboratoryNotFound)
+            LabsTestsUtils.updateInvalidLab(testClient, user2.authToken, updateLab, Problem.laboratoryNotFound)
         }
 
         @Test
         fun `update laboratory only name`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory name
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    name = laboratoriesHelper.newTestLabName(),
+                    name = LabsTestsUtils.newTestLabName(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory only description`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory description
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    description = HttpUtilsTest.Laboratories.newTestLabDescription(),
+                    description = LabsTestsUtils.newTestLabDescription(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory only duration`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory duration
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    duration = HttpUtilsTest.Laboratories.newTestLabDuration(),
+                    duration = LabsTestsUtils.newTestLabDuration(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory only queue limit`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory queue limit
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    queueLimit = HttpUtilsTest.Laboratories.randomLabQueueLimit(),
+                    queueLimit = LabsTestsUtils.randomLabQueueLimit(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory name and description`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory name and description
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    name = HttpUtilsTest.Laboratories.newTestLabName(),
-                    description = HttpUtilsTest.Laboratories.newTestLabDescription(),
+                    name = LabsTestsUtils.newTestLabName(),
+                    description = LabsTestsUtils.newTestLabDescription(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory description and duration`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory description and duration
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    description = HttpUtilsTest.Laboratories.newTestLabDescription(),
-                    duration = HttpUtilsTest.Laboratories.newTestLabDuration(),
+                    description = LabsTestsUtils.newTestLabDescription(),
+                    duration = LabsTestsUtils.newTestLabDuration(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory duration and queue limit`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory duration and queue limit
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    duration = HttpUtilsTest.Laboratories.newTestLabDuration(),
-                    queueLimit = HttpUtilsTest.Laboratories.randomLabQueueLimit(),
+                    duration = LabsTestsUtils.newTestLabDuration(),
+                    queueLimit = LabsTestsUtils.randomLabQueueLimit(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory queue limit and name`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory queue limit and name
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    queueLimit = HttpUtilsTest.Laboratories.randomLabQueueLimit(),
-                    name = HttpUtilsTest.Laboratories.newTestLabName(),
+                    queueLimit = LabsTestsUtils.randomLabQueueLimit(),
+                    name = LabsTestsUtils.newTestLabName(),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateLab(testClient, user.authToken, updateLab)
+            LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            laboratoriesHelper.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
         @Test
         fun `update laboratory with invalid labName (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid name
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
                     name = LabName(""),
                     createdAt = lab.createdAt,
@@ -668,57 +670,57 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabNameProblem,
+                LabsTestsUtils.expectedInvalidLabNameProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labName (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid name
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    name = LabName("a".repeat(HttpUtilsTest.labDomainConfig.maxLabNameLength + 1)),
+                    name = LabName("a".repeat(HttpUtils.labDomainConfig.maxLabNameLength + 1)),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabNameProblem,
+                LabsTestsUtils.expectedInvalidLabNameProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labDescription (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid description
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
                     description = LabDescription("a"),
                     createdAt = lab.createdAt,
@@ -726,168 +728,163 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabDescriptionProblem,
+                LabsTestsUtils.expectedInvalidLabDescriptionProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labDescription (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid description
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    description = LabDescription("a".repeat(HttpUtilsTest.labDomainConfig.maxLabDescriptionLength + 1)),
+                    description = LabDescription("a".repeat(HttpUtils.labDomainConfig.maxLabDescriptionLength + 1)),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabDescriptionProblem,
+                LabsTestsUtils.expectedInvalidLabDescriptionProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labDuration (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid duration
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
                     duration =
                         LabDuration(
-                            (HttpUtilsTest.labDomainConfig.minLabDuration.minus(1.minutes)),
+                            (HttpUtils.labDomainConfig.minLabDuration.minus(1.minutes)),
                         ),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabDurationProblem,
+                LabsTestsUtils.expectedInvalidLabDurationProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labDuration (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid duration
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
                     duration =
                         LabDuration(
-                            (HttpUtilsTest.labDomainConfig.maxLabDuration.plus(1.minutes)),
+                            (HttpUtils.labDomainConfig.maxLabDuration.plus(1.minutes)),
                         ),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabDurationProblem,
+                LabsTestsUtils.expectedInvalidLabDurationProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labQueueLimit (min)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid queue limit
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    queueLimit = LabQueueLimit(HttpUtilsTest.labDomainConfig.minLabQueueLimit - 1),
+                    queueLimit = LabQueueLimit(HttpUtils.labDomainConfig.minLabQueueLimit - 1),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabQueueLimitProblem,
+                LabsTestsUtils.expectedInvalidLabQueueLimitProblem,
             )
         }
 
         @Test
         fun `update laboratory with invalid labQueueLimit (max)`() {
             // given: a test client
-            val testClient = HttpUtilsTest.buildTestClient(port)
+            val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = usersHelper.createTestUser(testClient)
+            val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = laboratoriesHelper.createLab(testClient, authToken = user.authToken)
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
 
             // when: updating the laboratory with invalid queue limit
             val updateLab =
-                HttpUtilsTest.Laboratories.InitialLab(
+                LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    queueLimit = LabQueueLimit(HttpUtilsTest.labDomainConfig.maxLabQueueLimit + 1),
+                    queueLimit = LabQueueLimit(HttpUtils.labDomainConfig.maxLabQueueLimit + 1),
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
 
             // when: updating the laboratory
-            laboratoriesHelper.updateInvalidLab(
+            LabsTestsUtils.updateInvalidLab(
                 testClient,
                 user.authToken,
                 updateLab,
-                laboratoriesHelper.expectedInvalidLabQueueLimitProblem,
+                LabsTestsUtils.expectedInvalidLabQueueLimitProblem,
             )
         }
-    }
-
-    companion object {
-        private val laboratoriesHelper = HttpUtilsTest.Laboratories
-        private val usersHelper = HttpUtilsTest.Users
     }
 }
