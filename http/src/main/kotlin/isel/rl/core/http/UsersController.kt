@@ -19,6 +19,7 @@ data class UsersController(
 ) {
     @GetMapping(Uris.Users.GET)
     fun getById(
+        user: AuthenticatedUser,
         @PathVariable id: String,
     ): ResponseEntity<*> =
         when (val result = usersService.getUserById(id)) {
@@ -36,6 +37,7 @@ data class UsersController(
 
     @GetMapping(Uris.Users.GET_BY_EMAIL)
     fun getByEmail(
+        user: AuthenticatedUser,
         @RequestParam email: String,
     ): ResponseEntity<*> =
         when (val result = usersService.getUserByEmail(email)) {
