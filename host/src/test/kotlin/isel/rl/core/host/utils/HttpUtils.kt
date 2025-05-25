@@ -1,5 +1,6 @@
 package isel.rl.core.host.utils
 
+import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.host.Environment
 import isel.rl.core.host.RemoteLabApp
@@ -32,6 +33,14 @@ object HttpUtils {
         UsersDomain(
             userDomainConfig,
             tokenEncoder,
+        )
+
+    /**
+     * Provides a [GroupsDomain] instance for validating group-related operations.
+     */
+    val groupsDomain =
+        GroupsDomain(
+            groupDomainConfig,
         )
 
     const val API_KEY_TEST = "test_api_key"

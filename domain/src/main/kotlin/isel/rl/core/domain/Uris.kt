@@ -50,7 +50,7 @@ object Uris {
         /**
          * URI for getting a laboratory by ID
          */
-        const val GET = "$BASE/{id}"
+        const val GET_BY_ID = "$BASE/{id}"
 
         /**
          * URI for getting all laboratories of the authenticated user
@@ -100,5 +100,10 @@ object Uris {
          * URI for removing a user from a group
          */
         const val REMOVE_USER_FROM_GROUP = "$BASE/groups/{id}/users"
+
+        /**
+         * URI for getting all users of a group
+         */
+        const val DELETE = "$BASE/{id}"
     }
 }

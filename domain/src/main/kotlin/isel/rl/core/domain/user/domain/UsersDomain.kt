@@ -21,6 +21,13 @@ class UsersDomain(
     private val domainConfig: UsersDomainConfig,
     private val tokenEncoder: TokenEncoder,
 ) {
+    val invalidUserId = ServicesExceptions.Users.InvalidUserId
+    val invalidName = ServicesExceptions.Users.InvalidName
+    val invalidEmail = ServicesExceptions.Users.InvalidEmail
+    val invalidRole = ServicesExceptions.Users.InvalidRole
+    val userNotFound = ServicesExceptions.Users.UserNotFound
+    val invalidQueryParamUserId = ServicesExceptions.InvalidQueryParam("UserId cannot be null")
+
     /**
      * Generates a token value.
      *
@@ -109,19 +116,19 @@ class UsersDomain(
         try {
             userId.toInt()
         } catch (e: Exception) {
-            throw ServicesExceptions.Users.InvalidUserId
+            throw invalidUserId
         }
 
     fun checkName(name: String): Name =
         if (name.isBlank()) {
-            throw ServicesExceptions.Users.InvalidName
+            throw invalidName
         } else {
             Name(name)
         }
 
     fun checkEmail(email: String): Email =
         if (email.isBlank()) {
-            throw ServicesExceptions.Users.InvalidEmail
+            throw invalidEmail
         } else {
             Email(email)
         }
@@ -131,6 +138,6 @@ class UsersDomain(
             "S" -> Role.STUDENT
             "T" -> Role.TEACHER
             "A" -> Role.ADMIN
-            else -> throw ServicesExceptions.Users.InvalidRole
+            else -> throw invalidRole
         }
 }

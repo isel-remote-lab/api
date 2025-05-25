@@ -5,6 +5,7 @@ import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryUpdateInputModel
+import isel.rl.core.http.model.laboratory.LaboratoryWithGroupsOutputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.ILaboratoriesService
@@ -36,7 +37,7 @@ data class LaboratoriesController(
                     labDescription = input.labDescription,
                     labDuration = input.labDuration,
                     labQueueLimit = input.labQueueLimit,
-                    ownerId = user.user.id,
+                    owner = user.user,
                 )
         ) {
             is Success ->
@@ -50,7 +51,7 @@ data class LaboratoriesController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
-    @GetMapping(Uris.Laboratories.GET)
+    @GetMapping(Uris.Laboratories.GET_BY_ID)
     fun getLaboratoryById(
         user: AuthenticatedUser,
         @PathVariable id: String,
@@ -60,7 +61,7 @@ data class LaboratoriesController(
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Laboratory found with the id $id",
-                        data = LaboratoryOutputModel.mapOf(result.value),
+                        data = LaboratoryWithGroupsOutputModel.mapOf(result.value),
                     ),
                 )
 
@@ -106,7 +107,7 @@ data class LaboratoriesController(
 
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
-                        message = "Laboratories found for user with id ${user.user.id}",
+                        message = "Laboratories retrieved successfully",
                         data =
                             laboratories.map { laboratory ->
                                 LaboratoryOutputModel.mapOf(laboratory)

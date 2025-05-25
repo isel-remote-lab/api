@@ -2,6 +2,7 @@ package isel.rl.core.domain.group
 
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.domain.user.User
 import kotlinx.datetime.Instant
 
 data class Group(
@@ -10,6 +11,7 @@ data class Group(
     val groupDescription: GroupDescription,
     val createdAt: Instant,
     val ownerId: Int,
+    val groupUsers: List<User> = emptyList(),
 ) {
     companion object {
         const val ID_PROP = "id"

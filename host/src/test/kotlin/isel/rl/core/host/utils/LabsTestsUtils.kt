@@ -13,25 +13,28 @@ import isel.rl.core.host.utils.HttpUtils.random
 import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import kotlinx.datetime.Instant
+import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.days
 
 object LabsTestsUtils {
-    const val ID_PROP = "id"
-    const val LAB_NAME_PROP = "labName"
-    const val LAB_DESCRIPTION_PROP = "labDescription"
-    const val LAB_DURATION_PROP = "labDuration"
-    const val LAB_QUEUE_LIMIT_PROP = "labQueueLimit"
-    const val CREATED_AT_PROP = "createdAt"
-    const val OWNER_ID_PROP = "ownerId"
+    private const val ID_PROP = "id"
+    private const val LAB_NAME_PROP = "labName"
+    private const val LAB_DESCRIPTION_PROP = "labDescription"
+    private const val LAB_DURATION_PROP = "labDuration"
+    private const val LAB_QUEUE_LIMIT_PROP = "labQueueLimit"
+    private const val CREATED_AT_PROP = "createdAt"
+    private const val OWNER_ID_PROP = "ownerId"
+    private const val GROUPS_PROP = "groups"
 
     data class InitialLab(
         val id: Int = 0,
-        val name: LabName = newTestLabName(),
+        val name: LabName? = newTestLabName(),
         val description: LabDescription? = newTestLabDescription(),
         val duration: LabDuration? = newTestLabDuration(),
         val queueLimit: LabQueueLimit? = randomLabQueueLimit(),
@@ -41,7 +44,7 @@ object LabsTestsUtils {
         companion object {
             fun createBodyValue(initialLab: InitialLab) =
                 mapOf(
-                    LAB_NAME_PROP to initialLab.name.labNameInfo,
+                    LAB_NAME_PROP to initialLab.name?.labNameInfo,
                     LAB_DESCRIPTION_PROP to initialLab.description?.labDescriptionInfo,
                     LAB_DURATION_PROP to initialLab.duration?.labDurationInfo?.inWholeMinutes,
                     LAB_QUEUE_LIMIT_PROP to initialLab.queueLimit?.labQueueLimitInfo,
@@ -64,12 +67,28 @@ object LabsTestsUtils {
         testClient: WebTestClient,
         authToken: String,
         initialLab: InitialLab = InitialLab(),
+        expectedProblem: Problem? = null,
     ): InitialLab {
+        if (expectedProblem != null) {
+            testClient.post()
+                .uri(Uris.Laboratories.CREATE)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .bodyValue(
+                    InitialLab.createBodyValue(initialLab),
+                )
+                .exchange()
+                .expectStatus().isBadRequest
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return initialLab
+        }
         val response =
             testClient.post()
                 .uri(Uris.Laboratories.CREATE)
                 .header(AUTH_HEADER_NAME, "Bearer $authToken")
-                .bodyValue(InitialLab.createBodyValue(initialLab))
+                .bodyValue(
+                    InitialLab.createBodyValue(initialLab),
+                )
                 .exchange()
                 .expectStatus().isCreated
                 .expectBody<SuccessResponse>()
@@ -77,7 +96,7 @@ object LabsTestsUtils {
 
         val lab = getBodyDataFromResponse<Map<*, *>>(response, "Laboratory created successfully")
 
-        assertEquals(initialLab.name.labNameInfo, lab[LAB_NAME_PROP], "Lab name mismatch")
+        assertEquals(initialLab.name?.labNameInfo, lab[LAB_NAME_PROP], "Lab name mismatch")
         assertEquals(
             initialLab.description?.labDescriptionInfo,
             lab[LAB_DESCRIPTION_PROP],
@@ -101,33 +120,15 @@ object LabsTestsUtils {
         )
     }
 
-    fun createInvalidLab(
-        testClient: WebTestClient,
-        authToken: String,
-        initialLaboratory: InitialLab,
-        expectedProblem: Problem,
-    ) {
-        testClient
-            .post()
-            .uri(Uris.Laboratories.CREATE)
-            .header(AUTH_HEADER_NAME, "Bearer $authToken")
-            .bodyValue(
-                InitialLab.createBodyValue(initialLaboratory),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { assertProblem(expectedProblem, it) }
-    }
-
     fun getLabById(
         testClient: WebTestClient,
         authToken: String,
         expectedLab: InitialLab,
+        expectedGroups: List<GroupsTestsUtils.InitialGroup> = emptyList(),
     ) {
         val response =
             testClient.get()
-                .uri(Uris.Laboratories.GET, expectedLab.id)
+                .uri(Uris.Laboratories.GET_BY_ID, expectedLab.id)
                 .header(AUTH_HEADER_NAME, "Bearer $authToken")
                 .exchange()
                 .expectStatus().isOk
@@ -135,56 +136,105 @@ object LabsTestsUtils {
                 .returnResult()
 
         val lab = getBodyDataFromResponse<Map<*, *>>(response, "Laboratory found with the id ${expectedLab.id}")
+        assertLab(expectedLab, lab)
 
-        assertEquals(expectedLab.id, lab[ID_PROP], "Lab id mismatch")
-        assertEquals(expectedLab.name.labNameInfo, lab[LAB_NAME_PROP], "Lab name mismatch")
         assertEquals(
-            expectedLab.description?.labDescriptionInfo,
-            lab[LAB_DESCRIPTION_PROP],
-            "Lab description mismatch",
+            expectedGroups.size,
+            (lab["groups"] as List<*>).size,
+            "Number of groups mismatch",
         )
-        assertEquals(
-            expectedLab.duration?.labDurationInfo?.inWholeMinutes?.toInt(),
-            lab[LAB_DURATION_PROP],
-            "Lab duration mismatch",
-        )
-        assertEquals(
-            expectedLab.queueLimit?.labQueueLimitInfo,
-            lab[LAB_QUEUE_LIMIT_PROP],
-            "Lab queue limit mismatch",
-        )
-        assertEquals(
-            expectedLab.createdAt.toEpochMilliseconds(),
-            Instant.parse(lab[CREATED_AT_PROP] as String).toEpochMilliseconds(),
-            "Lab createdAt mismatch",
-        )
-        assertEquals(expectedLab.ownerId, lab[OWNER_ID_PROP], "Lab ownerId mismatch")
+
+        (lab[GROUPS_PROP] as List<*>).forEach { group ->
+            val groupMap = group as Map<*, *>
+            val expectedGroup = expectedGroups.find { it.id == groupMap[ID_PROP] }
+            assertNotNull(expectedGroup)
+            GroupsTestsUtils.assertGroup(expectedGroup, groupMap)
+        }
+    }
+
+    fun getLabById(
+        testClient: WebTestClient,
+        authToken: String,
+        labId: String,
+        expectedProblem: Problem,
+        expectedStatus: HttpStatus = HttpStatus.NOT_FOUND,
+    ) {
+        testClient
+            .get()
+            .uri(Uris.Laboratories.GET_BY_ID, labId)
+            .header(AUTH_HEADER_NAME, "Bearer $authToken")
+            .exchange()
+            .expectStatus().isEqualTo(expectedStatus)
+            .expectBody<Problem>()
+            .consumeWith { assertProblem(expectedProblem, it) }
+    }
+
+    fun getLabsByUser(
+        testClient: WebTestClient,
+        authToken: String,
+        expectedLabs: List<InitialLab>,
+    ) {
+        val response =
+            testClient.get()
+                .uri(Uris.Laboratories.GET_ALL_BY_USER)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        val labs =
+            getBodyDataFromResponse<List<Map<*, *>>>(
+                response,
+                "Laboratories retrieved successfully",
+            )
+
+        labs.forEach { lab ->
+            val labId = lab[ID_PROP] as Int
+            val expectedLab = expectedLabs.find { it.id == labId }
+            assertNotNull(expectedLab, "Lab with id $labId not found")
+            assertLab(expectedLab, lab)
+        }
     }
 
     fun updateLab(
         testClient: WebTestClient,
         authToken: String,
         updateLab: InitialLab,
+        expectedProblem: Problem? = null,
+        expectedStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     ) {
-        val response =
-            testClient.patch()
+        if (expectedProblem != null) {
+            testClient
+                .patch()
                 .uri(Uris.Laboratories.UPDATE, updateLab.id)
                 .header(AUTH_HEADER_NAME, "Bearer $authToken")
-                .bodyValue(InitialLab.createBodyValue(updateLab))
+                .bodyValue(
+                    InitialLab.createBodyValue(updateLab),
+                )
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus)
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return
+        }
+        val response =
+            testClient
+                .patch()
+                .uri(Uris.Laboratories.UPDATE, updateLab.id)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .bodyValue(
+                    InitialLab.createBodyValue(updateLab),
+                )
                 .exchange()
                 .expectStatus().isOk
                 .expectBody<SuccessResponse>()
                 .returnResult()
 
-        assertNotNull(response.responseBody)
-        assertEquals(
-            "Laboratory updated successfully",
-            response.responseBody!!.message,
-            "Expected update message but got ${response.responseBody!!.message}",
-        )
+        getBodyDataFromResponse<String?>(response, "Laboratory updated successfully", true)
     }
 
-    fun updateInvalidLab(
+    fun updateLab(
         testClient: WebTestClient,
         authToken: String,
         updateLab: InitialLab,
@@ -249,4 +299,33 @@ object LabsTestsUtils {
         Problem.invalidLaboratoryQueueLimit(
             INVALID_LAB_QUEUE_LIMIT_MSG,
         )
+
+    fun assertLab(
+        expectedLab: InitialLab,
+        actualLab: Map<*, *>,
+    ) {
+        assertEquals(expectedLab.id, actualLab[ID_PROP], "Lab id mismatch")
+        assertEquals(expectedLab.name?.labNameInfo, actualLab[LAB_NAME_PROP], "Lab name mismatch")
+        assertEquals(
+            expectedLab.description?.labDescriptionInfo,
+            actualLab[LAB_DESCRIPTION_PROP],
+            "Lab description mismatch",
+        )
+        assertEquals(
+            expectedLab.duration?.labDurationInfo?.inWholeMinutes?.toInt(),
+            actualLab[LAB_DURATION_PROP],
+            "Lab duration mismatch",
+        )
+        assertEquals(
+            expectedLab.queueLimit?.labQueueLimitInfo,
+            actualLab[LAB_QUEUE_LIMIT_PROP],
+            "Lab queue limit mismatch",
+        )
+        assertEquals(
+            expectedLab.createdAt.epochSeconds.days,
+            Instant.parse(actualLab[CREATED_AT_PROP] as String).epochSeconds.days,
+            "Lab createdAt mismatch",
+        )
+        assertEquals(expectedLab.ownerId, actualLab[OWNER_ID_PROP], "Lab ownerId mismatch")
+    }
 }

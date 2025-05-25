@@ -2,6 +2,7 @@ package isel.rl.core.services.interfaces
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.laboratory.Laboratory
+import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
 
 /**
@@ -22,7 +23,13 @@ typealias GetLaboratoryResult = Either<ServicesExceptions, Laboratory>
  */
 typealias UpdateLaboratoryResult = Either<ServicesExceptions, Unit>
 
+typealias AddGroupToLaboratoryResult = Either<ServicesExceptions, Unit>
+
+typealias RemoveGroupFromLaboratoryResult = Either<ServicesExceptions, Unit>
+
 typealias GetAllLaboratoriesResult = Either<ServicesExceptions, List<Laboratory>>
+
+typealias DeleteLaboratoryResult = Either<ServicesExceptions, Unit>
 
 /**
  * Interface for managing laboratories.
@@ -37,7 +44,7 @@ interface ILaboratoriesService {
      * @param labDescription The description of the laboratory.
      * @param labDuration The duration of the laboratory in minutes.
      * @param labQueueLimit The maximum number of users allowed in the queue.
-     * @param ownerId The ID of the owner of the laboratory.
+     * @param owner The ID of the owner of the laboratory.
      * @return A result indicating success or failure.
      */
     fun createLaboratory(
@@ -45,7 +52,7 @@ interface ILaboratoriesService {
         labDescription: String?,
         labDuration: Int?,
         labQueueLimit: Int?,
-        ownerId: Int,
+        owner: User,
     ): CreateLaboratoryResult
 
     /**
@@ -84,9 +91,26 @@ interface ILaboratoriesService {
         ownerId: Int,
     ): UpdateLaboratoryResult
 
+    fun addGroupToLaboratory(
+        labId: String,
+        groupId: String? = null,
+        ownerId: Int,
+    ): AddGroupToLaboratoryResult
+
+    fun removeGroupFromLaboratory(
+        labId: String,
+        groupId: String? = null,
+        ownerId: Int,
+    ): RemoveGroupFromLaboratoryResult
+
     fun getAllLaboratoriesByUser(
         userId: Int,
         limit: String? = null,
         skip: String? = null,
     ): GetAllLaboratoriesResult
+
+    fun deleteLaboratory(
+        labId: String,
+        ownerId: Int,
+    ): DeleteLaboratoryResult
 }

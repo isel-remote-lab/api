@@ -14,6 +14,7 @@ import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
 import kotlinx.datetime.Instant
+import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.math.abs
@@ -54,10 +55,55 @@ object UsersTestsUtils {
 
     fun randomUserRole() = Role.entries.random()
 
+    fun createTeacher(testClient: WebTestClient): InitialUser {
+        val initialUser = InitialUser(role = Role.TEACHER)
+        createDBUser(initialUser.name.nameInfo, initialUser.email.emailInfo, initialUser.role.char)
+
+        val response =
+            testClient.post()
+                .uri(Uris.Auth.LOGIN)
+                .header(API_HEADER_NAME, API_KEY_TEST)
+                .bodyValue(InitialUser.createBodyValue(initialUser))
+                .exchange()
+                .expectStatus().isOk
+                .expectCookie().exists(AUTH_COOKIE_NAME)
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        val data = getBodyDataFromResponse<Map<*, *>>(response, "User logged in successfully")
+        val user = data[USER_OUTPUT_MAP_KEY] as Map<*, *>
+        val token = data[TOKEN_OUTPUT_MAP_KEY] as String
+
+        return InitialUser(
+            id = user[ID_PROP] as Int,
+            role = Role.TEACHER,
+            name = Name(user[NAME_PROP] as String),
+            email = Email(user[EMAIL_PROP] as String),
+            createdAt = Instant.parse(user[CREATED_AT_PROP] as String),
+            authToken = token,
+        )
+    }
+
     fun createTestUser(
         testClient: WebTestClient,
         initialUser: InitialUser = InitialUser(),
+        expectedProblem: Problem? = null,
+        expectedStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     ): InitialUser {
+        if (expectedProblem != null) {
+            testClient.post()
+                .uri(Uris.Auth.LOGIN)
+                .header(API_HEADER_NAME, API_KEY_TEST)
+                .bodyValue(
+                    InitialUser.createBodyValue(initialUser),
+                )
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus)
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return initialUser
+        }
+
         val response =
             testClient.post()
                 .uri(Uris.Auth.LOGIN)
@@ -82,24 +128,6 @@ object UsersTestsUtils {
             createdAt = Instant.parse(user[CREATED_AT_PROP] as String),
             authToken = token,
         )
-    }
-
-    fun createInvalidUser(
-        testClient: WebTestClient,
-        initialUser: InitialUser,
-        expectedProblem: Problem,
-    ) {
-        testClient
-            .post()
-            .uri(Uris.Auth.LOGIN)
-            .header(API_HEADER_NAME, API_KEY_TEST)
-            .bodyValue(
-                InitialUser.createBodyValue(initialUser),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { assertProblem(expectedProblem, it) }
     }
 
     fun getUserById(
@@ -144,9 +172,9 @@ object UsersTestsUtils {
     }
 
     fun createDBUser(
-        username: String,
-        email: String,
-        role: String,
+        username: String = newTestUsername().nameInfo,
+        email: String = newTestEmail().emailInfo,
+        role: String = randomUserRole().char,
     ): Int {
         var userId: Int = -1
         HttpUtils.runWithHandle { handle ->

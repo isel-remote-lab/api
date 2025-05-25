@@ -1,6 +1,5 @@
 package isel.rl.core.host
 
-import isel.rl.core.domain.Uris
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
@@ -9,16 +8,12 @@ import isel.rl.core.host.utils.HttpUtils
 import isel.rl.core.host.utils.LabsTestsUtils
 import isel.rl.core.host.utils.UsersTestsUtils
 import isel.rl.core.http.model.Problem
-import isel.rl.core.http.model.SuccessResponse
 import org.junit.jupiter.api.Nested
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
 @SpringBootTest(
@@ -33,9 +28,9 @@ class LaboratoriesTests {
     var port: Int = 0
 
     @Nested
-    inner class CreateAndRetrieveLaboratoryTests {
+    inner class CreateLaboratory {
         @Test
-        fun `create laboratory and retrieve it by id`() {
+        fun `create laboratory`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
@@ -43,76 +38,7 @@ class LaboratoriesTests {
             val user = UsersTestsUtils.createTestUser(testClient)
 
             // when: creating a laboratory
-            val lab = LabsTestsUtils.createLab(testClient = testClient, authToken = user.authToken)
-
-            // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, lab)
-        }
-
-        @Test
-        fun `get user laboratories (empty)`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
-
-            // when: retrieving the laboratories by userId with default limit and skip
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET_ALL_BY_USER)
-                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<SuccessResponse>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertEquals(
-                        "Laboratories found for user with id ${user.id}",
-                        result.responseBody?.message,
-                    )
-                    assertNotNull(result.responseBody?.data)
-                    val laboratories = result.responseBody?.data as List<*>
-                    assertTrue(laboratories.isEmpty())
-                }
-        }
-
-        @Test
-        fun `get user laboratories (user is owner)`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
-
-            // when: creating a laboratory
-            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
-
-            // when: retrieving the laboratories by userId with default limit and skip
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET_ALL_BY_USER)
-                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
-                .exchange()
-                .expectStatus().isOk
-                .expectBody<SuccessResponse>()
-                .consumeWith { result ->
-                    assertNotNull(result)
-                    assertNotNull(result.responseBody)
-                    assertTrue(
-                        result.responseBody!!.message.contains("Laboratories found for user with id"),
-                    )
-                    assertNotNull(result.responseBody!!.data)
-                    val laboratories = result.responseBody!!.data as List<*>
-                    assertTrue(laboratories.isNotEmpty())
-                    assertTrue(laboratories.size == 1)
-                    val laboratory = laboratories[0] as Map<*, *>
-                    assertEquals(lab.id, laboratory["id"])
-                    assertEquals(lab.name.labNameInfo, laboratory["labName"])
-                    assertEquals(lab.description?.labDescriptionInfo, laboratory["labDescription"])
-                    assertEquals(lab.duration?.labDurationInfo?.inWholeMinutes?.toInt(), laboratory["labDuration"])
-                    assertEquals(lab.queueLimit?.labQueueLimitInfo, laboratory["labQueueLimit"])
-                }
+            LabsTestsUtils.createLab(testClient = testClient, authToken = user.authToken)
         }
 
         /*
@@ -158,44 +84,6 @@ class LaboratoriesTests {
         }*/
 
         @Test
-        fun `get laboratory by invalid id`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
-
-            // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, "a")
-                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
-                .exchange()
-                .expectStatus().isBadRequest
-                .expectBody<Problem>()
-                .consumeWith { HttpUtils.assertProblem(Problem.invalidLaboratoryId, it) }
-        }
-
-        @Test
-        fun `get non existent laboratory by id`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
-
-            // when: retrieving the laboratory by id
-            testClient
-                .get()
-                .uri(Uris.Laboratories.GET, 9999)
-                .header(HttpUtils.AUTH_HEADER_NAME, "Bearer ${user.authToken}")
-                .exchange()
-                .expectStatus().isNotFound
-                .expectBody<Problem>()
-                .consumeWith { HttpUtils.assertProblem(Problem.laboratoryNotFound, it) }
-        }
-
-        @Test
         fun `create laboratory with invalid labName length (min)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
@@ -209,7 +97,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -231,7 +119,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -253,7 +141,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -275,7 +163,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -300,7 +188,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -325,7 +213,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -347,7 +235,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -369,7 +257,7 @@ class LaboratoriesTests {
                 )
 
             // when: creating a laboratory
-            LabsTestsUtils.createInvalidLab(
+            LabsTestsUtils.createLab(
                 testClient,
                 user.authToken,
                 invalidLaboratory,
@@ -379,7 +267,120 @@ class LaboratoriesTests {
     }
 
     @Nested
-    inner class UpdateLaboratoryTestsWithAuthHeader {
+    inner class LabRetrieval {
+        @Test
+        fun `get laboratory by id (empty groups)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: retrieving the laboratory by id
+            LabsTestsUtils.getLabById(testClient, user.authToken, lab)
+        }
+
+        /*
+        @Test
+        fun `get laboratory by id (with groups)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: creating a group
+            GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory
+
+
+            // when: retrieving the laboratory by id
+            LabsTestsUtils.getLabById(testClient, user.authToken, lab)
+        }
+
+         */
+
+        @Test
+        fun `get laboratory by invalid id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: retrieving the laboratory by id
+            LabsTestsUtils.getLabById(
+                testClient,
+                user.authToken,
+                "invalid_id",
+                Problem.invalidLaboratoryId,
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        @Test
+        fun `get non existent laboratory by id`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: retrieving the laboratory by id
+            LabsTestsUtils.getLabById(
+                testClient,
+                user.authToken,
+                "999999",
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `get user laboratories`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: retrieving the laboratories by userId with default limit and skip
+            LabsTestsUtils.getLabsByUser(
+                testClient,
+                user.authToken,
+                listOf(lab),
+            )
+        }
+
+        @Test
+        fun `get user laboratories (empty)`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user
+            val user = UsersTestsUtils.createTestUser(testClient)
+
+            // when: retrieving the laboratories by userId with default limit and skip
+            LabsTestsUtils.getLabsByUser(
+                testClient,
+                user.authToken,
+                emptyList(),
+            )
+        }
+    }
+
+    @Nested
+    inner class UpdateLaboratory {
         @Test
         fun `update laboratory`() {
             // given: a test client
@@ -398,9 +399,10 @@ class LaboratoriesTests {
                     createdAt = lab.createdAt,
                     ownerId = user.id,
                 )
+
             LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
-            // when: retrieving the laboratory by id adn verify
+            // when: retrieving the laboratory by id and verify
             LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
         }
 
@@ -426,11 +428,11 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(testClient, user2.authToken, updateLab, Problem.laboratoryNotFound)
+            LabsTestsUtils.updateLab(testClient, user2.authToken, updateLab, Problem.laboratoryNotFound)
         }
 
         @Test
-        fun `update laboratory only name`() {
+        fun `update laboratory (null name)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
@@ -444,20 +446,22 @@ class LaboratoriesTests {
             val updateLab =
                 LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    name = LabsTestsUtils.newTestLabName(),
+                    name = null,
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
+
+            val expectedLab = updateLab.copy(name = lab.name)
 
             // when: updating the laboratory
             LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, expectedLab)
         }
 
         @Test
-        fun `update laboratory only description`() {
+        fun `update laboratory (null description)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
@@ -471,20 +475,22 @@ class LaboratoriesTests {
             val updateLab =
                 LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    description = LabsTestsUtils.newTestLabDescription(),
+                    description = null,
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
+
+            val expectedLab = updateLab.copy(description = lab.description)
 
             // when: updating the laboratory
             LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, expectedLab)
         }
 
         @Test
-        fun `update laboratory only duration`() {
+        fun `update laboratory (null duration)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
@@ -498,20 +504,22 @@ class LaboratoriesTests {
             val updateLab =
                 LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    duration = LabsTestsUtils.newTestLabDuration(),
+                    duration = null,
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
+
+            val expectedLab = updateLab.copy(duration = lab.duration)
 
             // when: updating the laboratory
             LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, expectedLab)
         }
 
         @Test
-        fun `update laboratory only queue limit`() {
+        fun `update laboratory (null queue limit)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
@@ -525,16 +533,18 @@ class LaboratoriesTests {
             val updateLab =
                 LabsTestsUtils.InitialLab(
                     id = lab.id,
-                    queueLimit = LabsTestsUtils.randomLabQueueLimit(),
+                    queueLimit = null,
                     createdAt = lab.createdAt,
                     ownerId = lab.ownerId,
                 )
+
+            val expectedLab = updateLab.copy(queueLimit = lab.queueLimit)
 
             // when: updating the laboratory
             LabsTestsUtils.updateLab(testClient, user.authToken, updateLab)
 
             // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, updateLab)
+            LabsTestsUtils.getLabById(testClient, user.authToken, expectedLab)
         }
 
         @Test
@@ -670,7 +680,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -699,7 +709,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -728,7 +738,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -757,7 +767,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -789,7 +799,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -821,7 +831,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -850,7 +860,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,
@@ -879,7 +889,7 @@ class LaboratoriesTests {
                 )
 
             // when: updating the laboratory
-            LabsTestsUtils.updateInvalidLab(
+            LabsTestsUtils.updateLab(
                 testClient,
                 user.authToken,
                 updateLab,

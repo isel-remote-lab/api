@@ -2,12 +2,14 @@ package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.group.Group
-import isel.rl.core.domain.group.GroupWithUsers
 import isel.rl.core.domain.group.domain.GroupsDomain
+import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.UsersDomain
+import isel.rl.core.domain.user.props.Role
 import isel.rl.core.repository.TransactionManager
 import isel.rl.core.services.interfaces.AddUserToGroupResult
 import isel.rl.core.services.interfaces.CreateGroupResult
+import isel.rl.core.services.interfaces.DeleteGroupResult
 import isel.rl.core.services.interfaces.GetGroupByIdResult
 import isel.rl.core.services.interfaces.GetUserGroupsResult
 import isel.rl.core.services.interfaces.IGroupsService
@@ -29,68 +31,61 @@ class GroupsService(
     override fun createGroup(
         groupName: String?,
         groupDescription: String?,
-        ownerId: Int,
+        owner: User,
     ): CreateGroupResult =
-        try {
-            val group =
-                groupsDomain.validateCreateGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    createdAt = clock.now(),
-                    ownerId = ownerId,
-                )
+        runCatching {
+            // Check if the user is an admin or teacher
+            if (owner.role != Role.ADMIN && owner.role != Role.TEACHER) {
+                failure(ServicesExceptions.Forbidden("User is not allowed to create groups"))
+            }
+
+            val group = groupsDomain.validateCreateGroup(groupName, groupDescription, clock.now(), owner.id)
 
             transactionManager.run {
                 val groupId = it.groupsRepository.createGroup(group)
-
-                return@run success(
-                    Group(
-                        groupId,
-                        group.groupName,
-                        group.groupDescription,
-                        group.createdAt,
-                        group.ownerId,
-                    ),
-                )
+                success(group.copy(id = groupId))
             }
-        } catch (e: Exception) {
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun getGroupById(groupId: String): GetGroupByIdResult =
-        try {
+        runCatching {
             val validatedGroupId = groupsDomain.validateGroupId(groupId)
 
             transactionManager.run {
-                val group = it.groupsRepository.getGroupById(validatedGroupId)
-                if (group != null) {
-                    // Get group users
-                    val usersIds = it.groupsRepository.getGroupUsers(validatedGroupId)
-                    val usersList =
-                        usersIds.map { userId ->
-                            it.usersRepository.getUserById(userId)!!
-                        }
+                val group =
+                    it.groupsRepository.getGroupById(validatedGroupId)
+                        ?: return@run failure(groupsDomain.groupNotFound)
 
-                    return@run success(
-                        GroupWithUsers(
-                            group,
-                            usersList,
-                        ),
-                    )
-                } else {
-                    return@run failure(ServicesExceptions.Groups.GroupNotFound)
-                }
+                // Get group users
+                val usersIds = it.groupsRepository.getGroupUsers(validatedGroupId)
+                val usersList =
+                    usersIds.map { userId ->
+                        it.usersRepository.getUserById(userId)!!
+                    }
+
+                success(
+                    Group(
+                        id = group.id,
+                        groupName = group.groupName,
+                        groupDescription = group.groupDescription,
+                        createdAt = group.createdAt,
+                        ownerId = group.ownerId,
+                        groupUsers = usersList,
+                    ),
+                )
             }
-        } catch (e: Exception) {
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun getUserGroups(
         userId: String,
         limit: String?,
         skip: String?,
-    ): GetUserGroupsResult {
-        return try {
+    ): GetUserGroupsResult =
+        runCatching {
             // Validate limit and skip
             val limitAndSkip = verifyQuery(limit, skip)
 
@@ -98,22 +93,21 @@ class GroupsService(
 
             transactionManager.run {
                 if (!it.usersRepository.checkIfUserExists(validatedUserId)) {
-                    return@run failure(ServicesExceptions.Users.UserNotFound)
+                    failure(usersDomain.userNotFound)
+                } else {
+                    success(it.groupsRepository.getUserGroups(validatedUserId, limitAndSkip))
                 }
-
-                return@run success(it.groupsRepository.getUserGroups(validatedUserId, limitAndSkip))
             }
-        } catch (e: Exception) {
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
-    }
 
     override fun addUserToGroup(
         actorUserId: Int,
         userId: String?,
         groupId: String,
-    ): AddUserToGroupResult {
-        return try {
+    ): AddUserToGroupResult =
+        runCatching {
             val validatedGroupId = groupsDomain.validateGroupId(groupId)
             val validatedUserId =
                 userId?.let(usersDomain::validateUserId)
@@ -124,28 +118,27 @@ class GroupsService(
                 val userRepo = it.usersRepository
 
                 when {
-                    !userRepo.checkIfUserExists(validatedUserId) -> failure(ServicesExceptions.Users.UserNotFound)
-                    !groupRepo.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
-                    groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId ->
-                        failure(ServicesExceptions.Groups.GroupNotFound) // Safety reasons
+                    !userRepo.checkIfUserExists(validatedUserId) -> failure(usersDomain.userNotFound)
+                    !groupRepo.checkIfGroupExists(validatedGroupId) ||
+                        groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId -> failure(groupsDomain.groupNotFound)
+
                     groupRepo.getGroupUsers(validatedGroupId)
-                        .contains(validatedUserId) -> failure(ServicesExceptions.Groups.UserAlreadyInGroup)
+                        .contains(validatedUserId) -> failure(groupsDomain.userAlreadyInGroup)
 
                     groupRepo.addUserToGroup(validatedUserId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
-        } catch (e: Exception) {
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
-    }
 
     override fun removeUserFromGroup(
         actorUserId: Int,
         userId: String?,
         groupId: String,
-    ): RemoveUserFromGroupResult {
-        return try {
+    ): RemoveUserFromGroupResult =
+        runCatching {
             val validatedGroupId = groupsDomain.validateGroupId(groupId)
             val validatedUserId =
                 userId?.let(usersDomain::validateUserId)
@@ -156,20 +149,46 @@ class GroupsService(
                 val userRepo = it.usersRepository
 
                 when {
-                    !userRepo.checkIfUserExists(validatedUserId) -> failure(ServicesExceptions.Users.UserNotFound)
-                    !groupRepo.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
-                    groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId ->
-                        failure(ServicesExceptions.Groups.GroupNotFound) // Safety reasons
+                    !userRepo.checkIfUserExists(validatedUserId) -> failure(usersDomain.userNotFound)
+                    !groupRepo.checkIfGroupExists(validatedGroupId) ||
+                        groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId -> failure(groupsDomain.groupNotFound)
 
                     !groupRepo.getGroupUsers(validatedGroupId)
-                        .contains(validatedUserId) -> failure(ServicesExceptions.Groups.UserNotInGroup)
+                        .contains(validatedUserId) -> failure(groupsDomain.userNotInGroup)
 
                     groupRepo.removeUserFromGroup(validatedUserId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
-        } catch (e: Exception) {
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
-    }
+
+    override fun deleteGroup(
+        actorUserId: Int,
+        groupId: String,
+    ): DeleteGroupResult =
+        runCatching {
+            val validatedGroupId = groupsDomain.validateGroupId(groupId)
+
+            transactionManager.run {
+                val groupRepo = it.groupsRepository
+
+                if (!groupRepo.checkIfGroupExists(validatedGroupId) || groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId) {
+                    failure(groupsDomain.groupNotFound)
+                } else {
+                    // Delete group users
+                    groupRepo.getGroupUsers(validatedGroupId).forEach { userId ->
+                        groupRepo.removeUserFromGroup(userId, validatedGroupId)
+                    }
+                    if (groupRepo.deleteGroup(validatedGroupId)) {
+                        success(Unit)
+                    } else {
+                        failure(ServicesExceptions.UnexpectedError)
+                    }
+                }
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
 }

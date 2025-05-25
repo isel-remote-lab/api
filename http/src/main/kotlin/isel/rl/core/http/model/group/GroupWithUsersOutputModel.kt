@@ -1,6 +1,6 @@
 package isel.rl.core.http.model.group
 
-import isel.rl.core.domain.group.GroupWithUsers
+import isel.rl.core.domain.group.Group
 import isel.rl.core.http.model.user.UserOutputModel
 
 data class GroupWithUsersOutputModel(
@@ -12,15 +12,15 @@ data class GroupWithUsersOutputModel(
     val users: List<UserOutputModel>,
 ) {
     companion object {
-        fun mapOf(group: GroupWithUsers) =
+        fun mapOf(group: Group) =
             GroupWithUsersOutputModel(
-                id = group.group.id,
-                groupName = group.group.groupName.groupNameInfo,
-                groupDescription = group.group.groupDescription.groupDescriptionInfo,
-                ownerId = group.group.ownerId,
-                createdAt = group.group.createdAt.toString(),
+                id = group.id,
+                groupName = group.groupName.groupNameInfo,
+                groupDescription = group.groupDescription.groupDescriptionInfo,
+                ownerId = group.ownerId,
+                createdAt = group.createdAt.toString(),
                 users =
-                    group.users.map { user ->
+                    group.groupUsers.map { user ->
                         UserOutputModel(
                             id = user.id,
                             role = user.role.char,

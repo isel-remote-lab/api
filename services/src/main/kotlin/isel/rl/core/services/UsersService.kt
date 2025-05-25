@@ -32,34 +32,25 @@ data class UsersService(
         name: String,
         email: String,
     ): LoginUserResult =
-        try {
-            when (val getByOauthRes = getUserByEmail(email)) {
-                is Failure -> {
-                    if (getByOauthRes.value == ServicesExceptions.Users.UserNotFound) {
-                        val createUserResult = createUser(INITIAL_USER_ROLE, name, email)
-
-                        if (createUserResult is Success) {
-                            success(
-                                createUserResult.value to createToken(createUserResult.value.id),
-                            )
-                        } else {
-                            failure((createUserResult as Failure).value)
+        runCatching {
+            when (val userResult = getUserByEmail(email)) {
+                is Failure ->
+                    if (userResult.value == ServicesExceptions.Users.UserNotFound) {
+                        createUser(INITIAL_USER_ROLE, name, email).let { result ->
+                            if (result is Success) {
+                                success(result.value to createToken(result.value.id))
+                            } else {
+                                failure((result as Failure).value)
+                            }
                         }
                     } else {
-                        failure(getByOauthRes.value)
+                        failure(userResult.value)
                     }
-                }
 
-                is Success -> {
-                    val user = getByOauthRes.value
-                    success(
-                        user to createToken(user.id),
-                    )
-                }
+                is Success -> success(userResult.value to createToken(userResult.value.id))
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the login process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun updateUserRole(
@@ -67,7 +58,7 @@ data class UsersService(
         targetUserId: String,
         newRole: String?,
     ): UpdateUserRoleResult =
-        try {
+        runCatching {
             // Validate the targetUserId and newRole
             val validatedTargetUserId = usersDomain.validateUserId(targetUserId)
             val validatedNewRole = usersDomain.checkRole(newRole)
@@ -75,26 +66,22 @@ data class UsersService(
             transactionManager.run {
                 val usersRepository = it.usersRepository
                 usersRepository.getUserById(validatedTargetUserId)
-                    ?: failure(ServicesExceptions.Users.UserNotFound)
+                    ?: return@run failure(ServicesExceptions.Users.UserNotFound)
 
-                if (actorUserId.role.char != Role.ADMIN.char) { // Check if the actor is an Admin
-                    return@run failure(
+                if (actorUserId.role != Role.ADMIN) { // Check if the actor is an Admin
+                    failure(
                         ServicesExceptions.Forbidden(
-                            "User with id ${actorUserId.id} don't " +
-                                "have permission to update user role",
+                            "Permission denied. Insufficient privileges to update user role.",
                         ),
                     )
-                }
-
-                if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
-                    success(true)
+                } else if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
+                    success(Unit)
                 } else {
                     failure(ServicesExceptions.Users.ErrorWhenUpdatingUser)
                 }
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the update process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun getUserByToken(token: String): User? {
@@ -129,49 +116,26 @@ data class UsersService(
         name: String,
         email: String,
     ): CreateUserResult =
-        try {
-            // Validate the user data
-            val user =
-                usersDomain.validateCreateUser(
-                    role,
-                    name,
-                    email,
-                    clock.now(),
-                )
-
+        runCatching {
+            val user = usersDomain.validateCreateUser(role, name, email, clock.now())
             transactionManager.run {
                 val userId = it.usersRepository.createUser(user)
-                // Create the user in the database and return the result as success
-                success(
-                    User(
-                        id = userId,
-                        role = user.role,
-                        name = user.name,
-                        email = user.email,
-                        createdAt = user.createdAt,
-                    ),
-                )
+                success(user.copy(id = userId))
             }
-        } catch (e: Exception) {
+        }.getOrElse { e ->
             // Handle exceptions that may occur during the creation process
-            handleException(e)
+            handleException(e as Exception)
         }
 
     override fun getUserById(id: String): GetUserResult =
-        try {
-            // Validate the user ID
+        runCatching {
             val validatedId = usersDomain.validateUserId(id)
-
             transactionManager.run {
-                // Retrieve the user from the database and return the result as success
-                // or failure if the user is not found
-                it.usersRepository.getUserById(validatedId)
-                    ?.let(::success)
+                it.usersRepository.getUserById(validatedId)?.let(::success)
                     ?: failure(ServicesExceptions.Users.UserNotFound)
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the retrieval process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     /**
@@ -184,18 +148,14 @@ data class UsersService(
      * @return A result containing either the user data or an error.
      */
     override fun getUserByEmail(email: String): GetUserResult =
-        try {
-            // Validate the email
+        runCatching {
             val validatedEmail = usersDomain.checkEmail(email)
-
             transactionManager.run {
-                // Retrieve the user by email from the database and return the result as success
-                it.usersRepository.getUserByEmail(validatedEmail)
-                    ?.let(::success) ?: failure(ServicesExceptions.Users.UserNotFound)
+                it.usersRepository.getUserByEmail(validatedEmail)?.let(::success)
+                    ?: failure(ServicesExceptions.Users.UserNotFound)
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the retrieval process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     private fun createToken(userId: Int) =

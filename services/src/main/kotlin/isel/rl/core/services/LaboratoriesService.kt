@@ -1,13 +1,17 @@
 package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
-import isel.rl.core.domain.laboratory.Laboratory
+import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
+import isel.rl.core.domain.user.User
 import isel.rl.core.repository.TransactionManager
+import isel.rl.core.services.interfaces.AddGroupToLaboratoryResult
 import isel.rl.core.services.interfaces.CreateLaboratoryResult
+import isel.rl.core.services.interfaces.DeleteLaboratoryResult
 import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
 import isel.rl.core.services.interfaces.GetLaboratoryResult
 import isel.rl.core.services.interfaces.ILaboratoriesService
+import isel.rl.core.services.interfaces.RemoveGroupFromLaboratoryResult
 import isel.rl.core.services.interfaces.UpdateLaboratoryResult
 import isel.rl.core.services.utils.handleException
 import isel.rl.core.services.utils.verifyQuery
@@ -15,6 +19,11 @@ import isel.rl.core.utils.failure
 import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
 import org.springframework.stereotype.Service
+
+// runCatching is used to handle exceptions that may occur during the creation of a laboratory.
+// It follows the functional programming paradigm, allowing for a more concise and readable code.
+// Also it allows us to return a failure result in case of an exception, allowing to encapsulate the error handling logic.
+// Try/catch breaks the code flow and it is not possible to encapsulate the error handling logic in a single place.
 
 /**
  * Service class for managing laboratories.
@@ -30,73 +39,60 @@ data class LaboratoriesService(
     private val transactionManager: TransactionManager,
     private val clock: Clock,
     private val laboratoriesDomain: LaboratoriesDomain,
+    private val groupsDomain: GroupsDomain,
 ) : ILaboratoriesService {
     override fun createLaboratory(
         labName: String?,
         labDescription: String?,
         labDuration: Int?,
         labQueueLimit: Int?,
-        ownerId: Int,
+        owner: User,
     ): CreateLaboratoryResult =
-        try {
-            // Validate the laboratory data
+        runCatching {
             val laboratory =
                 laboratoriesDomain.validateCreateLaboratory(
-                    labName = labName,
-                    labDescription = labDescription,
-                    labDuration = labDuration,
-                    labQueueLimit = labQueueLimit,
-                    createdAt = clock.now(),
-                    ownerId = ownerId,
+                    labName,
+                    labDescription,
+                    labDuration,
+                    labQueueLimit,
+                    clock.now(),
+                    owner.id,
                 )
             transactionManager.run {
-                // Create the laboratory in the database and return the result as success
                 val labId = it.laboratoriesRepository.createLaboratory(laboratory)
-                success(
-                    Laboratory(
-                        labId,
-                        laboratory.labName,
-                        laboratory.labDescription,
-                        laboratory.labDuration,
-                        laboratory.labQueueLimit,
-                        laboratory.createdAt,
-                        ownerId,
-                    ),
-                )
+                success(laboratory.copy(id = labId, ownerId = owner.id))
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the creation process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun getLaboratoryById(
         id: String,
         userId: Int,
     ): GetLaboratoryResult =
-        try {
-            // Validate the laboratory ID
+        runCatching {
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(id)
-
             transactionManager.run {
                 val laboratoriesRepo = it.laboratoriesRepository
 
-                // Retrieve the laboratory by ID from the database and return the result as success
-                // If the laboratory is not found, return failure with LaboratoryNotFound exception
-                laboratoriesRepo.getLaboratoryById(validatedLabId)
-                    ?.let { laboratory ->
-                        // Check if the user belongs to the laboratory or is the owner
-                        if (!laboratoriesRepo.checkIfUserBelongsToLaboratory(validatedLabId, userId)) {
-                            // For security reasons, we don't want to expose the existence of a laboratory
-                            return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                        } else {
-                            success(laboratory)
+                laboratoriesRepo.getLaboratoryById(validatedLabId)?.takeIf {
+                    laboratoriesRepo.checkIfUserBelongsToLaboratory(validatedLabId, userId)
+                }?.let { lab ->
+                    // Get the groups associated with the laboratory
+                    val groups =
+                        it.laboratoriesRepository.getLaboratoryGroups(lab.id).map { groupId ->
+                            it.groupsRepository.getGroupById(groupId)!!
                         }
-                    }
+                    success(
+                        lab.copy(
+                            groups = groups,
+                        ),
+                    )
+                }
                     ?: failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the retrieval process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun updateLaboratory(
@@ -107,48 +103,99 @@ data class LaboratoriesService(
         labQueueLimit: Int?,
         ownerId: Int,
     ): UpdateLaboratoryResult =
-        try {
+        runCatching {
             // Validate received parameters
             // Since validate methods of domain verify if the parameters are null or empty,
             // a let is used to avoid the null verification
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
-            val validatedLabName = labName?.let { laboratoriesDomain.validateLaboratoryName(labName) }
-            val validatedLabDescription =
-                labDescription?.let { laboratoriesDomain.validateLabDescription(labDescription) }
-            val validatedLabDuration = labDuration?.let { laboratoriesDomain.validateLabDuration(labDuration) }
-            val validatedLabQueueLimit = labQueueLimit?.let { laboratoriesDomain.validateLabQueueLimit(labQueueLimit) }
+            val validatedLabName = labName?.let(laboratoriesDomain::validateLaboratoryName)
+            val validatedLabDescription = labDescription?.let(laboratoriesDomain::validateLabDescription)
+            val validatedLabDuration = labDuration?.let(laboratoriesDomain::validateLabDuration)
+            val validatedLabQueueLimit = labQueueLimit?.let(laboratoriesDomain::validateLabQueueLimit)
 
             transactionManager.run {
-                val laboratoriesRepo = it.laboratoriesRepository
+                val labRepo = it.laboratoriesRepository
 
-                // Check if the laboratory exists
-                if (!laboratoriesRepo.checkIfLaboratoryExists(validatedLabId)) {
-                    return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                }
-
-                // Check if the laboratory belongs to the user
-                if (laboratoriesRepo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
-                    return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                }
-
-                // If update is successful, return success
-                // Otherwise, return failure with unexpected error
-                if (laboratoriesRepo.updateLaboratory(
-                        validatedLabId,
-                        validatedLabName,
-                        validatedLabDescription,
-                        validatedLabDuration,
-                        validatedLabQueueLimit,
-                    )
-                ) {
-                    success(Unit)
+                // Check if the laboratory exists or if the owner ID matches
+                if (!labRepo.checkIfLaboratoryExists(validatedLabId) || labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
+                    failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 } else {
-                    failure(ServicesExceptions.UnexpectedError)
+                    // If update is successful, return success
+                    // Otherwise, return failure with unexpected error
+                    val updated =
+                        labRepo.updateLaboratory(
+                            validatedLabId,
+                            validatedLabName,
+                            validatedLabDescription,
+                            validatedLabDuration,
+                            validatedLabQueueLimit,
+                        )
+                    if (updated) success(Unit) else failure(ServicesExceptions.UnexpectedError)
                 }
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the update process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
+
+    override fun addGroupToLaboratory(
+        labId: String,
+        groupId: String?,
+        ownerId: Int,
+    ): AddGroupToLaboratoryResult =
+        runCatching {
+            // Validate the laboratory and group ID's
+            val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+            val validatedGroupId =
+                groupId?.let(groupsDomain::validateGroupId)
+                    ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
+
+            transactionManager.run {
+                val labRepo = it.laboratoriesRepository
+
+                return@run when {
+                    !it.groupsRepository.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
+                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
+                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(
+                            ServicesExceptions.Laboratories.LaboratoryNotFound,
+                        )
+
+                    labRepo.addGroupToLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
+                    else -> failure(ServicesExceptions.UnexpectedError)
+                }
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
+
+    override fun removeGroupFromLaboratory(
+        labId: String,
+        groupId: String?,
+        ownerId: Int,
+    ): RemoveGroupFromLaboratoryResult =
+        runCatching {
+            val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+            val validatedGroupId =
+                groupId?.let(groupsDomain::validateGroupId)
+                    ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
+
+            transactionManager.run {
+                val labRepo = it.laboratoriesRepository
+
+                return@run when {
+                    !it.groupsRepository.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
+                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
+                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(
+                            ServicesExceptions.Laboratories.LaboratoryNotFound,
+                        )
+
+                    labRepo.removeGroupFromLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
+                    else -> failure(ServicesExceptions.UnexpectedError)
+                }
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 
     override fun getAllLaboratoriesByUser(
@@ -156,19 +203,34 @@ data class LaboratoriesService(
         limit: String?,
         skip: String?,
     ): GetAllLaboratoriesResult =
-        try {
-            // Validate limit and skip
+        runCatching {
             val limitAndSkip = verifyQuery(limit, skip)
+            transactionManager.run {
+                success(it.laboratoriesRepository.getLaboratoriesByUserId(userId, limitAndSkip))
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
+
+    override fun deleteLaboratory(
+        labId: String,
+        ownerId: Int,
+    ): DeleteLaboratoryResult =
+        runCatching {
+            val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
 
             transactionManager.run {
-                // Retrieve all laboratories by user ID from the database and return the result as success
-                success(
-                    it.laboratoriesRepository
-                        .getLaboratoriesByUserId(userId, limitAndSkip),
-                )
+                val repo = it.laboratoriesRepository
+
+                if (!repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
+                    failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                } else if (repo.deleteLaboratory(validatedLabId)) {
+                    success(Unit)
+                } else {
+                    failure(ServicesExceptions.UnexpectedError)
+                }
             }
-        } catch (e: Exception) {
-            // Handle exceptions that may occur during the retrieval process
-            handleException(e)
+        }.getOrElse { e ->
+            handleException(e as Exception)
         }
 }

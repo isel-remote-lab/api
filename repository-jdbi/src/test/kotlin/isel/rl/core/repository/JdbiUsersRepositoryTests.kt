@@ -147,8 +147,6 @@ class JdbiUsersRepositoryTests {
             val token = Token(tokenValidationInfo, userId, createdAt, lastUsedAt)
             userRepo.createToken(token, 1)
 
-            Thread.sleep(2000)
-
             val updatedAt = clock.now()
             userRepo.updateTokenLastUsed(token, updatedAt)
             val userAndToken = userRepo.getUserByTokenValidationInfo(tokenValidationInfo)

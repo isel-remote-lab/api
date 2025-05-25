@@ -15,6 +15,14 @@ import kotlin.time.toDuration
 data class LaboratoriesDomain(
     private val domainConfig: LaboratoriesDomainConfig,
 ) {
+    val isLabNameOptional = domainConfig.isLabNameOptional
+
+    val isLabDescriptionOptional = domainConfig.isLabDescriptionOptional
+
+    val isLabDurationOptional = domainConfig.isLabDurationOptional
+
+    val isLabQueueLimitOptional = domainConfig.isLabQueueLimitOptional
+
     fun validateCreateLaboratory(
         labName: String?,
         labDescription: String?,
@@ -29,6 +37,7 @@ data class LaboratoriesDomain(
                 labName.isNullOrBlank() -> throw ServicesExceptions.Laboratories.InvalidLaboratoryName(
                     "Laboratory name is required",
                 )
+
                 else -> validateLaboratoryName(labName)
             }
 
@@ -38,6 +47,7 @@ data class LaboratoriesDomain(
                 labDescription.isNullOrBlank() -> throw ServicesExceptions.Laboratories.InvalidLaboratoryDescription(
                     "Laboratory description is required",
                 )
+
                 else -> validateLabDescription(labDescription)
             }
 
@@ -47,6 +57,7 @@ data class LaboratoriesDomain(
                 labDuration == null -> throw ServicesExceptions.Laboratories.InvalidLaboratoryDuration(
                     "Laboratory duration is required",
                 )
+
                 else -> validateLabDuration(labDuration)
             }
 
@@ -56,6 +67,7 @@ data class LaboratoriesDomain(
                 labQueueLimit == null -> throw ServicesExceptions.Laboratories.InvalidLaboratoryQueueLimit(
                     "Laboratory queue limit is required",
                 )
+
                 else -> validateLabQueueLimit(labQueueLimit)
             }
 

@@ -5,7 +5,7 @@ import isel.rl.core.domain.user.props.Name
 import isel.rl.core.domain.user.props.Role
 import kotlinx.datetime.Instant
 
-class User(
+data class User(
     val id: Int = 0,
     val role: Role,
     val name: Name,

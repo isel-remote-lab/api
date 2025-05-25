@@ -7,7 +7,7 @@ import isel.rl.core.utils.Either
 typealias AuthToken = String
 typealias UserAndToken = Pair<User, AuthToken>
 typealias LoginUserResult = Either<ServicesExceptions, UserAndToken>
-typealias UpdateUserRoleResult = Either<ServicesExceptions, Boolean>
+typealias UpdateUserRoleResult = Either<ServicesExceptions, Unit>
 
 /**
  * Result of creating a user.

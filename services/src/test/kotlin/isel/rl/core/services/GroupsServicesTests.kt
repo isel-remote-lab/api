@@ -1,59 +1,78 @@
 package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
-import isel.rl.core.utils.Failure
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.services.utils.GroupsServicesUtils
+import isel.rl.core.services.utils.UsersServicesUtils
 import isel.rl.core.utils.Success
 import org.junit.jupiter.api.Nested
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class GroupsServicesTests {
     @Nested
     inner class GroupCreation {
         @Test
-        fun `create group`() {
+        fun `create group (user is Teacher)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val usersService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a user to be the owner of the group
+            val owner =
+                (
+                    usersService.createUser(
+                        role = Role.TEACHER.char,
+                        name = UsersServicesUtils.newTestUsername(),
+                        email = UsersServicesUtils.newTestEmail(),
+                    ) as Success
+                ).value
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
+            GroupsServicesUtils.createGroup(
+                groupService,
+                owner = owner,
+            )
+        }
 
-            val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
-                )
+        @Test
+        fun `create group (user is Admin)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val usersService = UsersServicesUtils.createUsersServices(clock)
 
-            // Then: the group should be created successfully
-            assertTrue(group is Success, "Group creation failed. Expected a success result but got $group")
+            // When: Creating a user to be the owner of the group
+            val owner =
+                (
+                    usersService.createUser(
+                        role = Role.ADMIN.char,
+                        name = UsersServicesUtils.newTestUsername(),
+                        email = UsersServicesUtils.newTestEmail(),
+                    ) as Success
+                ).value
+
+            // When: Creating a group
+            GroupsServicesUtils.createGroup(
+                groupService,
+                owner = owner,
+            )
         }
 
         @Test
         fun `create group with invalid group name (min)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Creating a group with an invalid name
-            val groupName = servicesUtils.newTestInvalidGroupNameMin()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
-                )
-
-            // Then: the group creation should fail
-            assertTrue(group is Failure, "Group creation should have failed. Expected a failure result but got $group")
-            assertTrue(
-                group.value is ServicesExceptions.Groups.InvalidGroupName,
-                "Expected an IllegalArgumentException but got ${group.value}",
+            GroupsServicesUtils.createGroup(
+                groupService,
+                initialGroup =
+                    GroupsServicesUtils.InitialGroup(
+                        name = GroupsServicesUtils.newTestInvalidGroupNameMin(),
+                    ),
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupName::class,
             )
         }
 
@@ -61,24 +80,16 @@ class GroupsServicesTests {
         fun `create group with invalid group name (max)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Creating a group with an invalid name
-            val groupName = servicesUtils.newTestInvalidGroupNameMax()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
-                )
-
-            // Then: the group creation should fail
-            assertTrue(group is Failure, "Group creation should have failed. Expected a failure result but got $group")
-            assertTrue(
-                group.value is ServicesExceptions.Groups.InvalidGroupName,
-                "Expected an IllegalArgumentException but got ${group.value}",
+            GroupsServicesUtils.createGroup(
+                groupService,
+                initialGroup =
+                    GroupsServicesUtils.InitialGroup(
+                        name = GroupsServicesUtils.newTestInvalidGroupNameMax(),
+                    ),
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupName::class,
             )
         }
 
@@ -86,31 +97,25 @@ class GroupsServicesTests {
         fun `create group with invalid group description (min)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Creating a group with an invalid description
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestInvalidGroupDescriptionMin()
-
-            val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
-                )
-
-            // Then: the group creation should fail
-            if (servicesUtils.isGroupDescriptionOptional) {
-                assertTrue(
-                    group is Success,
-                    "Group creation should have succeeded. Expected a success result but got $group",
+            if (GroupsServicesUtils.isGroupDescriptionOptional) {
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                    initialGroup =
+                        GroupsServicesUtils.InitialGroup(
+                            description = GroupsServicesUtils.newTestInvalidGroupDescriptionMin(),
+                        ),
                 )
             } else {
-                // Then: the group creation should fail
-                assertTrue(group is Failure, "Group creation should have failed. Expected a failure result but got $group")
-                assertTrue(
-                    group.value is ServicesExceptions.Groups.InvalidGroupDescription,
-                    "Expected an InvalidGroupDescription but got ${group.value}",
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                    initialGroup =
+                        GroupsServicesUtils.InitialGroup(
+                            description = GroupsServicesUtils.newTestInvalidGroupDescriptionMin(),
+                        ),
+                    expectedServiceException = ServicesExceptions.Groups.InvalidGroupDescription::class,
                 )
             }
         }
@@ -119,24 +124,16 @@ class GroupsServicesTests {
         fun `create group with invalid group description (max)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Creating a group with an invalid description
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestInvalidGroupDescriptionMax()
-
-            val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
-                )
-
-            // Then: the group creation should fail
-            assertTrue(group is Failure, "Group creation should have failed. Expected a failure result but got $group")
-            assertTrue(
-                group.value is ServicesExceptions.Groups.InvalidGroupDescription,
-                "Expected an InvalidGroupDescription but got ${group.value}",
+            GroupsServicesUtils.createGroup(
+                groupService,
+                initialGroup =
+                    GroupsServicesUtils.InitialGroup(
+                        description = GroupsServicesUtils.newTestInvalidGroupDescriptionMax(),
+                    ),
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupDescription::class,
             )
         }
     }
@@ -147,35 +144,18 @@ class GroupsServicesTests {
         fun `get group by id`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
             val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = TEST_USER_ID,
+                GroupsServicesUtils.createGroup(
+                    groupService,
                 )
 
-            // Then: the group should be created successfully
-            assertTrue(group is Success, "Group creation failed. Expected a success result but got $group")
-
             // When: Getting the group by id
-            val getGroupResult = groupService.getGroupById(group.value.id.toString())
-
-            // Then: the group should be retrieved successfully
-            assertTrue(
-                getGroupResult is Success,
-                "Group retrieval failed. Expected a success result but got $getGroupResult",
-            )
-
-            assertEquals(group.value, getGroupResult.value.group)
-            assertTrue(
-                getGroupResult.value.users.size == 1,
-                "Expected 1 user in the group but got ${getGroupResult.value.users.size}",
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                expectedGroup = group,
             )
         }
 
@@ -183,19 +163,13 @@ class GroupsServicesTests {
         fun `get group by id with invalid id`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Getting the group by id with an invalid id
-            val getGroupResult = groupService.getGroupById("invalid_id")
-
-            // Then: the group retrieval should fail
-            assertTrue(
-                getGroupResult is Failure,
-                "Group retrieval should have failed. Expected a failure result but got $getGroupResult",
-            )
-            assertTrue(
-                getGroupResult.value is ServicesExceptions.Groups.InvalidGroupId,
-                "Expected an InvalidGroupId but got ${getGroupResult.value}",
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                "invalid_id",
+                ServicesExceptions.Groups.InvalidGroupId::class,
             )
         }
 
@@ -203,19 +177,27 @@ class GroupsServicesTests {
         fun `get non existent group by id`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Getting a non-existent group by id
-            val getGroupResult = groupService.getGroupById("999")
-
-            // Then: the group retrieval should fail
-            assertTrue(
-                getGroupResult is Failure,
-                "Group retrieval should have failed. Expected a failure result but got $getGroupResult",
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                "999",
+                ServicesExceptions.Groups.GroupNotFound::class,
             )
-            assertTrue(
-                getGroupResult.value is ServicesExceptions.Groups.GroupNotFound,
-                "Expected a GroupNotFound but got ${getGroupResult.value}",
+        }
+
+        @Test
+        fun `get group by id with invalid id (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the group by id with an invalid id (negative)
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                "-1",
+                ServicesExceptions.Groups.GroupNotFound::class,
             )
         }
 
@@ -223,52 +205,31 @@ class GroupsServicesTests {
         fun `get user groups`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
 
-            // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            // When: Creating a user
-            val user =
+            // When: Creating a user to be the owner of the group
+            val owner =
                 (
                     userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
+                        role = Role.TEACHER.char,
+                        name = UsersServicesUtils.newTestUsername(),
+                        email = UsersServicesUtils.newTestEmail(),
                     ) as Success
                 ).value
 
+            // When: Creating a group for the user
             val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = user.id,
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                    owner = owner,
                 )
-
-            val group2 =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = user.id,
-                )
-
-            // Then: the groups should be created successfully
-            assertTrue(group is Success, "Group creation failed. Expected a success result but got $group")
-            assertTrue(group2 is Success, "Group creation failed. Expected a success result but got $group2")
 
             // When: Getting the user groups
-            val getUserGroupsResult = groupService.getUserGroups(user.id.toString())
-
-            // Then: the user groups should be retrieved successfully
-            assertTrue(
-                getUserGroupsResult is Success,
-                "User groups retrieval failed. Expected a success result but got $getUserGroupsResult",
-            )
-            assertTrue(
-                getUserGroupsResult.value.size == 2,
-                "Expected 2 groups but got ${getUserGroupsResult.value.size}",
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                owner.id.toString(),
+                expectedGroups = listOf(group),
             )
         }
 
@@ -276,19 +237,13 @@ class GroupsServicesTests {
         fun `get user groups with invalid id (not a number)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Getting the user groups with an invalid id
-            val getUserGroupsResult = groupService.getUserGroups("invalid_id")
-
-            // Then: the user groups retrieval should fail
-            assertTrue(
-                getUserGroupsResult is Failure,
-                "User groups retrieval should have failed. Expected a failure result but got $getUserGroupsResult",
-            )
-            assertTrue(
-                getUserGroupsResult.value is ServicesExceptions.Users.InvalidUserId,
-                "Expected an InvalidUserId but got ${getUserGroupsResult.value}",
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "invalid_id",
+                expectedServiceException = ServicesExceptions.Users.InvalidUserId::class,
             )
         }
 
@@ -296,19 +251,123 @@ class GroupsServicesTests {
         fun `get user groups with non existent id`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Getting the user groups with a non-existent id
-            val getUserGroupsResult = groupService.getUserGroups("999")
-
-            // Then: the user groups retrieval should fail
-            assertTrue(
-                getUserGroupsResult is Failure,
-                "User groups retrieval should have failed. Expected a failure result but got $getUserGroupsResult",
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "999",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
             )
-            assertTrue(
-                getUserGroupsResult.value is ServicesExceptions.Users.UserNotFound,
-                "Expected a UserNotFound exception but got ${getUserGroupsResult.value}",
+        }
+
+        @Test
+        fun `get user groups with invalid id (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the user groups with an invalid id (negative)
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "-1",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
+            )
+        }
+
+        @Test
+        fun `get user groups with limit and skip`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a user to be the owner of the groups
+            val owner =
+                (
+                    userService.createUser(
+                        role = Role.TEACHER.char,
+                        name = UsersServicesUtils.newTestUsername(),
+                        email = UsersServicesUtils.newTestEmail(),
+                    ) as Success
+                ).value
+
+            // When: Creating multiple groups
+            val groups =
+                List(3) {
+                    GroupsServicesUtils.createGroup(
+                        groupService,
+                        owner = owner,
+                    )
+                }
+
+            // When: Getting the user groups with limit and skip
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                owner.id.toString(),
+                limit = "2",
+                skip = "1",
+                expectedGroups = listOf(groups[1], groups[2]),
+            )
+        }
+
+        @Test
+        fun `get user groups with invalid limit (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the user groups with an invalid limit (negative)
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "1",
+                limit = "-1",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
+            )
+        }
+
+        @Test
+        fun `get user groups with invalid limit (not a number)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the user groups with an invalid limit (not a number)
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "1",
+                limit = "invalid_limit",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
+            )
+        }
+
+        @Test
+        fun `get user groups with invalid skip (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the user groups with an invalid skip (negative)
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "1",
+                skip = "-1",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
+            )
+        }
+
+        @Test
+        fun `get user groups with invalid skip (not a number)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Getting the user groups with an invalid skip (not a number)
+            GroupsServicesUtils.getUserGroups(
+                groupService,
+                "1",
+                skip = "invalid_skip",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
             )
         }
     }
@@ -319,58 +378,99 @@ class GroupsServicesTests {
         fun `add user to group`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user and a user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
             val group =
-                groupService.createGroup(
-                    groupName = groupName,
-                    groupDescription = groupDescription,
-                    ownerId = owner.id,
+                GroupsServicesUtils.createGroup(
+                    groupService,
                 )
 
-            // Then: the group should be created successfully
-            assertTrue(group is Success, "Group creation failed. Expected a success result but got $group")
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
 
-            // When: Adding a user to the group
-            val addUserResult = groupService.addUserToGroup(owner.id, user.id.toString(), group.value.id.toString())
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
 
-            // Then: the user should be added to the group successfully
-            assertTrue(addUserResult is Success, "User addition failed. Expected a success result but got $addUserResult")
+            val expectedGroup =
+                group.copy(
+                    users = listOf(group.ownerId, user.id),
+                )
 
             // When: Getting the group by id and checking the users
-            val getGroupResult = (groupService.getGroupById(group.value.id.toString()) as Success).value
-            assertTrue(getGroupResult.users.size == 2, "Expected 2 users in the group but got ${getGroupResult.users.size}")
-            assertTrue(
-                getGroupResult.users.any { it.id == user.id },
-                "Expected the user to be in the group but it was not found",
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                expectedGroup,
             )
-            assertTrue(
-                getGroupResult.users.any { it.id == owner.id },
-                "Expected the owner to be in the group but it was not found",
+        }
+
+        @Test
+        fun `add user to group with invalid group id (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Creating group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "1",
+                groupId = "-1",
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `add user to group with invalid group id (not a number)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Creating group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "1",
+                groupId = "invalid_id",
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupId::class,
+            )
+        }
+
+        @Test
+        fun `add user to group with invalid user id (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Adding a user to the group with an invalid user id
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "-1",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
+            )
+        }
+
+        @Test
+        fun `add user to group with invalid user id (not a number)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Adding a user to the group with an invalid user id
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "invalid_id",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.InvalidUserId::class,
             )
         }
 
@@ -378,39 +478,15 @@ class GroupsServicesTests {
         fun `add user to group with invalid user id (null)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Adding a user to the group with an invalid user id
-            val addUserResult = groupService.addUserToGroup(1, null, "1")
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult",
-            )
-            assertTrue(
-                addUserResult.value is ServicesExceptions.InvalidQueryParam,
-                "Expected an InvalidQueryParam but got ${addUserResult.value}",
-            )
-        }
-
-        @Test
-        fun `add user to group with invalid group id`() {
-            // When: given a group service
-            val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-
-            // When: Adding a user to the group with an invalid group id
-            val addUserResult = groupService.addUserToGroup(1, "1", "invalid_id")
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult",
-            )
-            assertTrue(
-                addUserResult.value is ServicesExceptions.Groups.InvalidGroupId,
-                "Expected an InvalidGroupId but got ${addUserResult.value}",
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = null,
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
             )
         }
 
@@ -418,185 +494,91 @@ class GroupsServicesTests {
         fun `add a non existing user to group`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user and a user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Adding a non-existing user to the group
-            val addUserResult = groupService.addUserToGroup(owner.id, "999", group.id.toString())
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult",
-            )
-            assertTrue(
-                addUserResult.value is ServicesExceptions.Users.UserNotFound,
-                "Expected a UserNotFound but got ${addUserResult.value}",
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "999",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
             )
         }
 
         @Test
-        fun `add user to a non existing group`() {
+        fun `add a user to a non existent group`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Adding a user to a non-existing group
-            val addUserResult = groupService.addUserToGroup(1, user.id.toString(), "999")
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult",
-            )
-            assertTrue(
-                addUserResult.value is ServicesExceptions.Groups.GroupNotFound,
-                "Expected a GroupNotFound but got ${addUserResult.value}",
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "1",
+                groupId = "999",
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
             )
         }
 
         @Test
-        fun `add a user to a group (user already in)`() {
+        fun `add user to a group with an actor that is not the owner`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
             val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
 
-            // When: Adding a user to the group
-            groupService.addUserToGroup(owner.id, user.id.toString(), group.id.toString())
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Adding the user to the group with an invalid actor id
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = user.id,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `add user to a group (user already in)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
 
             // When: Adding the same user to the same group again
-            val addUserResult2 = groupService.addUserToGroup(owner.id, user.id.toString(), group.id.toString())
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult2 is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult2",
-            )
-            assertTrue(
-                addUserResult2.value is ServicesExceptions.Groups.UserAlreadyInGroup,
-                "Expected a UserAlreadyInGroup but got ${addUserResult2.value}",
-            )
-        }
-
-        @Test
-        fun `add a user to a group (actor user is not the owner)`() {
-            // When: given a group service
-            val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
-
-            // When: Adding a user to the group with an invalid actor id
-            val addUserResult2 = groupService.addUserToGroup(user.id, user.id.toString(), group.id.toString())
-
-            // Then: the user addition should fail
-            assertTrue(
-                addUserResult2 is Failure,
-                "User addition should have failed. Expected a failure result but got $addUserResult2",
-            )
-            assertTrue(
-                addUserResult2.value is ServicesExceptions.Groups.GroupNotFound,
-                "Expected a GroupNotFound but got ${addUserResult2.value}",
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.UserAlreadyInGroup::class,
             )
         }
     }
@@ -607,76 +589,102 @@ class GroupsServicesTests {
         fun `remove user from group`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user and a user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
             val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
 
-            // When: Adding a user to the group
-            groupService.addUserToGroup(owner.id, user.id.toString(), group.id.toString())
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
 
             // When: Removing the user from the group
-            val removeUserResult = groupService.removeUserFromGroup(owner.id, user.id.toString(), group.id.toString())
-
-            // Then: the user should be removed from the group successfully
-            assertTrue(
-                removeUserResult is Success,
-                "User removal failed. Expected a success result but got $removeUserResult",
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
             )
 
             // When: Getting the group by id and checking the users
-            val getGroupResult = (groupService.getGroupById(group.id.toString()) as Success).value
-            assertTrue(getGroupResult.users.size == 1, "Expected 1 user in the group but got ${getGroupResult.users.size}")
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                expectedGroup = group.copy(users = listOf(group.ownerId)),
+            )
+        }
+
+        @Test
+        fun `remove user from group with invalid group id (negative)`() {
+            // When: given a group service}
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Removing a user from the group with an invalid group id
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "1",
+                groupId = "-1",
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `remove user from group with invalid group id (not a number)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Removing a user from the group with an invalid group id
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "1",
+                groupId = "invalid_id",
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupId::class,
+            )
+        }
+
+        @Test
+        fun `remove user from group with invalid user id (negative)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Removing a user from the group with an invalid user id
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "-1",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
+            )
         }
 
         @Test
         fun `remove user from group with invalid user id (not a number)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Removing a user from the group with an invalid user id
-            val removeUserResult = groupService.removeUserFromGroup(1, "invalid_id", "1")
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult",
-            )
-            assertTrue(
-                removeUserResult.value is ServicesExceptions.Users.InvalidUserId,
-                "Expected an InvalidUserId exception but got ${removeUserResult.value}",
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "invalid_id",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.InvalidUserId::class,
             )
         }
 
@@ -684,39 +692,15 @@ class GroupsServicesTests {
         fun `remove user from group with invalid user id (null)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Removing a user from the group with an invalid user id
-            val removeUserResult = groupService.removeUserFromGroup(1, null, "1")
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult",
-            )
-            assertTrue(
-                removeUserResult.value is ServicesExceptions.InvalidQueryParam,
-                "Expected an InvalidQueryParam but got ${removeUserResult.value}",
-            )
-        }
-
-        @Test
-        fun `remove user from group with invalid group id`() {
-            // When: given a group service
-            val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-
-            // When: Removing a user from the group with an invalid group id
-            val removeUserResult = groupService.removeUserFromGroup(1, "1", "invalid_id")
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult",
-            )
-            assertTrue(
-                removeUserResult.value is ServicesExceptions.Groups.InvalidGroupId,
-                "Expected an InvalidGroupId but got ${removeUserResult.value}",
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = null,
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
             )
         }
 
@@ -724,103 +708,15 @@ class GroupsServicesTests {
         fun `remove a non existing user from group`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user and a user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
 
             // When: Removing a non-existent user from the group
-            val removeUserResult = groupService.removeUserFromGroup(owner.id, "999", group.id.toString())
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult",
-            )
-            assertTrue(
-                removeUserResult.value is ServicesExceptions.Users.UserNotFound,
-                "Expected a UserNotFound but got ${removeUserResult.value}",
-            )
-        }
-
-        @Test
-        fun `remove already removed user from group`() {
-            // When: given a group service
-            val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
-            val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
-
-            // When: Adding a user to the group
-            groupService.addUserToGroup(owner.id, user.id.toString(), group.id.toString())
-
-            // When: Removing the user from the group
-            groupService.removeUserFromGroup(owner.id, user.id.toString(), group.id.toString())
-
-            // When: Removing the same user from the same group again
-            val removeUserResult2 = groupService.removeUserFromGroup(owner.id, user.id.toString(), group.id.toString())
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult2 is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult2",
-            )
-            assertTrue(
-                removeUserResult2.value is ServicesExceptions.Groups.UserNotInGroup,
-                "Expected a UserNotInGroup but got ${removeUserResult2.value}",
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = 1,
+                userId = "999",
+                groupId = "1",
+                expectedServiceException = ServicesExceptions.Users.UserNotFound::class,
             )
         }
 
@@ -828,62 +724,226 @@ class GroupsServicesTests {
         fun `remove user from group (actor user is not the owner)`() {
             // When: given a group service
             val clock = TestClock()
-            val groupService = servicesUtils.createGroupsServices(clock)
-            val userService = servicesUtils.createUsersServices(clock)
-
-            // When: Creating a owner user
-            val owner =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
-
-            // When: Creating a user
-            val user =
-                (
-                    userService.createUser(
-                        role = servicesUtils.randomUserRole(),
-                        name = servicesUtils.newTestUsername(),
-                        email = servicesUtils.newTestEmail(),
-                    ) as Success
-                ).value
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
 
             // When: Creating a group
-            val groupName = servicesUtils.newTestGroupName()
-            val groupDescription = servicesUtils.newTestGroupDescription()
-
             val group =
-                (
-                    groupService.createGroup(
-                        groupName = groupName,
-                        groupDescription = groupDescription,
-                        ownerId = owner.id,
-                    ) as Success
-                ).value
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
 
-            // When: Adding a user to the group
-            groupService.addUserToGroup(owner.id, user.id.toString(), group.id.toString())
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
 
-            // When: Removing a user from the group with an invalid actor id
-            val removeUserResult2 = groupService.removeUserFromGroup(user.id, user.id.toString(), group.id.toString())
-
-            // Then: the user removal should fail
-            assertTrue(
-                removeUserResult2 is Failure,
-                "User removal should have failed. Expected a failure result but got $removeUserResult2",
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
             )
-            assertTrue(
-                removeUserResult2.value is ServicesExceptions.Groups.GroupNotFound,
-                "Expected a GroupNotFound but got ${removeUserResult2.value}",
+
+            // When: Removing the user from the group with an invalid actor id
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = user.id,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `remove already removed user from group`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
+
+            // When: Removing the user from the group
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
+
+            // When: Removing the same user from the same group again
+            GroupsServicesUtils.removeUserFromGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.UserNotInGroup::class,
             )
         }
     }
 
-    companion object {
-        val servicesUtils = ServicesUtils()
-        private const val TEST_USER_ID = 1
+    @Nested
+    inner class DeleteGroup {
+        @Test
+        fun `delete group`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Deleting the group
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                groupId = group.id.toString(),
+            )
+
+            // When: Getting the group by id and checking if it exists
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `delete group with users`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Adding a user to the group
+            val user = UsersServicesUtils.loginUser(userService)
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
+
+            // When: Deleting the group with users
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                groupId = group.id.toString(),
+            )
+
+            // When: Getting the group by id and checking if it exists
+            GroupsServicesUtils.getGroupById(
+                groupService,
+                group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `delete group with invalid group id`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Deleting a group with an invalid group id
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = 1,
+                groupId = "invalid_id",
+                expectedServiceException = ServicesExceptions.Groups.InvalidGroupId::class,
+            )
+        }
+
+        @Test
+        fun `delete non existing group`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Deleting a non-existent group
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = 1,
+                groupId = "999",
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `delete already deleted group`() {
+            // When: given a group service and user service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Deleting the group
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                groupId = group.id.toString(),
+            )
+
+            // When: Deleting the same group again
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
+
+        @Test
+        fun `delete group (actor user is not the owner)`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Creating a user
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Deleting the group with an invalid actor id
+            GroupsServicesUtils.deleteGroup(
+                groupService,
+                actorUserId = user.id,
+                groupId = group.id.toString(),
+                expectedServiceException = ServicesExceptions.Groups.GroupNotFound::class,
+            )
+        }
     }
 }

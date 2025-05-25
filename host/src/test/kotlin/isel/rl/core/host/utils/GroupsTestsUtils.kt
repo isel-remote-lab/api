@@ -20,12 +20,12 @@ import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.days
 
 object GroupsTestsUtils {
-    const val ID_PROP = "id"
-    const val GROUP_NAME_PROP = "groupName"
-    const val GROUP_DESCRIPTION_PROP = "groupDescription"
-    const val CREATED_AT_PROP = "createdAt"
-    const val OWNER_ID_PROP = "ownerId"
-    const val USERS_PROP = "users"
+    private const val ID_PROP = "id"
+    private const val GROUP_NAME_PROP = "groupName"
+    private const val GROUP_DESCRIPTION_PROP = "groupDescription"
+    private const val CREATED_AT_PROP = "createdAt"
+    private const val OWNER_ID_PROP = "ownerId"
+    private const val USERS_PROP = "users"
 
     data class InitialGroup(
         val id: Int = 0,
@@ -57,9 +57,22 @@ object GroupsTestsUtils {
 
     fun createGroup(
         testClient: WebTestClient,
-        initialGroup: InitialGroup,
-        authToken: String = "",
+        initialGroup: InitialGroup = InitialGroup(),
+        authToken: String,
+        expectedProblem: Problem? = null,
     ): InitialGroup {
+        if (expectedProblem != null) {
+            testClient.post()
+                .uri(Uris.Groups.CREATE)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .bodyValue(InitialGroup.createBodyValue(initialGroup))
+                .exchange()
+                .expectStatus().isBadRequest
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return initialGroup
+        }
+
         val response =
             testClient.post()
                 .uri(Uris.Groups.CREATE)
@@ -84,22 +97,6 @@ object GroupsTestsUtils {
             createdAt = Instant.parse(group[CREATED_AT_PROP] as String),
             ownerId = group[OWNER_ID_PROP] as Int,
         )
-    }
-
-    fun createInvalidGroup(
-        testClient: WebTestClient,
-        initialGroup: InitialGroup,
-        authToken: String,
-        expectedProblem: Problem,
-    ) {
-        testClient.post()
-            .uri(Uris.Groups.CREATE)
-            .header(AUTH_HEADER_NAME, "Bearer $authToken")
-            .bodyValue(InitialGroup.createBodyValue(initialGroup))
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody<Problem>()
-            .consumeWith { assertProblem(expectedProblem, it) }
     }
 
     fun getGroupById(
@@ -134,7 +131,7 @@ object GroupsTestsUtils {
         }
     }
 
-    fun getGroupByInvalidId(
+    fun getGroupById(
         testClient: WebTestClient,
         authToken: String,
         groupId: String,
@@ -153,8 +150,8 @@ object GroupsTestsUtils {
     fun getUserGroups(
         testClient: WebTestClient,
         authToken: String,
-        expectedGroups: List<InitialGroup>,
         targetUserId: Int = -1,
+        expectedGroups: List<InitialGroup>,
     ) {
         val response =
             testClient.get()
@@ -185,7 +182,7 @@ object GroupsTestsUtils {
         }
     }
 
-    fun getInvalidUserGroups(
+    fun getUserGroups(
         testClient: WebTestClient,
         authToken: String,
         targetUserId: Int = -1,
@@ -230,7 +227,7 @@ object GroupsTestsUtils {
         getBodyDataFromResponse<String?>(response, "User added to group successfully", true)
     }
 
-    fun addInvalidUserToGroup(
+    fun addUserToGroup(
         testClient: WebTestClient,
         authToken: String,
         groupId: String,
@@ -280,39 +277,74 @@ object GroupsTestsUtils {
         getBodyDataFromResponse<String?>(response, "User removed from group successfully", true)
     }
 
-    private const val REQUIRED_GROUP_NAME_MSG =
-        "Group name is required"
+    fun removeUserFromGroup(
+        testClient: WebTestClient,
+        authToken: String,
+        groupId: String,
+        userId: String?,
+        expectedProblem: Problem,
+        expectedStatus: HttpStatus = HttpStatus.BAD_REQUEST,
+    ) {
+        testClient.delete()
+            .uri { builder ->
+                val path =
+                    builder
+                        .path(Uris.Groups.REMOVE_USER_FROM_GROUP)
+
+                if (userId != null) {
+                    path.queryParam("userId", userId)
+                }
+
+                path.build(groupId)
+            }
+            .header(AUTH_HEADER_NAME, "Bearer $authToken")
+            .exchange()
+            .expectStatus().isEqualTo(expectedStatus)
+            .expectBody<Problem>()
+            .consumeWith { assertProblem(expectedProblem, it) }
+    }
+
+    fun deleteGroup(
+        testClient: WebTestClient,
+        authToken: String,
+        groupId: String,
+        expectedProblem: Problem? = null,
+        expectedStatus: HttpStatus = HttpStatus.OK,
+    ) {
+        if (expectedProblem != null) {
+            testClient.delete()
+                .uri(Uris.Groups.DELETE, groupId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus)
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return
+        }
+
+        val response =
+            testClient.delete()
+                .uri(Uris.Groups.DELETE, groupId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus)
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        getBodyDataFromResponse<String?>(response, "Group deleted successfully", true)
+    }
 
     val expectedRequiredGroupNameProblem =
-        Problem.invalidGroupName(
-            REQUIRED_GROUP_NAME_MSG,
-        )
+        Problem.invalidGroupName(HttpUtils.groupsDomain.groupNameRequiredMsg)
 
-    private val INVALID_GROUP_NAME_MSG =
-        "Group name must be between ${domainConfigs.group.groupName.min} and " +
-            "${domainConfigs.group.groupName.max} characters"
-
-    val expectedInvalidGroupNameProblem =
-        Problem.invalidGroupName(
-            INVALID_GROUP_NAME_MSG,
-        )
-
-    private val INVALID_GROUP_DESCRIPTION_MSG =
-        "Group description must be between ${domainConfigs.group.groupDescription.min} and " +
-            "${domainConfigs.group.groupDescription.max} characters"
-
-    val expectedInvalidGroupDescriptionProblem =
-        Problem.invalidGroupDescription(
-            INVALID_GROUP_DESCRIPTION_MSG,
-        )
-
-    private const val REQUIRED_GROUP_DESCRIPTION_MSG =
-        "Group description is required"
+    val expectedInvalidGroupNameLengthProblem =
+        Problem.invalidGroupName(HttpUtils.groupsDomain.invalidGroupNameLengthMsg)
 
     val expectedRequiredGroupDescriptionProblem =
-        Problem.invalidGroupDescription(
-            REQUIRED_GROUP_DESCRIPTION_MSG,
-        )
+        Problem.invalidGroupDescription(HttpUtils.groupsDomain.groupDescriptionRequiredMsg)
+
+    val expectedInvalidGroupDescriptionLengthProblem =
+        Problem.invalidGroupDescription(HttpUtils.groupsDomain.invalidGroupDescriptionLengthMsg)
 
     private const val INVALID_USER_ID_QUERY_PARAM =
         "UserId cannot be null"

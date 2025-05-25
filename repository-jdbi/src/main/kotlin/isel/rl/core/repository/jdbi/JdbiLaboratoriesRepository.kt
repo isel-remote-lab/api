@@ -191,7 +191,7 @@ data class JdbiLaboratoriesRepository(
                 """
             SELECT EXISTS(
                 SELECT 1 FROM rl.group_laboratory AS gl
-                JOIN rl.group_user AS gu ON gl.group_id = gu.group_id
+                JOIN rl.user_group AS gu ON gl.group_id = gu.group_id
                 WHERE gl.lab_id = :lab_id AND gu.user_id = :user_id
             )
         """,

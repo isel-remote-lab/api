@@ -30,7 +30,7 @@ class GroupsController(
         user: AuthenticatedUser,
         @RequestBody input: GroupCreateInputModel,
     ): ResponseEntity<*> =
-        when (val result = groupsService.createGroup(input.groupName, input.groupDescription, user.user.id)) {
+        when (val result = groupsService.createGroup(input.groupName, input.groupDescription, user.user)) {
             is Success ->
                 ResponseEntity.status(HttpStatus.CREATED).body(
                     SuccessResponse(
@@ -90,7 +90,6 @@ class GroupsController(
                 ResponseEntity.ok(
                     SuccessResponse(
                         message = "User added to group successfully",
-                        data = null,
                     ),
                 )
 
@@ -109,7 +108,23 @@ class GroupsController(
                 ResponseEntity.ok(
                     SuccessResponse(
                         message = "User removed from group successfully",
-                        data = null,
+                    ),
+                )
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
+
+    @DeleteMapping(Uris.Groups.DELETE)
+    fun deleteGroup(
+        user: AuthenticatedUser,
+        // Group Id
+        @PathVariable id: String,
+    ): ResponseEntity<*> =
+        when (val result = groupsService.deleteGroup(user.user.id, id)) {
+            is Success ->
+                ResponseEntity.ok(
+                    SuccessResponse(
+                        message = "Group deleted successfully",
                     ),
                 )
 

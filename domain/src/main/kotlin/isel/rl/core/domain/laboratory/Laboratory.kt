@@ -1,5 +1,6 @@
 package isel.rl.core.domain.laboratory
 
+import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
@@ -14,6 +15,7 @@ data class Laboratory(
     val labQueueLimit: LabQueueLimit,
     val createdAt: Instant,
     val ownerId: Int,
+    val groups: List<Group> = emptyList(),
 ) {
     companion object {
         const val ID_PROP = "id"
