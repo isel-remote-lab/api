@@ -1,13 +1,36 @@
-FROM openjdk:21
+# Stage 1: Build
+FROM gradle:8.7-jdk21 AS builder
+
+WORKDIR /app
+
+# Copy Gradle config files first
+COPY build.gradle.kts settings.gradle /app/
+COPY gradle /app/gradle
+
+# Download the dependencies (uses cache if nothing has changed)
+RUN gradle dependencies --no-daemon --info
+
+# Copy the rest of the code
+COPY . /app
+
+# Build the Uber JAR (host module)
+RUN gradle :host:extractUberJar --no-daemon --info
+
+# Stage 2: Runner
+FROM openjdk:21-jdk-slim AS runner
+
 ARG DEPENDENCY=host/build/dependency
-# first layer with the external libs (i.e. the files that change the least).
-COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
 
-# second layer with the 'META-INF' contents.
-COPY ${DEPENDENCY}/META-INF /app/META-INF
+WORKDIR /app
 
-# last layer with the application JARs (i.e. the files that change the most).
-COPY ${DEPENDENCY}/BOOT-INF/classes /app
+# First layer: external libs (change the least)
+COPY --from=builder /app/${DEPENDENCY}/BOOT-INF/lib /app/lib
 
-# the entry point
-ENTRYPOINT ["java","-cp","app:app/lib/*","isel.rl.core.host.RemoteLabAppKt"]
+# Second layer: META-INF contents
+COPY --from=builder /app/${DEPENDENCY}/META-INF /app/META-INF
+
+# Last layer: application classes (change the most)
+COPY --from=builder /app/${DEPENDENCY}/BOOT-INF/classes /app
+
+# Entrypoint
+ENTRYPOINT ["java", "-cp", ".:lib/*", "isel.rl.core.host.RemoteLabAppKt"]
