@@ -4,10 +4,13 @@ object Uris {
     /**
      * Prefix of the URI
      */
-    private const val PREFIX = "/api/v1"
+    private const val API_PREFIX = "/api"
+    private const val API_VERSION = "v1"
+    private const val PREFIX = "$API_PREFIX/$API_VERSION"
+    private const val PREFIX_PRIVATE = "/api/v1/_private"
 
     object Auth {
-        private const val BASE = "$PREFIX/auth"
+        private const val BASE = "$PREFIX_PRIVATE/auth"
 
         /**
          * URI for login
@@ -108,11 +111,9 @@ object Uris {
     }
 
     object Private {
-        private const val BASE = "$PREFIX/_private"
-
         /**
          * URI for getting the domain configuration
          */
-        const val GET_DOMAIN = "$BASE/domain"
+        const val GET_DOMAIN = "$PREFIX_PRIVATE/domain"
     }
 }
