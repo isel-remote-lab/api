@@ -62,6 +62,9 @@ class RemoteLabApp {
         )
 
     @Bean
+    fun domainConfig(): DomainConfig = domainConfigs
+
+    @Bean
     fun usersDomainConfig(): UsersDomainConfig {
         val usersConfig = domainConfigs.user
         val tokenTtlDurationUnit = DurationUnit.valueOf(usersConfig.tokenTtlDurationUnit)

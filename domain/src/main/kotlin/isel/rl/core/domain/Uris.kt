@@ -106,4 +106,13 @@ object Uris {
          */
         const val DELETE = "$BASE/{id}"
     }
+
+    object Private {
+        private const val BASE = "$PREFIX/_private"
+
+        /**
+         * URI for getting the domain configuration
+         */
+        const val GET_DOMAIN = "$BASE/domain"
+    }
 }
