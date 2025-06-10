@@ -74,6 +74,21 @@ object Uris {
          * URI for getting all laboratories
          */
         const val GET_ALL = BASE
+
+        /**
+         * URI for getting all groups of a laboratory
+         */
+        const val GET_LABORATORY_GROUPS = "$BASE/{id}/groups"
+
+        /**
+         * URI for updating the laboratory groups
+         */
+        const val ADD_GROUP_TO_LABORATORY = "$BASE/{id}/groups"
+
+        /**
+         * URI for removing a group from a laboratory
+         */
+        const val REMOVE_GROUP_FROM_LABORATORY = "$BASE/{id}/groups"
     }
 
     object Groups {

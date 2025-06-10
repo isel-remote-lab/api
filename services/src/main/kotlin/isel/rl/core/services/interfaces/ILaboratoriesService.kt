@@ -1,6 +1,7 @@
 package isel.rl.core.services.interfaces
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
+import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
@@ -22,6 +23,8 @@ typealias GetLaboratoryResult = Either<ServicesExceptions, Laboratory>
  * It can either be a success with no value or a failure with an exception.
  */
 typealias UpdateLaboratoryResult = Either<ServicesExceptions, Unit>
+
+typealias GetLaboratoryGroupsResult = Either<ServicesExceptions, List<Group>>
 
 typealias AddGroupToLaboratoryResult = Either<ServicesExceptions, Unit>
 
@@ -90,6 +93,12 @@ interface ILaboratoriesService {
         labQueueLimit: Int? = null,
         ownerId: Int,
     ): UpdateLaboratoryResult
+
+    fun getLaboratoryGroups(
+        labId: String,
+        limit: String? = null,
+        skip: String? = null,
+    ): GetLaboratoryGroupsResult
 
     fun addGroupToLaboratory(
         labId: String,

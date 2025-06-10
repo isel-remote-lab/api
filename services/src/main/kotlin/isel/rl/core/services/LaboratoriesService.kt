@@ -9,6 +9,7 @@ import isel.rl.core.services.interfaces.AddGroupToLaboratoryResult
 import isel.rl.core.services.interfaces.CreateLaboratoryResult
 import isel.rl.core.services.interfaces.DeleteLaboratoryResult
 import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
+import isel.rl.core.services.interfaces.GetLaboratoryGroupsResult
 import isel.rl.core.services.interfaces.GetLaboratoryResult
 import isel.rl.core.services.interfaces.ILaboratoriesService
 import isel.rl.core.services.interfaces.RemoveGroupFromLaboratoryResult
@@ -77,18 +78,7 @@ data class LaboratoriesService(
 
                 laboratoriesRepo.getLaboratoryById(validatedLabId)?.takeIf {
                     laboratoriesRepo.checkIfUserBelongsToLaboratory(validatedLabId, userId)
-                }?.let { lab ->
-                    // Get the groups associated with the laboratory
-                    val groups =
-                        it.laboratoriesRepository.getLaboratoryGroups(lab.id).map { groupId ->
-                            it.groupsRepository.getGroupById(groupId)!!
-                        }
-                    success(
-                        lab.copy(
-                            groups = groups,
-                        ),
-                    )
-                }
+                }?.let { lab -> success(lab) }
                     ?: failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
             }
         }.getOrElse { e ->
@@ -131,6 +121,34 @@ data class LaboratoriesService(
                             validatedLabQueueLimit,
                         )
                     if (updated) success(Unit) else failure(ServicesExceptions.UnexpectedError)
+                }
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
+
+    override fun getLaboratoryGroups(
+        labId: String,
+        limit: String?,
+        skip: String?,
+    ): GetLaboratoryGroupsResult =
+        runCatching {
+            val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+            val limitAndSkip = verifyQuery(limit, skip)
+
+            transactionManager.run {
+                val labRepo = it.laboratoriesRepository
+                val groupRepo = it.groupsRepository
+
+                if (!labRepo.checkIfLaboratoryExists(validatedLabId)) {
+                    failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                } else {
+                    // Get the groups associated with the laboratory
+                    val groups =
+                        labRepo.getLaboratoryGroups(validatedLabId, limitAndSkip).map { groupId ->
+                            groupRepo.getGroupById(groupId)!!
+                        }
+                    success(groups)
                 }
             }
         }.getOrElse { e ->
@@ -224,10 +242,17 @@ data class LaboratoriesService(
 
                 if (!repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
                     failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                } else if (repo.deleteLaboratory(validatedLabId)) {
-                    success(Unit)
                 } else {
-                    failure(ServicesExceptions.UnexpectedError)
+                    // Remove all groups associated with the laboratory before deleting it
+                    repo.getLaboratoryGroups(validatedLabId).forEach { groupId ->
+                        repo.removeGroupFromLaboratory(validatedLabId, groupId)
+                    }
+
+                    if (repo.deleteLaboratory(validatedLabId)) {
+                        success(Unit)
+                    } else {
+                        failure(ServicesExceptions.UnexpectedError)
+                    }
                 }
             }
         }.getOrElse { e ->

@@ -4,6 +4,8 @@ import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.host.utils.GroupsTestsUtils
 import isel.rl.core.host.utils.HttpUtils
 import isel.rl.core.host.utils.LabsTestsUtils
 import isel.rl.core.host.utils.UsersTestsUtils
@@ -30,12 +32,24 @@ class LaboratoriesTests {
     @Nested
     inner class CreateLaboratory {
         @Test
-        fun `create laboratory`() {
+        fun `create laboratory with teacher user`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            LabsTestsUtils.createLab(testClient = testClient, authToken = user.authToken)
+        }
+
+        @Test
+        fun `create laboratory with admin user`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient, Role.ADMIN)
 
             // when: creating a laboratory
             LabsTestsUtils.createLab(testClient = testClient, authToken = user.authToken)
@@ -89,7 +103,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -111,7 +125,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -133,7 +147,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -155,7 +169,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -177,7 +191,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -202,7 +216,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -227,7 +241,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -249,7 +263,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             val invalidLaboratory =
                 LabsTestsUtils.InitialLab(
@@ -269,12 +283,12 @@ class LaboratoriesTests {
     @Nested
     inner class LabRetrieval {
         @Test
-        fun `get laboratory by id (empty groups)`() {
+        fun `get laboratory by id`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -282,30 +296,6 @@ class LaboratoriesTests {
             // when: retrieving the laboratory by id
             LabsTestsUtils.getLabById(testClient, user.authToken, lab)
         }
-
-        /*
-        @Test
-        fun `get laboratory by id (with groups)`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
-
-            // when: creating a group
-            GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
-
-            // when: creating a laboratory
-            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
-
-            // when: adding the group to the laboratory
-
-
-            // when: retrieving the laboratory by id
-            LabsTestsUtils.getLabById(testClient, user.authToken, lab)
-        }
-
-         */
 
         @Test
         fun `get laboratory by invalid id`() {
@@ -349,7 +339,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -387,7 +377,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -412,8 +402,8 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory and other user
-            val user = UsersTestsUtils.createTestUser(testClient)
-            val user2 = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
+            val user2 = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -437,7 +427,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -466,7 +456,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -495,7 +485,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -524,7 +514,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -553,7 +543,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -581,7 +571,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -609,7 +599,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -637,7 +627,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -665,7 +655,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -694,7 +684,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -723,7 +713,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -752,7 +742,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -781,7 +771,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -813,7 +803,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -845,7 +835,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -874,7 +864,7 @@ class LaboratoriesTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating a laboratory
             val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
@@ -895,6 +885,225 @@ class LaboratoriesTests {
                 updateLab,
                 LabsTestsUtils.expectedInvalidLabQueueLimitProblem,
             )
+        }
+    }
+
+    @Nested
+    inner class LaboratoryDeletion {
+        @Test
+        fun `delete laboratory`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: deleting the laboratory
+            LabsTestsUtils.deleteLab(testClient, user.authToken, lab.id.toString())
+
+            // when: retrieving the laboratory by id and verify it does not exist
+            LabsTestsUtils.getLabById(
+                testClient,
+                user.authToken,
+                lab.id.toString(),
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `delete laboratory not owned`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory and other user
+            val user = UsersTestsUtils.createUser(testClient)
+            val user2 = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: deleting the laboratory with another user
+            LabsTestsUtils.deleteLab(
+                testClient,
+                user2.authToken,
+                lab.id.toString(),
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `delete non existent laboratory`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: deleting the non existent laboratory
+            LabsTestsUtils.deleteLab(
+                testClient,
+                user.authToken,
+                "999999",
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+    }
+
+    @Nested
+    inner class AddGroupToLaboratory {
+        @Test
+        fun `add group to laboratory`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory
+            LabsTestsUtils.addGroupToLaboratory(testClient, user.authToken, lab.id, group.id)
+        }
+
+        /*
+        @Test
+        fun `add group to laboratory not owned`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory and other user
+            val user = UsersTestsUtils.createUser(testClient)
+            val user2 = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory with another user
+            LabsTestsUtils.addGroupToLab(
+                testClient,
+                user2.authToken,
+                lab.id,
+                group.id,
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+        @Test
+        fun `add group to laboratory with invalid labId`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory with an invalid labId
+            LabsTestsUtils.addGroupToLab(
+                testClient,
+                user.authToken,
+                "invalid_id",
+                group.id,
+                LabsTestsUtils.expectedInvalidLaboratoryIdProblem,
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+         */
+    }
+
+    @Nested
+    inner class RemoveGroupFromLaboratory {
+        @Test
+        fun `remove group from laboratory`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory
+            LabsTestsUtils.addGroupToLaboratory(testClient, user.authToken, lab.id, group.id)
+
+            // when: removing the group from the laboratory
+            LabsTestsUtils.removeGroupFromLaboratory(testClient, user.authToken, lab.id, group.id)
+        }
+
+        /*
+        @Test
+        fun `remove group from laboratory not owned`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory and other user
+            val user = UsersTestsUtils.createUser(testClient)
+            val user2 = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory
+            LabsTestsUtils.addGroupToLab(testClient, user.authToken, lab.id, group.id)
+
+            // when: removing the group from the laboratory with another user
+            LabsTestsUtils.removeGroupFromLab(
+                testClient,
+                user2.authToken,
+                lab.id,
+                group.id,
+                Problem.laboratoryNotFound,
+                HttpStatus.NOT_FOUND,
+            )
+        }
+
+         */
+    }
+
+    @Nested
+    inner class GetLaboratoriesGroups {
+        @Test
+        fun `get laboratory groups`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            val lab = LabsTestsUtils.createLab(testClient, authToken = user.authToken)
+
+            // when: creating a group
+            val group = GroupsTestsUtils.createGroup(testClient, authToken = user.authToken)
+
+            // when: adding the group to the laboratory
+            LabsTestsUtils.addGroupToLaboratory(testClient, user.authToken, lab.id, group.id)
+
+            // when: retrieving the groups of the laboratory
+            LabsTestsUtils.getLaboratoryGroups(testClient, user.authToken, lab.id, listOf(group))
         }
     }
 }

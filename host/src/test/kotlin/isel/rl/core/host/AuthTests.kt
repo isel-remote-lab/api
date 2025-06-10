@@ -51,7 +51,7 @@ class AuthTests {
     companion object {
         private fun WebTestClient.createLabWithAuthToken() {
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(this)
+            val user = UsersTestsUtils.createUser(this)
 
             val initialLab = LabsTestsUtils.InitialLab()
 
@@ -69,7 +69,7 @@ class AuthTests {
 
         private fun WebTestClient.createLabWithCookie() {
             // when: creating a user to be the owner of the laboratory
-            val user = UsersTestsUtils.createTestUser(this)
+            val user = UsersTestsUtils.createUser(this)
 
             val initialLab = LabsTestsUtils.InitialLab()
 

@@ -5,7 +5,6 @@ import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.domain.UsersDomain
-import isel.rl.core.domain.user.props.Role
 import isel.rl.core.repository.TransactionManager
 import isel.rl.core.services.interfaces.AddUserToGroupResult
 import isel.rl.core.services.interfaces.CreateGroupResult
@@ -34,11 +33,6 @@ class GroupsService(
         owner: User,
     ): CreateGroupResult =
         runCatching {
-            // Check if the user is an admin or teacher
-            if (owner.role != Role.ADMIN && owner.role != Role.TEACHER) {
-                failure(ServicesExceptions.Forbidden("User is not allowed to create groups"))
-            }
-
             val group = groupsDomain.validateCreateGroup(groupName, groupDescription, clock.now(), owner.id)
 
             transactionManager.run {

@@ -9,6 +9,7 @@ import isel.rl.core.domain.user.token.Sha256TokenEncoder
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
 import isel.rl.core.http.pipeline.interceptors.AuthenticationInterceptor
+import isel.rl.core.http.pipeline.interceptors.CheckRoleInterceptor
 import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
@@ -118,11 +119,13 @@ class RemoteLabApp {
 class PipelineConfigurer(
     val apiKeyInterceptor: ApiKeyInterceptor,
     val authenticationInterceptor: AuthenticationInterceptor,
+    val checkRoleInterceptor: CheckRoleInterceptor,
     val authenticatedUserArgumentResolver: AuthenticatedUserArgumentResolver,
 ) : WebMvcConfigurer {
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(apiKeyInterceptor)
         registry.addInterceptor(authenticationInterceptor)
+        registry.addInterceptor(checkRoleInterceptor)
     }
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {

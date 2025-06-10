@@ -212,27 +212,6 @@ class UsersServicesTests {
         }
 
         @Test
-        fun `update user role (not enough permissions)`() {
-            // given: a user service
-            val clock = TestClock()
-            val usersService = UsersServicesUtils.createUsersServices(clock)
-
-            // when: creating the actor user with a non-admin role
-            val actorUser = UsersServicesUtils.loginUser(usersService, UsersServicesUtils.InitialUser(role = Role.STUDENT.char))
-
-            // when: creating a target user
-            val targetUser = UsersServicesUtils.loginUser(usersService)
-
-            // when: updating the target user role
-            UsersServicesUtils.updateUserRole(
-                usersService,
-                actorUser = actorUser,
-                targetUserId = targetUser.id.toString(),
-                expectedServiceException = ServicesExceptions.Forbidden::class,
-            )
-        }
-
-        @Test
         fun `update user role (null role)`() {
             // given: a user service
             val clock = TestClock()

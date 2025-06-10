@@ -1,6 +1,8 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.group.GroupCreateInputModel
 import isel.rl.core.http.model.group.GroupOutputModel
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 class GroupsController(
     private val groupsService: IGroupsService,
 ) {
+    @RequireRole(Role.TEACHER)
     @PostMapping(Uris.Groups.CREATE)
     fun createGroup(
         user: AuthenticatedUser,
@@ -42,6 +45,7 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.TEACHER)
     @GetMapping(Uris.Groups.GET_BY_ID)
     fun getById(
         user: AuthenticatedUser,
@@ -59,6 +63,7 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.TEACHER)
     @GetMapping(Uris.Groups.GET_USER_GROUPS)
     fun getUserGroups(
         user: AuthenticatedUser,
@@ -78,6 +83,7 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.TEACHER)
     @PatchMapping(Uris.Groups.ADD_USER_TO_GROUP)
     fun addUserToGroup(
         user: AuthenticatedUser,
@@ -96,6 +102,7 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.TEACHER)
     @DeleteMapping(Uris.Groups.REMOVE_USER_FROM_GROUP)
     fun removeUserFromGroup(
         user: AuthenticatedUser,
@@ -114,6 +121,7 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.TEACHER)
     @DeleteMapping(Uris.Groups.DELETE)
     fun deleteGroup(
         user: AuthenticatedUser,

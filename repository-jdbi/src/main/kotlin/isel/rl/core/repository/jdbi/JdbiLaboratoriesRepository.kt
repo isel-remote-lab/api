@@ -203,16 +203,34 @@ data class JdbiLaboratoriesRepository(
         }
     }
 
-    override fun getLaboratoryGroups(labId: Int): List<Int> =
-        handle.createQuery(
-            """
+    override fun getLaboratoryGroups(
+        labId: Int,
+        limitAndSkip: LimitAndSkip?,
+    ): List<Int> {
+        val query =
+            StringBuilder(
+                """
             SELECT group_id FROM rl.group_laboratory 
             WHERE lab_id = :lab_id
         """,
-        )
-            .bind("lab_id", labId)
-            .mapTo<Int>()
+            )
+
+        limitAndSkip?.let {
+            query.append(" LIMIT :limit OFFSET :skip")
+        }
+
+        val queryHandle =
+            handle.createQuery(query.toString())
+                .bind("lab_id", labId)
+
+        limitAndSkip?.let {
+            queryHandle.bind("limit", it.limit)
+                .bind("skip", it.skip)
+        }
+
+        return queryHandle.mapTo<Int>()
             .list()
+    }
 
     override fun addHardwareToLaboratory(
         labId: Int,

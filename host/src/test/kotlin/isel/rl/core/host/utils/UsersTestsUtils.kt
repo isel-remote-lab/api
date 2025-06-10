@@ -55,8 +55,11 @@ object UsersTestsUtils {
 
     fun randomUserRole() = Role.entries.random()
 
-    fun createTeacher(testClient: WebTestClient): InitialUser {
-        val initialUser = InitialUser(role = Role.TEACHER)
+    fun createUser(
+        testClient: WebTestClient,
+        role: Role = Role.TEACHER,
+    ): InitialUser {
+        val initialUser = InitialUser(role = role)
         createDBUser(initialUser.name.nameInfo, initialUser.email.emailInfo, initialUser.role.char)
 
         val response =
@@ -76,7 +79,7 @@ object UsersTestsUtils {
 
         return InitialUser(
             id = user[ID_PROP] as Int,
-            role = Role.TEACHER,
+            role = role,
             name = Name(user[NAME_PROP] as String),
             email = Email(user[EMAIL_PROP] as String),
             createdAt = Instant.parse(user[CREATED_AT_PROP] as String),

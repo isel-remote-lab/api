@@ -124,7 +124,6 @@ object LabsTestsUtils {
         testClient: WebTestClient,
         authToken: String,
         expectedLab: InitialLab,
-        expectedGroups: List<GroupsTestsUtils.InitialGroup> = emptyList(),
     ) {
         val response =
             testClient.get()
@@ -137,19 +136,6 @@ object LabsTestsUtils {
 
         val lab = getBodyDataFromResponse<Map<*, *>>(response, "Laboratory found with the id ${expectedLab.id}")
         assertLab(expectedLab, lab)
-
-        assertEquals(
-            expectedGroups.size,
-            (lab["groups"] as List<*>).size,
-            "Number of groups mismatch",
-        )
-
-        (lab[GROUPS_PROP] as List<*>).forEach { group ->
-            val groupMap = group as Map<*, *>
-            val expectedGroup = expectedGroups.find { it.id == groupMap[ID_PROP] }
-            assertNotNull(expectedGroup)
-            GroupsTestsUtils.assertGroup(expectedGroup, groupMap)
-        }
     }
 
     fun getLabById(
@@ -257,6 +243,111 @@ object LabsTestsUtils {
                     .expectBody<Problem>()
                     .consumeWith { assertProblem(expectedProblem, it) }
             }
+    }
+
+    fun deleteLab(
+        testClient: WebTestClient,
+        authToken: String,
+        labId: String,
+        expectedProblem: Problem? = null,
+        expectedStatus: HttpStatus = HttpStatus.BAD_REQUEST,
+    ) {
+        if (expectedProblem != null) {
+            testClient
+                .delete()
+                .uri(Uris.Laboratories.DELETE, labId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus)
+                .expectBody<Problem>()
+                .consumeWith { assertProblem(expectedProblem, it) }
+            return
+        }
+        val response =
+            testClient
+                .delete()
+                .uri(Uris.Laboratories.DELETE, labId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        getBodyDataFromResponse<String?>(response, "Laboratory deleted successfully", true)
+    }
+
+    fun getLaboratoryGroups(
+        testClient: WebTestClient,
+        authToken: String,
+        labId: Int,
+        expectedGroups: List<GroupsTestsUtils.InitialGroup> = emptyList(),
+    ) {
+        val response =
+            testClient
+                .get()
+                .uri(Uris.Laboratories.GET_LABORATORY_GROUPS, labId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        val groups = getBodyDataFromResponse<List<Map<*, *>>>(response, "Laboratory groups retrieved successfully")
+
+        groups.forEach { group ->
+            val groupId = group[ID_PROP] as Int
+            assert(expectedGroups.any { expectedGroup -> expectedGroup.id == groupId }) {
+                "Group with id $groupId not found in expected groups"
+            }
+        }
+    }
+
+    fun addGroupToLaboratory(
+        testClient: WebTestClient,
+        authToken: String,
+        labId: Int,
+        groupId: Int,
+    ) {
+        val response =
+            testClient
+                .patch()
+                .uri { builder ->
+                    builder
+                        .path(Uris.Laboratories.ADD_GROUP_TO_LABORATORY)
+                        .queryParam("groupId", groupId)
+                        .build(labId.toString())
+                }
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        getBodyDataFromResponse<String?>(response, "Group added to laboratory successfully", true)
+    }
+
+    fun removeGroupFromLaboratory(
+        testClient: WebTestClient,
+        authToken: String,
+        labId: Int,
+        groupId: Int,
+    ) {
+        val response =
+            testClient
+                .delete()
+                .uri { builder ->
+                    builder
+                        .path(Uris.Laboratories.REMOVE_GROUP_FROM_LABORATORY)
+                        .queryParam("groupId", groupId)
+                        .build(labId.toString())
+                }
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        getBodyDataFromResponse<String?>(response, "Group removed from laboratory successfully", true)
     }
 
     private val INVALID_LAB_NAME_MSG =

@@ -68,13 +68,7 @@ data class UsersService(
                 usersRepository.getUserById(validatedTargetUserId)
                     ?: return@run failure(ServicesExceptions.Users.UserNotFound)
 
-                if (actorUserId.role != Role.ADMIN) { // Check if the actor is an Admin
-                    failure(
-                        ServicesExceptions.Forbidden(
-                            "Permission denied. Insufficient privileges to update user role.",
-                        ),
-                    )
-                } else if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
+                if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
                     success(Unit)
                 } else {
                     failure(ServicesExceptions.Users.ErrorWhenUpdatingUser)

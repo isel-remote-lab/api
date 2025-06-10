@@ -48,7 +48,10 @@ interface LaboratoriesRepository {
         userId: Int,
     ): Boolean
 
-    fun getLaboratoryGroups(labId: Int): List<Int>
+    fun getLaboratoryGroups(
+        labId: Int,
+        limitAndSkip: LimitAndSkip? = null,
+    ): List<Int>
 
     fun addHardwareToLaboratory(
         labId: Int,

@@ -1,6 +1,8 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
+import isel.rl.core.domain.user.props.Role
+import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.model.user.UpdateUserRoleInputModel
@@ -58,6 +60,7 @@ data class UsersController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @RequireRole(Role.ADMIN)
     @PatchMapping(Uris.Users.UPDATE_USER_ROLE)
     fun updateUserRole(
         user: AuthenticatedUser,

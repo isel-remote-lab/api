@@ -2,6 +2,7 @@ package isel.rl.core.host
 
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.domain.user.props.Role
 import isel.rl.core.host.utils.GroupsTestsUtils
 import isel.rl.core.host.utils.GroupsTestsUtils.expectedRequiredGroupDescriptionProblem
 import isel.rl.core.host.utils.HttpUtils
@@ -28,12 +29,12 @@ class GroupsTests {
     @Nested
     inner class GroupCreation {
         @Test
-        fun `create group`() {
+        fun `create group with teacher user`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             GroupsTestsUtils.createGroup(
@@ -44,12 +45,47 @@ class GroupsTests {
         }
 
         @Test
+        fun `create group with admin user`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating an admin
+            val user = UsersTestsUtils.createUser(testClient, Role.ADMIN)
+
+            // then: creating a group
+            GroupsTestsUtils.createGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(),
+                user.authToken,
+            )
+        }
+
+        /*
+        @Test
+        fun `create group with student user`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a student
+            val user = UsersTestsUtils.createTestUser(testClient, UsersTestsUtils.InitialUser(role = Role.STUDENT))
+
+            // then: creating a group
+            GroupsTestsUtils.createGroup(
+                testClient,
+                GroupsTestsUtils.InitialGroup(),
+                user.authToken,
+                Problem.forbidden(""),
+                HttpStatus.FORBIDDEN,
+            )
+        } */
+
+        @Test
         fun `create group with invalid name (blank)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid name (min)
             GroupsTestsUtils.createGroup(
@@ -66,7 +102,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid name (min)
             GroupsTestsUtils.createGroup(
@@ -83,7 +119,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid name (max)
             GroupsTestsUtils.createGroup(
@@ -103,7 +139,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid description
             if (HttpUtils.domainConfigs.group.groupDescription.optional) {
@@ -128,7 +164,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid description (min)
             GroupsTestsUtils.createGroup(
@@ -145,7 +181,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid description (max)
             GroupsTestsUtils.createGroup(
@@ -165,7 +201,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -190,7 +226,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: getting the group by id with invalid id
             GroupsTestsUtils.getGroupById(
@@ -208,7 +244,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: getting the group by id with not found id
             GroupsTestsUtils.getGroupById(
@@ -225,7 +261,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -249,7 +285,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: getting the user groups with not found id
             GroupsTestsUtils.getUserGroups(
@@ -269,7 +305,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -305,7 +341,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val groupId = "1" // Does not matter in this test case
 
             GroupsTestsUtils.addUserToGroup(
@@ -323,7 +359,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val userId = "1" // Does not matter in this test case
 
             // and: adding the user to the group with invalid id
@@ -342,7 +378,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val groupId = "1" // Does not matter in this test case
 
             // and: adding a non existing user to the group
@@ -362,7 +398,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating another user
             val newUser = UsersTestsUtils.createTestUser(testClient)
@@ -384,7 +420,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -421,7 +457,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -432,7 +468,7 @@ class GroupsTests {
                 )
 
             // and: creating another user (not the owner)
-            val anotherUser = UsersTestsUtils.createTestUser(testClient)
+            val anotherUser = UsersTestsUtils.createUser(testClient)
 
             // and: trying to add the user to the group (not the owner)
             GroupsTestsUtils.addUserToGroup(
@@ -454,7 +490,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -498,7 +534,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val groupId = "1" // Does not matter in this test case
 
             GroupsTestsUtils.removeUserFromGroup(
@@ -516,7 +552,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val userId = "1" // Does not matter in this test case
 
             // and: removing the user from the group with invalid id
@@ -535,7 +571,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
             val groupId = "1" // Does not matter in this test case
 
             // and: removing a non existing user from the group
@@ -555,7 +591,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // when: creating another user
             val newUser = UsersTestsUtils.createTestUser(testClient)
@@ -577,7 +613,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -606,7 +642,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -617,7 +653,7 @@ class GroupsTests {
                 )
 
             // and: creating another user (not the owner)
-            val anotherUser = UsersTestsUtils.createTestUser(testClient)
+            val anotherUser = UsersTestsUtils.createUser(testClient)
 
             // and: removing the user from the group (not the owner)
             GroupsTestsUtils.removeUserFromGroup(
@@ -639,7 +675,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -671,7 +707,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: deleting the group with invalid id
             GroupsTestsUtils.deleteGroup(
@@ -689,7 +725,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a user
-            val user = UsersTestsUtils.createTestUser(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: deleting the non existent group
             GroupsTestsUtils.deleteGroup(
@@ -707,7 +743,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -740,7 +776,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =
@@ -751,7 +787,7 @@ class GroupsTests {
                 )
 
             // and: creating another user (not the owner)
-            val anotherUser = UsersTestsUtils.createTestUser(testClient)
+            val anotherUser = UsersTestsUtils.createUser(testClient)
 
             // and: deleting the group (not the owner)
             GroupsTestsUtils.deleteGroup(
@@ -769,7 +805,7 @@ class GroupsTests {
             val testClient = HttpUtils.buildTestClient(port)
 
             // when: creating a teacher
-            val user = UsersTestsUtils.createTeacher(testClient)
+            val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group
             val group =

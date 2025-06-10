@@ -60,6 +60,7 @@ object GroupsTestsUtils {
         initialGroup: InitialGroup = InitialGroup(),
         authToken: String,
         expectedProblem: Problem? = null,
+        expectedStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     ): InitialGroup {
         if (expectedProblem != null) {
             testClient.post()
@@ -67,7 +68,7 @@ object GroupsTestsUtils {
                 .header(AUTH_HEADER_NAME, "Bearer $authToken")
                 .bodyValue(InitialGroup.createBodyValue(initialGroup))
                 .exchange()
-                .expectStatus().isBadRequest
+                .expectStatus().isEqualTo(expectedStatus)
                 .expectBody<Problem>()
                 .consumeWith { assertProblem(expectedProblem, it) }
             return initialGroup
