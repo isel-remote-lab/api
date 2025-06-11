@@ -22,14 +22,14 @@ class LabMapper(
     ): Laboratory =
         Laboratory(
             id = rs.getInt(Laboratory.ID_PROP),
-            labName = LabName(rs.getString(Laboratory.LAB_NAME_PROP)),
-            labDescription = LabDescription(rs.getString(Laboratory.LAB_DESCRIPTION_PROP)),
-            labDuration =
+            name = LabName(rs.getString(Laboratory.LAB_NAME_PROP)),
+            description = LabDescription(rs.getString(Laboratory.LAB_DESCRIPTION_PROP)),
+            duration =
                 LabDuration(
                     rs.getInt(Laboratory.LAB_DURATION_PROP)
-                        .toDuration(DurationUnit.valueOf(labsDomainConfig.labDuration.unit)),
+                        .toDuration(DurationUnit.valueOf(labsDomainConfig.duration.unit)),
                 ),
-            labQueueLimit = LabQueueLimit(rs.getInt(Laboratory.LAB_QUEUE_LIMIT_PROP)),
+            queueLimit = LabQueueLimit(rs.getInt(Laboratory.LAB_QUEUE_LIMIT_PROP)),
             createdAt = rs.getTimestamp(Laboratory.CREATED_AT_PROP).toInstant().toKotlinInstant(),
             ownerId = rs.getInt(Laboratory.OWNER_ID_PROP),
         )

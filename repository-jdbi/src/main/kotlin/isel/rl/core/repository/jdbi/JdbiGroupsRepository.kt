@@ -15,12 +15,12 @@ data class JdbiGroupsRepository(
     override fun createGroup(validatedCreateGroup: Group): Int =
         handle.createUpdate(
             """
-           INSERT INTO rl.group (group_name, group_description, created_at, owner_id)
-           VALUES (:group_name, :group_description, :created_at, :owner_id)
+           INSERT INTO rl.group (name, description, created_at, owner_id)
+           VALUES (:name, :description, :created_at, :owner_id)
         """,
         )
-            .bind("group_name", validatedCreateGroup.groupName.groupNameInfo)
-            .bind("group_description", validatedCreateGroup.groupDescription.groupDescriptionInfo)
+            .bind("name", validatedCreateGroup.name.groupNameInfo)
+            .bind("description", validatedCreateGroup.description.groupDescriptionInfo)
             .bind("created_at", validatedCreateGroup.createdAt.toJavaInstant())
             .bind("owner_id", validatedCreateGroup.ownerId)
             .executeAndReturnGeneratedKeys()
@@ -37,21 +37,49 @@ data class JdbiGroupsRepository(
             .singleOrNull()
 
     override fun getGroupByName(groupName: GroupName): Group? =
-        handle.createQuery("""SELECT * FROM rl.group WHERE group_name = :group_name""")
-            .bind("group_name", groupName.groupNameInfo)
+        handle.createQuery("""SELECT * FROM rl.group WHERE name = :name""")
+            .bind("name", groupName.groupNameInfo)
             .mapTo<Group>()
             .singleOrNull()
 
-    override fun getGroupUsers(groupId: Int): List<Int> =
+    override fun getGroupOwnerId(groupId: Int): Int =
         handle.createQuery(
             """
-            SELECT user_id FROM rl.user_group 
-            WHERE group_id = :group_id
+            SELECT owner_id FROM rl.group 
+            WHERE id = :id
         """,
         )
-            .bind("group_id", groupId)
+            .bind("id", groupId)
             .mapTo<Int>()
-            .list()
+            .one()
+
+    override fun checkIfGroupExists(groupId: Int): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM rl.group 
+                WHERE id = :id
+            )
+        """,
+        )
+            .bind("id", groupId)
+            .mapTo<Boolean>()
+            .one()
+
+    override fun addUserToGroup(
+        userId: Int,
+        groupId: Int,
+    ): Boolean =
+        handle.createUpdate(
+            """
+            INSERT INTO rl.user_group (user_id, group_id)
+            VALUES (:user_id, :group_id)
+        """,
+        )
+            .bind("user_id", userId)
+            .bind("group_id", groupId)
+            .execute() == 1
 
     override fun getUserGroups(
         userId: Int,
@@ -71,44 +99,40 @@ data class JdbiGroupsRepository(
             .mapTo<Group>()
             .list()
 
-    override fun checkIfGroupExists(groupId: Int): Boolean =
+    override fun checkIfUserIsInGroup(
+        userId: Int,
+        groupId: Int,
+    ): Boolean =
         handle.createQuery(
             """
             SELECT EXISTS (
                 SELECT 1 
-                FROM rl.group 
-                WHERE id = :id
+                FROM rl.user_group 
+                WHERE user_id = :user_id AND group_id = :group_id
             )
-        """,
-        )
-            .bind("id", groupId)
-            .mapTo<Boolean>()
-            .one()
-
-    override fun getGroupOwnerId(groupId: Int): Int =
-        handle.createQuery(
-            """
-            SELECT owner_id FROM rl.group 
-            WHERE id = :id
-        """,
-        )
-            .bind("id", groupId)
-            .mapTo<Int>()
-            .one()
-
-    override fun addUserToGroup(
-        userId: Int,
-        groupId: Int,
-    ): Boolean =
-        handle.createUpdate(
-            """
-            INSERT INTO rl.user_group (user_id, group_id)
-            VALUES (:user_id, :group_id)
         """,
         )
             .bind("user_id", userId)
             .bind("group_id", groupId)
-            .execute() == 1
+            .mapTo<Boolean>()
+            .one()
+
+    override fun getGroupUsers(
+        groupId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Int> =
+        handle.createQuery(
+            """
+            SELECT user_id FROM rl.user_group 
+            WHERE group_id = :group_id
+            LIMIT :limit OFFSET :skip
+        """,
+        )
+            .bind("group_id", groupId)
+            .bind("limit", limitAndSkip.limit)
+            .bind("skip", limitAndSkip.skip)
+            .mapTo<Int>()
+            .list()
 
     override fun removeUserFromGroup(
         userId: Int,
@@ -133,13 +157,13 @@ data class JdbiGroupsRepository(
         val params = mutableMapOf<String, Any?>()
 
         groupName?.let {
-            updateQuery.append("group_name = :group_name, ")
-            params["group_name"] = it.groupNameInfo
+            updateQuery.append("name = :name, ")
+            params["name"] = it.groupNameInfo
         }
 
         groupDescription?.let {
-            updateQuery.append("group_description = :group_description, ")
-            params["group_description"] = it.groupDescriptionInfo
+            updateQuery.append("description = :description, ")
+            params["description"] = it.groupDescriptionInfo
         }
 
         updateQuery.delete(updateQuery.length - 2, updateQuery.length)
@@ -152,10 +176,11 @@ data class JdbiGroupsRepository(
     }
 
     override fun deleteGroup(groupId: Int): Boolean =
+        // Delete the group and all associated user-group relationships
         handle.createUpdate(
             """
-            DELETE FROM rl.group
-            WHERE id = :id
+           DELETE FROM rl.user_group WHERE group_id = :id;
+           DELETE FROM rl.group WHERE id = :id;
         """,
         )
             .bind("id", groupId)

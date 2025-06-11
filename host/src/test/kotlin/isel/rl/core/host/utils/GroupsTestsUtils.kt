@@ -3,6 +3,7 @@ package isel.rl.core.host.utils
 import isel.rl.core.domain.Uris
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
+import isel.rl.core.domain.user.User
 import isel.rl.core.host.utils.HttpUtils.AUTH_HEADER_NAME
 import isel.rl.core.host.utils.HttpUtils.assertProblem
 import isel.rl.core.host.utils.HttpUtils.domainConfigs
@@ -21,11 +22,10 @@ import kotlin.time.Duration.Companion.days
 
 object GroupsTestsUtils {
     private const val ID_PROP = "id"
-    private const val GROUP_NAME_PROP = "groupName"
-    private const val GROUP_DESCRIPTION_PROP = "groupDescription"
+    private const val GROUP_NAME_PROP = "name"
+    private const val GROUP_DESCRIPTION_PROP = "description"
     private const val CREATED_AT_PROP = "createdAt"
     private const val OWNER_ID_PROP = "ownerId"
-    private const val USERS_PROP = "users"
 
     data class InitialGroup(
         val id: Int = 0,
@@ -45,13 +45,13 @@ object GroupsTestsUtils {
 
     fun newTestGroupName() = GroupName("group-${abs(Random.nextLong())}")
 
-    fun newTestInvalidGroupNameMax() = GroupName("a".repeat(domainConfigs.group.groupName.max + 1))
+    fun newTestInvalidGroupNameMax() = GroupName("a".repeat(domainConfigs.group.name.max + 1))
 
     fun newTestInvalidGroupNameMin() = GroupName("a")
 
     fun newTestGroupDescription() = GroupDescription("description-${abs(Random.nextLong())}")
 
-    fun newTestInvalidGroupDescriptionMax() = GroupDescription("a".repeat(domainConfigs.group.groupDescription.max + 1))
+    fun newTestInvalidGroupDescriptionMax() = GroupDescription("a".repeat(domainConfigs.group.description.max + 1))
 
     fun newTestInvalidGroupDescriptionMin() = GroupDescription("a")
 
@@ -104,7 +104,6 @@ object GroupsTestsUtils {
         testClient: WebTestClient,
         authToken: String,
         expectedGroup: InitialGroup,
-        expectedUsersList: List<UsersTestsUtils.InitialUser>,
     ) {
         val response =
             testClient.get()
@@ -117,19 +116,6 @@ object GroupsTestsUtils {
 
         val group = getBodyDataFromResponse<Map<*, *>>(response, "Group retrieved successfully")
         assertGroup(expectedGroup, group)
-
-        assertEquals(
-            expectedUsersList.size,
-            (group[USERS_PROP] as List<*>).size,
-            "Group users list size mismatch",
-        )
-
-        (group[USERS_PROP] as List<*>).forEach { user ->
-            val userMap = user as Map<*, *>
-            val expectedUser = expectedUsersList.find { it.id == userMap[ID_PROP] }
-            assertNotNull(expectedUser)
-            UsersTestsUtils.assertUser(expectedUser, userMap)
-        }
     }
 
     fun getGroupById(
@@ -203,6 +189,35 @@ object GroupsTestsUtils {
             .expectStatus().isEqualTo(expectedStatus)
             .expectBody<Problem>()
             .consumeWith { assertProblem(expectedProblem, it) }
+    }
+
+    fun getGroupUsers(
+        testClient: WebTestClient,
+        authToken: String,
+        groupId: Int,
+        expectedUsers: List<Int>,
+    ) {
+        val response =
+            testClient.get()
+                .uri(Uris.Groups.GET_GROUP_USERS, groupId)
+                .header(AUTH_HEADER_NAME, "Bearer $authToken")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody<SuccessResponse>()
+                .returnResult()
+
+        val users = getBodyDataFromResponse<List<*>>(response, "Group users retrieved successfully")
+        assertEquals(
+            expectedUsers.size,
+            users.size,
+            "Group users list size mismatch",
+        )
+        users.forEach { user ->
+            val userMap = user as Map<*, *>
+            val expectedUser = expectedUsers.find { it == userMap[User.ID_PROP] }
+            assertNotNull(expectedUser, "Expected user not found in group users")
+            assertEquals(expectedUser, userMap[User.ID_PROP], "Group user ID mismatch")
+        }
     }
 
     fun addUserToGroup(

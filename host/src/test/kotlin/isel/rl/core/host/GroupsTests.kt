@@ -60,25 +60,6 @@ class GroupsTests {
             )
         }
 
-        /*
-        @Test
-        fun `create group with student user`() {
-            // given: a test client
-            val testClient = HttpUtils.buildTestClient(port)
-
-            // when: creating a student
-            val user = UsersTestsUtils.createTestUser(testClient, UsersTestsUtils.InitialUser(role = Role.STUDENT))
-
-            // then: creating a group
-            GroupsTestsUtils.createGroup(
-                testClient,
-                GroupsTestsUtils.InitialGroup(),
-                user.authToken,
-                Problem.forbidden(""),
-                HttpStatus.FORBIDDEN,
-            )
-        } */
-
         @Test
         fun `create group with invalid name (blank)`() {
             // given: a test client
@@ -142,7 +123,7 @@ class GroupsTests {
             val user = UsersTestsUtils.createUser(testClient)
 
             // then: creating a group with invalid description
-            if (HttpUtils.domainConfigs.group.groupDescription.optional) {
+            if (HttpUtils.domainConfigs.group.description.optional) {
                 GroupsTestsUtils.createGroup(
                     testClient,
                     GroupsTestsUtils.InitialGroup(description = GroupDescription()),
@@ -216,7 +197,6 @@ class GroupsTests {
                 testClient,
                 user.authToken,
                 group,
-                listOf(user),
             )
         }
 
@@ -295,6 +275,31 @@ class GroupsTests {
                 targetUserId = 999999,
             )
         }
+
+        @Test
+        fun `get group users`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a teacher
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // then: creating a group
+            val group =
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(),
+                    user.authToken,
+                )
+
+            // and: getting the group users
+            GroupsTestsUtils.getGroupUsers(
+                testClient,
+                user.authToken,
+                group.id,
+                expectedUsers = listOf(user.id),
+            )
+        }
     }
 
     @Nested
@@ -331,7 +336,6 @@ class GroupsTests {
                 testClient,
                 user.authToken,
                 group,
-                listOf(user, newUser),
             )
         }
 
@@ -524,7 +528,6 @@ class GroupsTests {
                 testClient,
                 user.authToken,
                 group,
-                listOf(user),
             )
         }
 

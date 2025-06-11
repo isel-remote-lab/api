@@ -72,7 +72,7 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by name
             val updatedLabByName = laboratoryRepo.getLaboratoryByName(newLabName)
             assertNotNull(updatedLabByName) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabName, updatedLabByName.labName, "Lab names do not match")
+            assertEquals(newLabName, updatedLabByName.name, "Lab names do not match")
 
             // when: deleting the laboratory
             assertTrue(laboratoryRepo.deleteLaboratory(labId), "Laboratory not deleted")
@@ -110,7 +110,7 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabDescription, updatedLabById.labDescription, "Lab descriptions do not match")
+            assertEquals(newLabDescription, updatedLabById.description, "Lab descriptions do not match")
         }
     }
 
@@ -142,7 +142,7 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabDuration, updatedLabById.labDuration, "Lab durations do not match")
+            assertEquals(newLabDuration, updatedLabById.duration, "Lab durations do not match")
         }
     }
 
@@ -174,7 +174,7 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabQueueLimit, updatedLabById.labQueueLimit, "Lab queue limits do not match")
+            assertEquals(newLabQueueLimit, updatedLabById.queueLimit, "Lab queue limits do not match")
         }
     }
 
@@ -207,8 +207,8 @@ class JdbiLaboratoriesRepositoryTests {
             // then: retrieving the updated laboratory by Id
             val updatedLabById = laboratoryRepo.getLaboratoryById(labId)
             assertNotNull(updatedLabById) { "No updated laboratory retrieved from database" }
-            assertEquals(newLabName, updatedLabById.labName, "Lab names do not match")
-            assertEquals(newLabDescription, updatedLabById.labDescription, "Lab descriptions do not match")
+            assertEquals(newLabName, updatedLabById.name, "Lab names do not match")
+            assertEquals(newLabDescription, updatedLabById.description, "Lab descriptions do not match")
         }
     }
 
@@ -404,10 +404,10 @@ class JdbiLaboratoriesRepositoryTests {
 
         private fun InitialLaboratoryInfo.assertLabWith(lab: Laboratory?) {
             assertNotNull(lab) { "No laboratory retrieved" }
-            assertEquals(labName, lab.labName, "Lab names do not match")
-            assertEquals(labDescription, lab.labDescription, "Lab descriptions do not match")
-            assertEquals(labDuration, lab.labDuration, "Lab durations do not match")
-            assertEquals(labQueueLimit, lab.labQueueLimit, "Lab queue limits do not match")
+            assertEquals(labName, lab.name, "Lab names do not match")
+            assertEquals(labDescription, lab.description, "Lab descriptions do not match")
+            assertEquals(labDuration, lab.duration, "Lab durations do not match")
+            assertEquals(labQueueLimit, lab.queueLimit, "Lab queue limits do not match")
             assertEquals(labCreatedAt, lab.createdAt, "Lab createdAt do not match")
             assertEquals(userId, lab.ownerId, "Lab ownerId do not match")
             assertTrue(lab.id >= 0, "Lab id must be >= 0")

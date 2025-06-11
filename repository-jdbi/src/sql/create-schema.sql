@@ -37,8 +37,8 @@ CREATE TABLE
 CREATE TABLE
     rl.group (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        group_name VARCHAR(255) NOT NULL,
-        group_description TEXT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
         created_at TIMESTAMPTZ NOT NULL,
         owner_id INT NOT NULL REFERENCES rl.user (id)
     );
@@ -53,10 +53,10 @@ CREATE TABLE
 CREATE TABLE
     rl.laboratory (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        lab_name VARCHAR(255),
-        lab_description TEXT,
-        lab_duration INT,
-        lab_queue_limit INT,
+        name VARCHAR(255),
+        description TEXT,
+        duration INT,
+        queue_limit INT,
         created_at TIMESTAMPTZ NOT NULL,
         owner_id INT NOT NULL REFERENCES rl.user (id)
     );

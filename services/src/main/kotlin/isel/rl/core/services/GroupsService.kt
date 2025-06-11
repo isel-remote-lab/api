@@ -10,6 +10,7 @@ import isel.rl.core.services.interfaces.AddUserToGroupResult
 import isel.rl.core.services.interfaces.CreateGroupResult
 import isel.rl.core.services.interfaces.DeleteGroupResult
 import isel.rl.core.services.interfaces.GetGroupByIdResult
+import isel.rl.core.services.interfaces.GetGroupUsersResult
 import isel.rl.core.services.interfaces.GetUserGroupsResult
 import isel.rl.core.services.interfaces.IGroupsService
 import isel.rl.core.services.interfaces.RemoveUserFromGroupResult
@@ -52,21 +53,13 @@ class GroupsService(
                     it.groupsRepository.getGroupById(validatedGroupId)
                         ?: return@run failure(groupsDomain.groupNotFound)
 
-                // Get group users
-                val usersIds = it.groupsRepository.getGroupUsers(validatedGroupId)
-                val usersList =
-                    usersIds.map { userId ->
-                        it.usersRepository.getUserById(userId)!!
-                    }
-
                 success(
                     Group(
                         id = group.id,
-                        groupName = group.groupName,
-                        groupDescription = group.groupDescription,
+                        name = group.name,
+                        description = group.description,
                         createdAt = group.createdAt,
                         ownerId = group.ownerId,
-                        groupUsers = usersList,
                     ),
                 )
             }
@@ -96,6 +89,32 @@ class GroupsService(
             handleException(e as Exception)
         }
 
+    override fun getGroupUsers(
+        groupId: String,
+        limit: String?,
+        skip: String?,
+    ): GetGroupUsersResult =
+        runCatching {
+            // Validate limit and skip
+            val limitAndSkip = verifyQuery(limit, skip)
+
+            val validatedGroupId = groupsDomain.validateGroupId(groupId)
+
+            transactionManager.run {
+                if (!it.groupsRepository.checkIfGroupExists(validatedGroupId)) {
+                    failure(groupsDomain.groupNotFound)
+                } else {
+                    success(
+                        it.groupsRepository.getGroupUsers(validatedGroupId, limitAndSkip).map { userId ->
+                            it.usersRepository.getUserById(userId)!!
+                        },
+                    )
+                }
+            }
+        }.getOrElse { e ->
+            handleException(e as Exception)
+        }
+
     override fun addUserToGroup(
         actorUserId: Int,
         userId: String?,
@@ -116,8 +135,10 @@ class GroupsService(
                     !groupRepo.checkIfGroupExists(validatedGroupId) ||
                         groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId -> failure(groupsDomain.groupNotFound)
 
-                    groupRepo.getGroupUsers(validatedGroupId)
-                        .contains(validatedUserId) -> failure(groupsDomain.userAlreadyInGroup)
+                    groupRepo.checkIfUserIsInGroup(
+                        userId = validatedUserId,
+                        groupId = validatedGroupId,
+                    ) -> failure(groupsDomain.userAlreadyInGroup)
 
                     groupRepo.addUserToGroup(validatedUserId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
@@ -147,8 +168,10 @@ class GroupsService(
                     !groupRepo.checkIfGroupExists(validatedGroupId) ||
                         groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId -> failure(groupsDomain.groupNotFound)
 
-                    !groupRepo.getGroupUsers(validatedGroupId)
-                        .contains(validatedUserId) -> failure(groupsDomain.userNotInGroup)
+                    !groupRepo.checkIfUserIsInGroup(
+                        userId = validatedUserId,
+                        groupId = validatedGroupId,
+                    ) -> failure(groupsDomain.userNotInGroup)
 
                     groupRepo.removeUserFromGroup(validatedUserId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
@@ -171,10 +194,6 @@ class GroupsService(
                 if (!groupRepo.checkIfGroupExists(validatedGroupId) || groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId) {
                     failure(groupsDomain.groupNotFound)
                 } else {
-                    // Delete group users
-                    groupRepo.getGroupUsers(validatedGroupId).forEach { userId ->
-                        groupRepo.removeUserFromGroup(userId, validatedGroupId)
-                    }
                     if (groupRepo.deleteGroup(validatedGroupId)) {
                         success(Unit)
                     } else {

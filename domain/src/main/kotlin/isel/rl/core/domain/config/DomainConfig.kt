@@ -3,6 +3,12 @@ package isel.rl.core.domain.config
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+/**
+ * Data class representing the domain configuration. Using the [Serializable] annotation this class can be serialized
+ * to and deserialized from JSON.
+ * It contains restrictions for users, laboratories, and groups, each represented by their own data class, also using the
+ * [Serializable] annotation.
+ */
 @Serializable
 data class DomainConfig(
     val user: UserRestrictions,
@@ -20,19 +26,20 @@ data class DomainConfig(
 
     @Serializable
     data class LaboratoryRestrictions(
-        val labName: Properties,
-        val labDescription: Properties,
-        val labDuration: Properties,
-        val labQueueLimit: Properties,
+        val name: Properties,
+        val description: Properties,
+        val duration: Properties,
+        val queueLimit: Properties,
     )
 
     @Serializable
     data class GroupRestrictions(
-        val groupName: Properties,
-        val groupDescription: Properties,
+        val name: Properties,
+        val description: Properties,
     )
 
-    @Serializable data class Properties(
+    @Serializable
+    data class Properties(
         val min: Int = 0,
         val max: Int = 0,
         val optional: Boolean = false,
@@ -40,6 +47,12 @@ data class DomainConfig(
     )
 
     companion object {
+        /**
+         * Parses a JSON string into a [DomainConfig] object.
+         *
+         * @param jsonString The JSON string to parse.
+         * @return A [DomainConfig] object representing the parsed configuration.
+         */
         fun parseDomainConfigs(jsonString: String): DomainConfig {
             val json = Json { ignoreUnknownKeys = true }
             return json.decodeFromString<DomainConfig>(jsonString)

@@ -1,6 +1,5 @@
 package isel.rl.core.domain.laboratory
 
-import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
@@ -9,20 +8,19 @@ import kotlinx.datetime.Instant
 
 data class Laboratory(
     val id: Int = 0,
-    val labName: LabName,
-    val labDescription: LabDescription,
-    val labDuration: LabDuration,
-    val labQueueLimit: LabQueueLimit,
+    val name: LabName,
+    val description: LabDescription,
+    val duration: LabDuration,
+    val queueLimit: LabQueueLimit,
     val createdAt: Instant,
     val ownerId: Int,
-    val groups: List<Group> = emptyList(),
 ) {
     companion object {
         const val ID_PROP = "id"
-        const val LAB_NAME_PROP = "lab_name"
-        const val LAB_DESCRIPTION_PROP = "lab_description"
-        const val LAB_DURATION_PROP = "lab_duration"
-        const val LAB_QUEUE_LIMIT_PROP = "lab_queue_limit"
+        const val LAB_NAME_PROP = "name"
+        const val LAB_DESCRIPTION_PROP = "description"
+        const val LAB_DURATION_PROP = "duration"
+        const val LAB_QUEUE_LIMIT_PROP = "queue_limit"
         const val CREATED_AT_PROP = "created_at"
         const val OWNER_ID_PROP = "owner_id"
     }

@@ -6,7 +6,6 @@ import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.group.GroupCreateInputModel
 import isel.rl.core.http.model.group.GroupOutputModel
-import isel.rl.core.http.model.group.GroupWithUsersOutputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.IGroupsService
@@ -33,7 +32,7 @@ class GroupsController(
         user: AuthenticatedUser,
         @RequestBody input: GroupCreateInputModel,
     ): ResponseEntity<*> =
-        when (val result = groupsService.createGroup(input.groupName, input.groupDescription, user.user)) {
+        when (val result = groupsService.createGroup(input.name, input.description, user.user)) {
             is Success ->
                 ResponseEntity.status(HttpStatus.CREATED).body(
                     SuccessResponse(
@@ -56,7 +55,7 @@ class GroupsController(
                 ResponseEntity.ok(
                     SuccessResponse(
                         message = "Group retrieved successfully",
-                        data = GroupWithUsersOutputModel.mapOf(result.value),
+                        data = GroupOutputModel.mapOf(result.value),
                     ),
                 )
 
@@ -83,11 +82,29 @@ class GroupsController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
+    @GetMapping(Uris.Groups.GET_GROUP_USERS)
+    fun getGroupUsers(
+        user: AuthenticatedUser,
+        @PathVariable id: String,
+        @RequestParam limit: String? = null,
+        @RequestParam skip: String? = null,
+    ): ResponseEntity<*> =
+        when (val result = groupsService.getGroupUsers(id, limit, skip)) {
+            is Success ->
+                ResponseEntity.ok(
+                    SuccessResponse(
+                        message = "Group users retrieved successfully",
+                        data = result.value,
+                    ),
+                )
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
+
     @RequireRole(Role.TEACHER)
     @PatchMapping(Uris.Groups.ADD_USER_TO_GROUP)
     fun addUserToGroup(
         user: AuthenticatedUser,
-        // Group Id
         @PathVariable id: String,
         @RequestParam userId: String?,
     ): ResponseEntity<*> =
@@ -106,7 +123,6 @@ class GroupsController(
     @DeleteMapping(Uris.Groups.REMOVE_USER_FROM_GROUP)
     fun removeUserFromGroup(
         user: AuthenticatedUser,
-        // Group Id
         @PathVariable id: String,
         @RequestParam userId: String?,
     ): ResponseEntity<*> =
@@ -125,7 +141,6 @@ class GroupsController(
     @DeleteMapping(Uris.Groups.DELETE)
     fun deleteGroup(
         user: AuthenticatedUser,
-        // Group Id
         @PathVariable id: String,
     ): ResponseEntity<*> =
         when (val result = groupsService.deleteGroup(user.user.id, id)) {

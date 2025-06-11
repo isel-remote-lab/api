@@ -20,8 +20,8 @@ class GroupMapper : RowMapper<Group> {
     ): Group =
         Group(
             id = rs.getInt(ID_PROP),
-            groupName = GroupName(rs.getString(GROUP_NAME_PROP)),
-            groupDescription = GroupDescription(rs.getString(GROUP_DESCRIPTION_PROP)),
+            name = GroupName(rs.getString(GROUP_NAME_PROP)),
+            description = GroupDescription(rs.getString(GROUP_DESCRIPTION_PROP)),
             createdAt = rs.getTimestamp(CREATED_AT_PROP).toInstant().toKotlinInstant(),
             ownerId = rs.getInt(OWNER_ID_PROP),
         )

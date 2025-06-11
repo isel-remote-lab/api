@@ -8,10 +8,20 @@ import isel.rl.core.domain.group.props.GroupName
 import kotlinx.datetime.Instant
 import org.springframework.stereotype.Component
 
+/**
+ * GroupsDomain is a [Component] that encapsulates the domain logic for managing groups.
+ * It provides methods to validate group creation, group IDs, group names, and group descriptions.
+ * It also defines various exceptions related to group operations.
+ *
+ * @param domainConfig The configuration for group domain, which includes validation rules.
+ */
 @Component
 data class GroupsDomain(
     private val domainConfig: GroupsDomainConfig,
 ) {
+    /*
+     * Constants and exceptions related to group operations.
+     */
     final val groupNameRequiredMsg = "Group name is required"
     final val groupDescriptionRequiredMsg = "Group description is required"
     final val invalidGroupNameLengthMsg =
@@ -45,6 +55,17 @@ data class GroupsDomain(
 
     val userNotInGroup = ServicesExceptions.Groups.UserNotInGroup
 
+    /**
+     * Validates the creation of a group with the provided parameters.
+     *
+     * @param groupName The name of the group, which can be optional based on configuration.
+     * @param groupDescription The description of the group, which can also be optional.
+     * @param createdAt The timestamp when the group is created.
+     * @param ownerId The ID of the user who owns the group.
+     * @return A validated [Group] object.
+     * @throws ServicesExceptions.Groups.InvalidGroupName if the group name is invalid.
+     * @throws ServicesExceptions.Groups.InvalidGroupDescription if the group description is invalid.
+     */
     fun validateCreateGroup(
         groupName: String?,
         groupDescription: String?,
@@ -66,13 +87,20 @@ data class GroupsDomain(
             }
 
         return Group(
-            groupName = validatedGroupName,
-            groupDescription = validatedGroupDescription,
+            name = validatedGroupName,
+            description = validatedGroupDescription,
             createdAt = createdAt,
             ownerId = ownerId,
         )
     }
 
+    /**
+     * Validates the group ID by attempting to convert it to an integer.
+     *
+     * @param groupId The group ID as a string.
+     * @return The validated group ID as an integer.
+     * @throws ServicesExceptions.Groups.InvalidGroupId if the group ID is not a valid integer.
+     */
     fun validateGroupId(groupId: String): Int =
         try {
             groupId.toInt()
@@ -80,6 +108,13 @@ data class GroupsDomain(
             throw invalidGroupId
         }
 
+    /**
+     * Validates the group name based on the configured length constraints.
+     *
+     * @param groupName The name of the group to validate.
+     * @return A [GroupName] object if the validation passes.
+     * @throws ServicesExceptions.Groups.InvalidGroupName if the group name does not meet the length requirements.
+     */
     fun validateGroupName(groupName: String): GroupName =
         if (groupName.length in domainConfig.minLengthGroupName..domainConfig.maxLengthGroupName) {
             GroupName(groupName)
@@ -87,6 +122,13 @@ data class GroupsDomain(
             throw invalidGroupNameLength
         }
 
+    /**
+     * Validates the group description based on the configured length constraints.
+     *
+     * @param groupDescription The description of the group to validate.
+     * @return A [GroupDescription] object if the validation passes.
+     * @throws ServicesExceptions.Groups.InvalidGroupDescription if the group description does not meet the length requirements.
+     */
     fun validateGroupDescription(groupDescription: String): GroupDescription =
         if (groupDescription.length in domainConfig.minLengthGroupDescription..domainConfig.maxLengthGroupDescription) {
             GroupDescription(groupDescription)

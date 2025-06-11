@@ -32,9 +32,8 @@ object GroupsServicesUtils {
     data class InitialGroup(
         val id: Int = 0,
         val name: String = newTestGroupName(),
-        val description: String = newTestGroupDescription(),
+        val description: String? = newTestGroupDescription(),
         val createdAt: Instant = Instant.DISTANT_PAST,
-        val users: List<Int> = emptyList(),
         val ownerId: Int = 1,
     )
 
@@ -62,18 +61,17 @@ object GroupsServicesUtils {
         assertTrue(group is Success, "Expected a successful group creation, but got: $group")
         assertEquals(
             initialGroup.name,
-            group.value.groupName.groupNameInfo,
+            group.value.name.groupNameInfo,
             "Group name does not match expected value.",
         )
         assertEquals(
             initialGroup.description,
-            group.value.groupDescription.groupDescriptionInfo,
+            group.value.description.groupDescriptionInfo,
             "Group description does not match expected value.",
         )
         return initialGroup.copy(
             id = group.value.id,
             createdAt = group.value.createdAt,
-            users = listOf(group.value.ownerId),
         )
     }
 
@@ -87,10 +85,9 @@ object GroupsServicesUtils {
             expectedGroup,
             InitialGroup(
                 id = group.value.id,
-                name = group.value.groupName.groupNameInfo,
-                description = group.value.groupDescription.groupDescriptionInfo,
+                name = group.value.name.groupNameInfo,
+                description = group.value.description.groupDescriptionInfo,
                 createdAt = group.value.createdAt,
-                users = group.value.groupUsers.map { it.id },
                 ownerId = group.value.ownerId,
             ),
         )
@@ -137,6 +134,38 @@ object GroupsServicesUtils {
             assertTrue(
                 userGroups.value.any { it.id == expectedGroup.id },
                 "Expected group with ID ${expectedGroup.id} not found in user groups.",
+            )
+        }
+    }
+
+    fun getGroupUsers(
+        groupsService: GroupsService,
+        groupId: String,
+        limit: String? = null,
+        skip: String? = null,
+        expectedUsers: List<Int> = emptyList(),
+        expectedServiceException: KClass<*>? = null,
+    ) {
+        val groupUsers = groupsService.getGroupUsers(groupId, limit, skip)
+
+        if (expectedServiceException != null) {
+            assertTrue(groupUsers is Failure, "Expected a failure, but got: $groupUsers")
+            assertTrue(
+                expectedServiceException.isInstance(groupUsers.value),
+                "Expected a ServiceException, but got: ${groupUsers.value}",
+            )
+            return
+        }
+        assertTrue(groupUsers is Success, "Expected a successful group users retrieval, but got: $groupUsers")
+        assertEquals(
+            expectedUsers.size,
+            groupUsers.value.size,
+            "Group users size does not match expected value.",
+        )
+        expectedUsers.forEach { expectedUserId ->
+            assertTrue(
+                groupUsers.value.any { it.id == expectedUserId },
+                "Expected user with ID $expectedUserId not found in group users.",
             )
         }
     }
@@ -200,14 +229,14 @@ object GroupsServicesUtils {
         assertTrue(result is Success, "Expected a successful group deletion, but got: $result")
     }
 
-    val isGroupDescriptionOptional = domainConfigs.group.groupDescription.optional
+    val isGroupDescriptionOptional = domainConfigs.group.description.optional
 
     /**
      * Generates a random group name for testing purposes.
      */
     fun newTestGroupName() = "group-${abs(Random.nextLong())}"
 
-    fun newTestInvalidGroupNameMax() = "a".repeat(domainConfigs.group.groupName.max + 1)
+    fun newTestInvalidGroupNameMax() = "a".repeat(domainConfigs.group.name.max + 1)
 
     fun newTestInvalidGroupNameMin() = ""
 
@@ -216,11 +245,11 @@ object GroupsServicesUtils {
      */
     fun newTestGroupDescription() = "description-${abs(Random.nextLong())}"
 
-    fun newTestInvalidGroupDescriptionMax() = "a".repeat(domainConfigs.group.groupDescription.max + 1)
+    fun newTestInvalidGroupDescriptionMax() = "a".repeat(domainConfigs.group.description.max + 1)
 
     fun newTestInvalidGroupDescriptionMin() = ""
 
-    fun assertGroup(
+    private fun assertGroup(
         expectedGroup: InitialGroup,
         actualGroup: InitialGroup,
     ): InitialGroup {
@@ -236,17 +265,6 @@ object GroupsServicesUtils {
             actualGroup.createdAt,
             "Group creation date does not match expected value.",
         )
-        assertEquals(
-            expectedGroup.users.size,
-            actualGroup.users.size,
-            "Group user list size does not match expected value.",
-        )
-        expectedGroup.users.forEach {
-            assertTrue(
-                actualGroup.users.any { id -> id == it },
-                "Expected user with ID $it not found in group users.",
-            )
-        }
         assertEquals(expectedGroup.ownerId, actualGroup.ownerId, "Group owner ID does not match expected value.")
         return actualGroup
     }

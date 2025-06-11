@@ -5,10 +5,10 @@ import kotlin.time.DurationUnit
 
 data class LaboratoryOutputModel(
     val id: Int,
-    val labName: String?,
-    val labDescription: String?,
-    val labDuration: Int?,
-    val labQueueLimit: Int?,
+    val name: String?,
+    val description: String?,
+    val duration: Int?,
+    val queueLimit: Int?,
     val ownerId: Int,
     val createdAt: String,
 ) {
@@ -16,10 +16,10 @@ data class LaboratoryOutputModel(
         fun mapOf(lab: Laboratory) =
             LaboratoryOutputModel(
                 id = lab.id,
-                labName = lab.labName.labNameInfo,
-                labDescription = lab.labDescription.labDescriptionInfo,
-                labDuration = lab.labDuration.labDurationInfo?.toInt(DurationUnit.MINUTES),
-                labQueueLimit = lab.labQueueLimit.labQueueLimitInfo,
+                name = lab.name.labNameInfo,
+                description = lab.description.labDescriptionInfo,
+                duration = lab.duration.labDurationInfo?.toInt(DurationUnit.MINUTES),
+                queueLimit = lab.queueLimit.labQueueLimitInfo,
                 ownerId = lab.ownerId,
                 createdAt = lab.createdAt.toString(),
             )

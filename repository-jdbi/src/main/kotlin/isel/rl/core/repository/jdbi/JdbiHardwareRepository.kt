@@ -22,12 +22,12 @@ data class JdbiHardwareRepository(
     ): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.hardware (hw_name, hw_serial_num, status, mac_address, ip_address, created_at)
-            VALUES (:hw_name, :hw_serial_num, :status, :mac_address, :ip_address, :created_at)
+            INSERT INTO rl.hardware (name, serial_num, status, mac_address, ip_address, created_at)
+            VALUES (:name, :serial_num, :status, :mac_address, :ip_address, :created_at)
         """,
         )
-            .bind("hw_name", name.hardwareNameInfo)
-            .bind("hw_serial_num", serialNum)
+            .bind("name", name.hardwareNameInfo)
+            .bind("serial_num", serialNum)
             .bind("status", status.char)
             .bind("mac_address", macAddress)
             .bind("ip_address", ipAddress)
@@ -51,10 +51,10 @@ data class JdbiHardwareRepository(
         handle.createQuery(
             """
             SELECT * FROM rl.hardware 
-            WHERE hw_name = :hw_name
+            WHERE name = :name
         """,
         )
-            .bind("hw_name", hwName.hardwareNameInfo)
+            .bind("name", hwName.hardwareNameInfo)
             .mapTo<Hardware>()
             .list()
 
@@ -75,8 +75,8 @@ data class JdbiHardwareRepository(
         val params = mutableMapOf<String, Any?>()
 
         hwName?.let {
-            updateQuery.append("hw_name = :hw_name, ")
-            params["hw_name"] = it.hardwareNameInfo
+            updateQuery.append("name = :name, ")
+            params["name"] = it.hardwareNameInfo
         }
         hwStatus?.let {
             updateQuery.append("status = :status, ")

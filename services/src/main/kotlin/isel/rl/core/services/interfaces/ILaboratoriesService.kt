@@ -43,18 +43,18 @@ interface ILaboratoriesService {
      * The parameters are validated before creating the laboratory with the laboratory domain.
      * If the validation fails, a Service exception as failure.
      *
-     * @param labName The name of the laboratory.
-     * @param labDescription The description of the laboratory.
-     * @param labDuration The duration of the laboratory in minutes.
-     * @param labQueueLimit The maximum number of users allowed in the queue.
+     * @param name The name of the laboratory.
+     * @param description The description of the laboratory.
+     * @param duration The duration of the laboratory in minutes.
+     * @param queueLimit The maximum number of users allowed in the queue.
      * @param owner The ID of the owner of the laboratory.
      * @return A result indicating success or failure.
      */
     fun createLaboratory(
-        labName: String?,
-        labDescription: String?,
-        labDuration: Int?,
-        labQueueLimit: Int?,
+        name: String?,
+        description: String?,
+        duration: Int?,
+        queueLimit: Int?,
         owner: User,
     ): CreateLaboratoryResult
 

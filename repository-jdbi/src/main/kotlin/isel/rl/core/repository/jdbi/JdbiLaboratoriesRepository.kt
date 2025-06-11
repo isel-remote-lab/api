@@ -18,14 +18,14 @@ data class JdbiLaboratoriesRepository(
     override fun createLaboratory(validatedCreateLaboratory: Laboratory): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.laboratory (lab_name, lab_description, lab_duration, lab_queue_limit, created_at, owner_id)
-            VALUES (:lab_name, :lab_description, :lab_duration, :lab_queue_limit, :created_at, :owner_id)
+            INSERT INTO rl.laboratory (name, description, duration, queue_limit, created_at, owner_id)
+            VALUES (:name, :description, :duration, :queue_limit, :created_at, :owner_id)
         """,
         )
-            .bind("lab_name", validatedCreateLaboratory.labName.labNameInfo)
-            .bind("lab_description", validatedCreateLaboratory.labDescription.labDescriptionInfo)
-            .bind("lab_duration", validatedCreateLaboratory.labDuration.labDurationInfo?.toInt(DurationUnit.MINUTES))
-            .bind("lab_queue_limit", validatedCreateLaboratory.labQueueLimit.labQueueLimitInfo)
+            .bind("name", validatedCreateLaboratory.name.labNameInfo)
+            .bind("description", validatedCreateLaboratory.description.labDescriptionInfo)
+            .bind("duration", validatedCreateLaboratory.duration.labDurationInfo?.toInt(DurationUnit.MINUTES))
+            .bind("queue_limit", validatedCreateLaboratory.queueLimit.labQueueLimitInfo)
             .bind("created_at", validatedCreateLaboratory.createdAt.toJavaInstant())
             .bind("owner_id", validatedCreateLaboratory.ownerId)
             .executeAndReturnGeneratedKeys()
@@ -47,10 +47,10 @@ data class JdbiLaboratoriesRepository(
         handle.createQuery(
             """
             SELECT * FROM rl.laboratory 
-            WHERE lab_name = :lab_name
+            WHERE name = :name
         """,
         )
-            .bind("lab_name", labName.labNameInfo)
+            .bind("name", labName.labNameInfo)
             .mapTo<Laboratory>()
             .singleOrNull()
 
@@ -91,20 +91,20 @@ data class JdbiLaboratoriesRepository(
         val params = mutableMapOf<String, Any?>()
 
         labName?.let {
-            updateQuery.append("lab_name = :lab_name, ")
-            params["lab_name"] = it.labNameInfo
+            updateQuery.append("name = :name, ")
+            params["name"] = it.labNameInfo
         }
         labDescription?.let {
-            updateQuery.append("lab_description = :lab_description, ")
-            params["lab_description"] = it.labDescriptionInfo
+            updateQuery.append("description = :description, ")
+            params["description"] = it.labDescriptionInfo
         }
         labDuration?.let {
-            updateQuery.append("lab_duration = :lab_duration, ")
-            params["lab_duration"] = it.labDurationInfo?.toInt(DurationUnit.MINUTES)
+            updateQuery.append("duration = :duration, ")
+            params["duration"] = it.labDurationInfo?.toInt(DurationUnit.MINUTES)
         }
         labQueueLimit?.let {
-            updateQuery.append("lab_queue_limit = :lab_queue_limit, ")
-            params["lab_queue_limit"] = it.labQueueLimitInfo
+            updateQuery.append("queue_limit = :queue_limit, ")
+            params["queue_limit"] = it.labQueueLimitInfo
         }
 
         // Remove the last comma and space

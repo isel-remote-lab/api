@@ -8,6 +8,7 @@ import isel.rl.core.utils.Either
 typealias CreateGroupResult = Either<ServicesExceptions, Group>
 typealias GetGroupByIdResult = Either<ServicesExceptions, Group>
 typealias GetUserGroupsResult = Either<ServicesExceptions, List<Group>>
+typealias GetGroupUsersResult = Either<ServicesExceptions, List<User>>
 typealias AddUserToGroupResult = Either<ServicesExceptions, Unit>
 typealias RemoveUserFromGroupResult = Either<ServicesExceptions, Unit>
 typealias DeleteGroupResult = Either<ServicesExceptions, Unit>
@@ -26,6 +27,12 @@ interface IGroupsService {
         limit: String? = null,
         skip: String? = null,
     ): GetUserGroupsResult
+
+    fun getGroupUsers(
+        groupId: String,
+        limit: String? = null,
+        skip: String? = null,
+    ): GetGroupUsersResult
 
     fun addUserToGroup(
         actorUserId: Int,

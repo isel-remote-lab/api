@@ -98,6 +98,22 @@ class LaboratoriesTests {
         }*/
 
         @Test
+        fun `create laboratory with blank labDescription`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a user to be the owner of the laboratory
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // when: creating a laboratory
+            LabsTestsUtils.createLab(
+                testClient = testClient,
+                authToken = user.authToken,
+                initialLab = LabsTestsUtils.InitialLab(description = LabDescription("")),
+            )
+        }
+
+        @Test
         fun `create laboratory with invalid labName length (min)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)

@@ -4,6 +4,9 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+/**
+ * Represents the domain configuration for laboratories.
+ */
 data class LaboratoriesDomainConfig(
     val minLabNameLength: Int,
     val maxLabNameLength: Int,
@@ -20,23 +23,29 @@ data class LaboratoriesDomainConfig(
     val isLabQueueLimitOptional: Boolean,
 ) {
     companion object {
+        /**
+         * Creates a [LaboratoriesDomainConfig] instance from the provided [DomainConfig.LaboratoryRestrictions].
+         *
+         * @param config The laboratory restrictions configuration.
+         * @return A new instance of [LaboratoriesDomainConfig].
+         */
         fun from(config: DomainConfig.LaboratoryRestrictions): LaboratoriesDomainConfig {
-            val labDurationUnit = DurationUnit.valueOf(config.labDuration.unit)
+            val labDurationUnit = DurationUnit.valueOf(config.duration.unit)
 
             return LaboratoriesDomainConfig(
-                minLabNameLength = config.labName.min,
-                maxLabNameLength = config.labName.max,
-                isLabNameOptional = config.labName.optional,
-                minLabDescriptionLength = config.labDescription.min,
-                maxLabDescriptionLength = config.labDescription.max,
-                isLabDescriptionOptional = config.labDescription.optional,
-                minLabDuration = config.labDuration.min.toDuration(labDurationUnit),
-                maxLabDuration = config.labDuration.max.toDuration(labDurationUnit),
-                isLabDurationOptional = config.labDuration.optional,
+                minLabNameLength = config.name.min,
+                maxLabNameLength = config.name.max,
+                isLabNameOptional = config.name.optional,
+                minLabDescriptionLength = config.description.min,
+                maxLabDescriptionLength = config.description.max,
+                isLabDescriptionOptional = config.description.optional,
+                minLabDuration = config.duration.min.toDuration(labDurationUnit),
+                maxLabDuration = config.duration.max.toDuration(labDurationUnit),
+                isLabDurationOptional = config.duration.optional,
                 labDurationUnit = labDurationUnit,
-                minLabQueueLimit = config.labQueueLimit.min,
-                maxLabQueueLimit = config.labQueueLimit.max,
-                isLabQueueLimitOptional = config.labQueueLimit.optional,
+                minLabQueueLimit = config.queueLimit.min,
+                maxLabQueueLimit = config.queueLimit.max,
+                isLabQueueLimitOptional = config.queueLimit.optional,
             )
         }
     }

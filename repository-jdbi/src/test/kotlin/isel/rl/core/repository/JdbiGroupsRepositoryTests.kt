@@ -15,7 +15,28 @@ import kotlin.test.assertTrue
 
 class JdbiGroupsRepositoryTests {
     @Test
-    fun `store group and retrieve`() {
+    fun `create group with valid parameters`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: creating a valid group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // then: verify the created group details
+            initialGroup.assertGroupWith(groupRepo.getGroupById(groupId))
+        }
+    }
+
+    @Test
+    fun `get group by id`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupsRepository(handle)
@@ -30,22 +51,76 @@ class JdbiGroupsRepositoryTests {
             val initialGroup = InitialGroup(clock, ownerId)
             val groupId = groupRepo.createGroup(initialGroup)
 
-            // when: retrieving a group by Id
-            val groupById = groupRepo.getGroupById(groupId)
-
-            // then: verify the retrieved group details
-            initialGroup.assertGroupWith(groupById)
-
-            // when: retrieving a group by name
-            val groupByName = groupRepo.getGroupByName(initialGroup.groupName)
-
-            // then: verify the retrieved group details
-            initialGroup.assertGroupWith(groupByName)
+            // then: retrieve the group by id
+            initialGroup.assertGroupWith(groupRepo.getGroupById(groupId))
         }
     }
 
     @Test
-    fun `add user to group, verify and remove`() {
+    fun `get group by name`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            groupRepo.createGroup(initialGroup)
+
+            // then: retrieve the group by name
+            initialGroup.assertGroupWith(groupRepo.getGroupByName(initialGroup.groupName))
+        }
+    }
+
+    @Test
+    fun `get group owner id`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // then: retrieve the group owner id
+            assertEquals(ownerId, groupRepo.getGroupOwnerId(groupId))
+        }
+    }
+
+    @Test
+    fun `check if group exists`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // then: check if the group exists
+            assertTrue(groupRepo.checkIfGroupExists(groupId), "Expected group $groupId to exist")
+        }
+    }
+
+    @Test
+    fun `add user to group`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupsRepository(handle)
@@ -63,28 +138,8 @@ class JdbiGroupsRepositoryTests {
             val initialGroup = InitialGroup(clock, ownerId)
             val groupId = groupRepo.createGroup(initialGroup)
 
-            // when: Adding a user to the group
-            assertTrue(groupRepo.addUserToGroup(userId, groupId))
-
-            // then: verify the user is in the group
-            val groupUsers = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers.size == 2, "Expected group to have 2 user but had ${groupUsers.size}")
-            assertTrue(groupUsers.contains(userId), "Expected group to have user $userId but it didn't")
-            assertTrue(groupUsers.contains(ownerId), "Expected group to have user $ownerId but it didn't")
-
-            // when: Removing user from group
-            assertTrue(
-                groupRepo.removeUserFromGroup(userId, groupId),
-                "Failed to remove user $userId from group $groupId",
-            )
-
-            // then: verify the user is not in the group anymore
-            val groupUsers2 = groupRepo.getGroupUsers(groupId)
-            assertTrue(groupUsers2.size == 1, "Expected group to have 1 users but had ${groupUsers2.size}")
-            assertTrue(
-                !groupUsers2.contains(userId),
-                "Expected group to not have user $userId but it didn't",
-            )
+            // then: add user to the group
+            assertTrue(groupRepo.addUserToGroup(userId, groupId), "Failed to add user $userId to group $groupId")
         }
     }
 
@@ -124,6 +179,91 @@ class JdbiGroupsRepositoryTests {
     }
 
     @Test
+    fun `check if user is in group`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // when: Adding a user to the group
+            assertTrue(groupRepo.addUserToGroup(userId, groupId))
+
+            // then: check if the user is in the group
+            assertTrue(groupRepo.checkIfUserIsInGroup(userId, groupId), "Expected user $userId to be in group $groupId")
+        }
+    }
+
+    @Test
+    fun `get group users`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // when: Adding a user to the group
+            assertTrue(groupRepo.addUserToGroup(userId, groupId))
+
+            // then: get group users
+            val groupUsers = groupRepo.getGroupUsers(groupId, LimitAndSkip())
+            assertTrue(groupUsers.size == 2, "Expected group to have 1 user but had ${groupUsers.size}")
+        }
+    }
+
+    @Test
+    fun `remove user from group`() {
+        repoUtils.runWithHandle { handle ->
+            // given: a group and user repo
+            val groupRepo = JdbiGroupsRepository(handle)
+
+            // and: a test clock
+            val clock = TestClock()
+
+            // when: storing a user
+            val ownerId = repoUtils.createTestUser(handle)
+
+            // when: storing a user
+            val userId = repoUtils.createTestUser(handle)
+
+            // when: storing a group
+            val initialGroup = InitialGroup(clock, ownerId)
+            val groupId = groupRepo.createGroup(initialGroup)
+
+            // when: Adding a user to the group
+            assertTrue(groupRepo.addUserToGroup(userId, groupId))
+
+            // then: remove user from the group
+            assertTrue(groupRepo.removeUserFromGroup(userId, groupId), "Failed to remove user $userId from group $groupId")
+
+            // then: check if the user is still in the group
+            assertTrue(!groupRepo.checkIfUserIsInGroup(userId, groupId), "Expected user $userId to not be in group $groupId")
+        }
+    }
+
+    @Test
     fun `update group name`() {
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
@@ -145,7 +285,7 @@ class JdbiGroupsRepositoryTests {
             // then: check for the new name
             val group = groupRepo.getGroupById(groupId)
             assertNotNull(group, "No group retrieved")
-            assertEquals(newGroupName, group.groupName, "Group name does not match")
+            assertEquals(newGroupName, group.name, "Group name does not match")
         }
     }
 
@@ -171,7 +311,7 @@ class JdbiGroupsRepositoryTests {
             // then: check for the new description
             val group = groupRepo.getGroupById(groupId)
             assertNotNull(group, "No group retrieved")
-            assertEquals(newGroupDescription, group.groupDescription, "Group description does not match")
+            assertEquals(newGroupDescription, group.description, "Group description does not match")
         }
     }
 
@@ -202,14 +342,13 @@ class JdbiGroupsRepositoryTests {
             // then: check for the new name and description
             val group = groupRepo.getGroupById(groupId)
             assertNotNull(group, "No group retrieved")
-            assertEquals(newGroupName, group.groupName, "Group name does not match")
-            assertEquals(newGroupDescription, group.groupDescription, "Group description does not match")
+            assertEquals(newGroupName, group.name, "Group name does not match")
+            assertEquals(newGroupDescription, group.description, "Group description does not match")
         }
     }
 
-    /*@Test
+    @Test
     fun `delete group`() {
-
         repoUtils.runWithHandle { handle ->
             // given: a group and user repo
             val groupRepo = JdbiGroupsRepository(handle)
@@ -224,13 +363,13 @@ class JdbiGroupsRepositoryTests {
             val initialGroup = InitialGroup(clock, ownerId)
             val groupId = groupRepo.createGroup(initialGroup)
 
-            // then: delete group
+            // then: delete the group
             assertTrue(groupRepo.deleteGroup(groupId), "Failed to delete group $groupId")
 
-            // then: try to retrieve it
-            assertNull(groupRepo.getGroupById(groupId), "Group $groupId was not deleted")
+            // then: check if the group exists
+            assertTrue(!groupRepo.checkIfGroupExists(groupId), "Expected group $groupId to not exist after deletion")
         }
-    }*/
+    }
 
     companion object {
         private val repoUtils = RepoUtils()
@@ -255,8 +394,8 @@ class JdbiGroupsRepositoryTests {
 
         private fun InitialGroup.assertGroupWith(group: Group?) {
             assertNotNull(group) { "No group retrieved" }
-            assertEquals(groupName, group.groupName)
-            assertEquals(groupDescription, group.groupDescription)
+            assertEquals(groupName, group.name)
+            assertEquals(groupDescription, group.description)
             assertEquals(createdAt, group.createdAt)
             assertEquals(ownerId, group.ownerId)
             assertTrue(group.id >= 0)

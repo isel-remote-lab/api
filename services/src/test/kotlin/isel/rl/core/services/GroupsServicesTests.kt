@@ -370,6 +370,38 @@ class GroupsServicesTests {
                 expectedServiceException = ServicesExceptions.InvalidQueryParam::class,
             )
         }
+
+        @Test
+        fun `get group users`() {
+            // When: given a group service
+            val clock = TestClock()
+            val groupService = GroupsServicesUtils.createGroupsServices(clock)
+            val userService = UsersServicesUtils.createUsersServices(clock)
+
+            // When: Creating a group
+            val group =
+                GroupsServicesUtils.createGroup(
+                    groupService,
+                )
+
+            // When: Creating a user to be added to the group
+            val user = UsersServicesUtils.loginUser(userService)
+
+            // When: Adding the user to the group
+            GroupsServicesUtils.addUserToGroup(
+                groupService,
+                actorUserId = group.ownerId,
+                userId = user.id.toString(),
+                groupId = group.id.toString(),
+            )
+
+            // When: Getting the users of the group
+            GroupsServicesUtils.getGroupUsers(
+                groupService,
+                group.id.toString(),
+                expectedUsers = listOf(group.ownerId, user.id),
+            )
+        }
     }
 
     @Nested
@@ -398,15 +430,10 @@ class GroupsServicesTests {
                 groupId = group.id.toString(),
             )
 
-            val expectedGroup =
-                group.copy(
-                    users = listOf(group.ownerId, user.id),
-                )
-
             // When: Getting the group by id and checking the users
             GroupsServicesUtils.getGroupById(
                 groupService,
-                expectedGroup,
+                group,
             )
         }
 
@@ -620,7 +647,7 @@ class GroupsServicesTests {
             // When: Getting the group by id and checking the users
             GroupsServicesUtils.getGroupById(
                 groupService,
-                expectedGroup = group.copy(users = listOf(group.ownerId)),
+                group,
             )
         }
 

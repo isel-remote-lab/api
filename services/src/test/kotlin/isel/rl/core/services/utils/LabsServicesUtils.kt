@@ -73,18 +73,18 @@ object LabsServicesUtils {
         val expectedLabQueueLimit = if (initialLab.queueLimit == null) null else initialLab.queueLimit.toInt()
 
         assertTrue(lab is Success, "Expected a success, but got: $lab")
-        assertEquals(expectedLabName, lab.value.labName.labNameInfo, "Lab name does not match")
+        assertEquals(expectedLabName, lab.value.name.labNameInfo, "Lab name does not match")
         assertEquals(
             expectedLabDescription,
-            lab.value.labDescription.labDescriptionInfo,
+            lab.value.description.labDescriptionInfo,
             "Lab description does not match",
         )
         assertEquals(
             initialLab.duration,
-            lab.value.labDuration.labDurationInfo!!.inWholeMinutes.toInt(),
+            lab.value.duration.labDurationInfo!!.inWholeMinutes.toInt(),
             "Lab duration does not match",
         )
-        assertEquals(expectedLabQueueLimit, lab.value.labQueueLimit.labQueueLimitInfo, "Lab queue limit does not match")
+        assertEquals(expectedLabQueueLimit, lab.value.queueLimit.labQueueLimitInfo, "Lab queue limit does not match")
         return initialLab.copy(
             id = lab.value.id,
             createdAt = lab.value.createdAt,
@@ -290,20 +290,20 @@ object LabsServicesUtils {
         actualLab: Laboratory,
     ) {
         assertEquals(expectedLab.id, actualLab.id, "Lab ID does not match expected value.")
-        assertEquals(expectedLab.name, actualLab.labName.labNameInfo, "Lab name does not match expected value.")
+        assertEquals(expectedLab.name, actualLab.name.labNameInfo, "Lab name does not match expected value.")
         assertEquals(
             expectedLab.description,
-            actualLab.labDescription.labDescriptionInfo,
+            actualLab.description.labDescriptionInfo,
             "Lab description does not match expected value.",
         )
         assertEquals(
             expectedLab.duration,
-            actualLab.labDuration.labDurationInfo?.inWholeMinutes?.toInt(),
+            actualLab.duration.labDurationInfo?.inWholeMinutes?.toInt(),
             "Lab duration does not match expected value.",
         )
         assertEquals(
             expectedLab.queueLimit,
-            actualLab.labQueueLimit.labQueueLimitInfo,
+            actualLab.queueLimit.labQueueLimitInfo,
             "Lab queue limit does not match expected value.",
         )
         assertEquals(expectedLab.createdAt, actualLab.createdAt, "CreatedAt does not match expected value.")

@@ -37,10 +37,10 @@ data class LaboratoriesController(
         when (
             val result =
                 laboratoriesService.createLaboratory(
-                    labName = input.labName,
-                    labDescription = input.labDescription,
-                    labDuration = input.labDuration,
-                    labQueueLimit = input.labQueueLimit,
+                    name = input.name,
+                    description = input.description,
+                    duration = input.duration,
+                    queueLimit = input.queueLimit,
                     owner = user.user,
                 )
         ) {
@@ -83,10 +83,10 @@ data class LaboratoriesController(
             val result =
                 laboratoriesService.updateLaboratory(
                     labId = id,
-                    labName = input.labName,
-                    labDescription = input.labDescription,
-                    labDuration = input.labDuration,
-                    labQueueLimit = input.labQueueLimit,
+                    labName = input.name,
+                    labDescription = input.description,
+                    labDuration = input.duration,
+                    labQueueLimit = input.queueLimit,
                     ownerId = user.user.id,
                 )
         ) {

@@ -1,8 +1,7 @@
 package isel.rl.core.domain.exceptions
 
-/*
- * This file contains the definition of the ServicesExceptions class and its subclasses.
- * The ServicesExceptions class is a sealed class that represents various exceptions that can occur in the services layer.
+/**
+ * [ServicesExceptions] is a sealed class that represents various exceptions that can occur in the services layer.
  * Each subclass represents a specific type of exception.
  * The data object subclasses implement the readResolve method to ensure that they are singleton instances, since Java Serialization calls this method
  * and they are data objects because they are used to represent a single instance of the exception.

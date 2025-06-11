@@ -15,21 +15,29 @@ interface GroupsRepository {
 
     fun getGroupByName(groupName: GroupName): Group?
 
-    fun getGroupUsers(groupId: Int): List<Int>
+    fun getGroupOwnerId(groupId: Int): Int?
+
+    fun checkIfGroupExists(groupId: Int): Boolean
+
+    fun addUserToGroup(
+        userId: Int,
+        groupId: Int,
+    ): Boolean
 
     fun getUserGroups(
         userId: Int,
         limitAndSkip: LimitAndSkip,
     ): List<Group>
 
-    fun checkIfGroupExists(groupId: Int): Boolean
-
-    fun getGroupOwnerId(groupId: Int): Int?
-
-    fun addUserToGroup(
+    fun checkIfUserIsInGroup(
         userId: Int,
         groupId: Int,
     ): Boolean
+
+    fun getGroupUsers(
+        groupId: Int,
+        limitAndSkip: LimitAndSkip,
+    ): List<Int>
 
     fun removeUserFromGroup(
         userId: Int,

@@ -152,7 +152,7 @@ class JdbiHardwareRepositoryTests {
             // then: retrieve updated hardware by Id
             val updatedHardwareById = hardwareRepo.getHardwareById(hardwareId)
             assertNotNull(updatedHardwareById) { "No updated hardware retrieved from database" }
-            assertEquals(newName, updatedHardwareById.hwName, "Hardware names do not match")
+            assertEquals(newName, updatedHardwareById.name, "Hardware names do not match")
 
             // when: trying to retrieve updated hardware by old name
             assertTrue(
@@ -309,8 +309,8 @@ class JdbiHardwareRepositoryTests {
 
         private fun InitialHardware.assertHardwareWith(hardware: Hardware?) {
             assertNotNull(hardware) { "No hardware retrieved" }
-            assertEquals(hardwareName, hardware.hwName, "Hardware names do not match")
-            assertEquals(serialNum, hardware.hwSerialNum, "Hardware serial numbers do not match")
+            assertEquals(hardwareName, hardware.name, "Hardware names do not match")
+            assertEquals(serialNum, hardware.serialNum, "Hardware serial numbers do not match")
             assertEquals(status, hardware.status, "Hardware statuses do not match")
             assertEquals(macAddress, hardware.macAddress, "Hardware mac addresses do not match")
             assertEquals(ipAddress, hardware.ipAddress, "Hardware ip addresses do not match")

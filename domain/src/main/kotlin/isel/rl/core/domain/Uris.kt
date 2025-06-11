@@ -110,14 +110,19 @@ object Uris {
         const val GET_USER_GROUPS = BASE
 
         /**
+         * URI for getting group users
+         */
+        const val GET_GROUP_USERS = "$BASE/{id}/users"
+
+        /**
          * URI for adding a user to a group
          */
-        const val ADD_USER_TO_GROUP = "$BASE/groups/{id}/users"
+        const val ADD_USER_TO_GROUP = "$BASE/{id}/users"
 
         /**
          * URI for removing a user from a group
          */
-        const val REMOVE_USER_FROM_GROUP = "$BASE/groups/{id}/users"
+        const val REMOVE_USER_FROM_GROUP = "$BASE/{id}/users"
 
         /**
          * URI for getting all users of a group

@@ -43,19 +43,19 @@ data class LaboratoriesService(
     private val groupsDomain: GroupsDomain,
 ) : ILaboratoriesService {
     override fun createLaboratory(
-        labName: String?,
-        labDescription: String?,
-        labDuration: Int?,
-        labQueueLimit: Int?,
+        name: String?,
+        description: String?,
+        duration: Int?,
+        queueLimit: Int?,
         owner: User,
     ): CreateLaboratoryResult =
         runCatching {
             val laboratory =
                 laboratoriesDomain.validateCreateLaboratory(
-                    labName,
-                    labDescription,
-                    labDuration,
-                    labQueueLimit,
+                    name,
+                    description,
+                    duration,
+                    queueLimit,
                     clock.now(),
                     owner.id,
                 )

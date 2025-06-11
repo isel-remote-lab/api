@@ -24,13 +24,12 @@ import kotlin.time.Duration.Companion.days
 
 object LabsTestsUtils {
     private const val ID_PROP = "id"
-    private const val LAB_NAME_PROP = "labName"
-    private const val LAB_DESCRIPTION_PROP = "labDescription"
-    private const val LAB_DURATION_PROP = "labDuration"
-    private const val LAB_QUEUE_LIMIT_PROP = "labQueueLimit"
+    private const val LAB_NAME_PROP = "name"
+    private const val LAB_DESCRIPTION_PROP = "description"
+    private const val LAB_DURATION_PROP = "duration"
+    private const val LAB_QUEUE_LIMIT_PROP = "queueLimit"
     private const val CREATED_AT_PROP = "createdAt"
     private const val OWNER_ID_PROP = "ownerId"
-    private const val GROUPS_PROP = "groups"
 
     data class InitialLab(
         val id: Int = 0,
@@ -96,9 +95,11 @@ object LabsTestsUtils {
 
         val lab = getBodyDataFromResponse<Map<*, *>>(response, "Laboratory created successfully")
 
+        val expectedLabDescription = initialLab.description?.labDescriptionInfo?.ifBlank { null }
+
         assertEquals(initialLab.name?.labNameInfo, lab[LAB_NAME_PROP], "Lab name mismatch")
         assertEquals(
-            initialLab.description?.labDescriptionInfo,
+            expectedLabDescription,
             lab[LAB_DESCRIPTION_PROP],
             "Lab description mismatch",
         )

@@ -33,7 +33,7 @@ data class LaboratoriesDomain(
     ): Laboratory {
         val validatedLabName =
             when {
-                domainConfig.isLabNameOptional && labName.isNullOrBlank() -> LabName()
+                isLabNameOptional && labName.isNullOrBlank() -> LabName()
                 labName.isNullOrBlank() -> throw ServicesExceptions.Laboratories.InvalidLaboratoryName(
                     "Laboratory name is required",
                 )
@@ -43,7 +43,7 @@ data class LaboratoriesDomain(
 
         val validatedLabDescription =
             when {
-                domainConfig.isLabDescriptionOptional && labDescription.isNullOrBlank() -> LabDescription()
+                isLabDescriptionOptional && labDescription.isNullOrBlank() -> LabDescription()
                 labDescription.isNullOrBlank() -> throw ServicesExceptions.Laboratories.InvalidLaboratoryDescription(
                     "Laboratory description is required",
                 )
@@ -53,7 +53,7 @@ data class LaboratoriesDomain(
 
         val validatedLabDuration =
             when {
-                domainConfig.isLabDurationOptional && labDuration == null -> LabDuration()
+                isLabDurationOptional && labDuration == null -> LabDuration()
                 labDuration == null -> throw ServicesExceptions.Laboratories.InvalidLaboratoryDuration(
                     "Laboratory duration is required",
                 )
@@ -63,7 +63,7 @@ data class LaboratoriesDomain(
 
         val validatedLabQueueLimit =
             when {
-                domainConfig.isLabQueueLimitOptional && labQueueLimit == null -> LabQueueLimit()
+                isLabQueueLimitOptional && labQueueLimit == null -> LabQueueLimit()
                 labQueueLimit == null -> throw ServicesExceptions.Laboratories.InvalidLaboratoryQueueLimit(
                     "Laboratory queue limit is required",
                 )
@@ -72,10 +72,10 @@ data class LaboratoriesDomain(
             }
 
         return Laboratory(
-            labName = validatedLabName,
-            labDescription = validatedLabDescription,
-            labDuration = validatedLabDuration,
-            labQueueLimit = validatedLabQueueLimit,
+            name = validatedLabName,
+            description = validatedLabDescription,
+            duration = validatedLabDuration,
+            queueLimit = validatedLabQueueLimit,
             createdAt = createdAt,
             ownerId = ownerId,
         )
