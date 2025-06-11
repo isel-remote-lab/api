@@ -57,7 +57,6 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
 
         is ServicesExceptions.Laboratories.InvalidLaboratoryId -> Problem.response(400, Problem.invalidLaboratoryId)
         ServicesExceptions.Laboratories.LaboratoryNotFound -> Problem.response(404, Problem.laboratoryNotFound)
-        ServicesExceptions.Laboratories.LaboratoryNotOwned -> Problem.response(403, Problem.laboratoryNotOwned)
 
         /**
          * Groups Exceptions

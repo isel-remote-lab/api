@@ -3,46 +3,64 @@ package isel.rl.core.http.model
 import org.springframework.http.ResponseEntity
 import java.net.URI
 
-class Problem(
+data class Problem(
     val type: String = "",
     val title: String = "",
     val detail: String = "",
 ) {
     companion object {
         private const val MEDIA_TYPE = "application/problem+json"
+        private const val FILE_TYPE_SUFFIX = ".md"
+        private const val PREFIX_TYPE_URI = "https://github.com/isel-remote-lab/documentation/blob/main/problems/"
 
         fun response(
             status: Int,
             problem: Problem,
         ): ResponseEntity<Any> = ResponseEntity.status(status).header("Content-Type", MEDIA_TYPE).body(problem)
 
+        fun stringResponse(
+            type: String,
+            title: String,
+            detail: String,
+        ) = """
+            {
+                "type": "${PREFIX_TYPE_URI + type + FILE_TYPE_SUFFIX}",
+                "title": "$title",
+                "detail": "$detail"
+            }
+        """.trimIndent()
+
+        private fun type(
+            type: String,
+        ): String = URI(PREFIX_TYPE_URI + type + FILE_TYPE_SUFFIX).toASCIIString()
+
         /**
          * Common Problems
          */
-
         fun forbidden(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("forbidden"),
                 "Forbidden",
+                message,
+            )
+
+        fun unauthorized(message: String) =
+            Problem(
+                type("unauthorized"),
+                "Unauthorized",
                 message,
             )
 
         val unexpectedError =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("unexpected-error"),
                 "Unexpected error",
                 "An unexpected error occurred",
             )
 
         fun invalidQueryParam(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-query-param"),
                 "Invalid query parameters",
                 message,
             )
@@ -53,55 +71,42 @@ class Problem(
 
         val invalidRole =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-role"),
                 "Invalid role",
-                "The role provided is invalid. The role doesn't exist or is not supported. " +
-                    "The roles supported are: 'S' for student, 'T' for teacher and 'A' for admin.",
+                "The role provided is invalid",
             )
 
         val invalidName =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-name"),
                 "Invalid name",
                 "The name provided is invalid.",
             )
 
         val invalidEmail =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-email"),
                 "Invalid email",
                 "The email provided is invalid.",
             )
 
         val invalidUserId =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-user-id"),
                 "Invalid userId",
                 "The userId provided is invalid. It should be a number.",
             )
 
         val userNotFound =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("user-not-found"),
                 "User not found",
                 "The user with the provided information was not found.",
             )
 
         val errorWhenUpdatingUser =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("error-when-updating-user"),
                 "Error when updating user",
                 "An error occurred when updating the user.",
             )
@@ -111,63 +116,42 @@ class Problem(
          */
         val invalidLaboratoryId =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-laboratory-id"),
                 "Invalid laboratory id",
                 "The laboratory id provided is invalid. It should be a number.",
             )
 
         val laboratoryNotFound =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("laboratory-not-found"),
                 "Laboratory not found",
                 "The laboratory with the provided information was not found.",
             )
 
-        val laboratoryNotOwned =
-            Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
-                "Laboratory not owned",
-                "The laboratory with the provided information is not owned by the user.",
-            )
-
         fun invalidLaboratoryName(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-laboratory-name"),
                 "Invalid laboratory name",
                 message,
             )
 
         fun invalidLaboratoryDescription(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-laboratory-description"),
                 "Invalid laboratory description",
                 message,
             )
 
         fun invalidLaboratoryDuration(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-laboratory-duration"),
                 "Invalid laboratory duration",
                 message,
             )
 
         fun invalidLaboratoryQueueLimit(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-laboratory-queue-limit"),
                 "Invalid laboratory queue limit",
                 message,
             )
@@ -177,54 +161,42 @@ class Problem(
          */
         val invalidGroupId =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-group-id"),
                 "Invalid group id",
                 "The group id provided is invalid. It should be a number.",
             )
 
         val groupNotFound =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("group-not-found"),
                 "Group not found",
                 "The group with the provided information was not found.",
             )
 
         val userAlreadyInGroup =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("user-already-in-group"),
                 "User already in group",
                 "The user with the provided information is already in the group.",
             )
 
         val userNotInGroup =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("user-not-in-group"),
                 "User not in group",
                 "The user with the provided information is not in the group.",
             )
 
         fun invalidGroupName(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-group-name"),
                 "Invalid group name",
                 message,
             )
 
         fun invalidGroupDescription(message: String) =
             Problem(
-                URI(
-                    "TODO",
-                ).toASCIIString(),
+                type("invalid-group-description"),
                 "Invalid group description",
                 message,
             )

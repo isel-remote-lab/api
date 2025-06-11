@@ -1,5 +1,6 @@
 package isel.rl.core.http.pipeline.interceptors
 
+import isel.rl.core.http.model.Problem
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.RequestTokenProcessor
@@ -39,6 +40,14 @@ class AuthenticationInterceptor(
             if (cookie == null && token == null) {
                 response.status = 401
                 response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
+                response.contentType = "application/problem+json"
+                response.writer.println(
+                    Problem.stringResponse(
+                        "unauthorized",
+                        "Unauthorized",
+                        "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource."
+                    )
+                )
                 return false
             }
 
@@ -59,6 +68,14 @@ class AuthenticationInterceptor(
         return if (user == null) {
             response.status = 401
             response.addHeader(NAME_WWW_AUTHENTICATE_HEADER, RequestTokenProcessor.SCHEME)
+            response.contentType = "application/problem+json"
+            response.writer.println(
+                Problem.stringResponse(
+                    "unauthorized",
+                    "Unauthorized",
+                    "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource."
+                )
+            )
             false
         } else {
             AuthenticatedUserArgumentResolver.addUserTo(user, request)
