@@ -7,6 +7,7 @@ import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.group.GroupCreateInputModel
 import isel.rl.core.http.model.group.GroupOutputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
+import isel.rl.core.http.model.user.UserOutputModel
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.IGroupsService
 import isel.rl.core.utils.Failure
@@ -94,7 +95,7 @@ class GroupsController(
                 ResponseEntity.ok(
                     SuccessResponse(
                         message = "Group users retrieved successfully",
-                        data = result.value,
+                        data = result.value.map { UserOutputModel.toOutputModel(it) },
                     ),
                 )
 

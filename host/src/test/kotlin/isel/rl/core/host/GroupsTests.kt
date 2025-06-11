@@ -140,6 +140,31 @@ class GroupsTests {
         }
 
         @Test
+        fun `create group with null description`() {
+            // given: a test client
+            val testClient = HttpUtils.buildTestClient(port)
+
+            // when: creating a teacher
+            val user = UsersTestsUtils.createUser(testClient)
+
+            // then: creating a group with null description
+            if (HttpUtils.domainConfigs.group.description.optional) {
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(description = GroupDescription(null)),
+                    user.authToken,
+                )
+            } else {
+                GroupsTestsUtils.createGroup(
+                    testClient,
+                    GroupsTestsUtils.InitialGroup(description = GroupDescription(null)),
+                    user.authToken,
+                    expectedRequiredGroupDescriptionProblem,
+                )
+            }
+        }
+
+        @Test
         fun `create group with invalid description (min)`() {
             // given: a test client
             val testClient = HttpUtils.buildTestClient(port)
