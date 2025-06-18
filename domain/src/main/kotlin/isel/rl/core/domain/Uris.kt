@@ -130,6 +130,35 @@ object Uris {
         const val DELETE = "$BASE/{id}"
     }
 
+    object Hardware {
+        private const val BASE = "$PREFIX/hardware"
+
+        /**
+         * URI for creating hardware
+         */
+        const val CREATE = BASE
+
+        /**
+         * URI for getting hardware by ID
+         */
+        const val GET_BY_ID = "$BASE/{id}"
+
+        /**
+         * URI for getting all hardware of a user
+         */
+        const val GET_USER_HARDWARE = BASE
+
+        /**
+         * URI for updating hardware by ID
+         */
+        const val UPDATE = "$BASE/{id}"
+
+        /**
+         * URI for deleting hardware by ID
+         */
+        const val DELETE = "$BASE/{id}"
+    }
+
     object Private {
         /**
          * URI for getting the domain configuration

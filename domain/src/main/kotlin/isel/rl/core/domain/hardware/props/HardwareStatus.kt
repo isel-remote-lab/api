@@ -1,4 +1,4 @@
-package isel.rl.core.domain.hardware
+package isel.rl.core.domain.hardware.props
 
 enum class HardwareStatus(val char: String) {
     Available("A"),

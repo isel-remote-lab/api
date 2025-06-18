@@ -14,6 +14,7 @@ data class DomainConfig(
     val user: UserRestrictions,
     val laboratory: LaboratoryRestrictions,
     val group: GroupRestrictions,
+    val hardware: HardwareRestrictions
 ) {
     @Serializable
     data class UserRestrictions(
@@ -36,6 +37,11 @@ data class DomainConfig(
     data class GroupRestrictions(
         val name: Properties,
         val description: Properties,
+    )
+
+    @Serializable
+    data class HardwareRestrictions(
+        val name: Properties
     )
 
     @Serializable

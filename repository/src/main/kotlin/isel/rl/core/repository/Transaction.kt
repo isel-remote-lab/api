@@ -7,6 +7,7 @@ interface Transaction {
     val usersRepository: UsersRepository
     val laboratoriesRepository: LaboratoriesRepository
     val groupsRepository: GroupsRepository
+    val hardwareRepository: HardwareRepository
 
     /**
      * Rolls back the current transaction.

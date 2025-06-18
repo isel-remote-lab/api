@@ -3,8 +3,8 @@ package isel.rl.core.repository.utils
 import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
-import isel.rl.core.domain.hardware.HardwareName
-import isel.rl.core.domain.hardware.HardwareStatus
+import isel.rl.core.domain.hardware.Hardware
+import isel.rl.core.domain.hardware.props.*
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.laboratory.props.LabDescription
@@ -241,7 +241,7 @@ class RepoUtils {
     /**
      * Generates a random hardware serial number for testing purposes.
      */
-    fun newTestHardwareSerialNumber() = "serial-${abs(Random.nextLong())}"
+    fun newTestHardwareSerialNumber() = SerialNumber("serial-${abs(Random.nextLong())}")
 
     /**
      * Generates a random hardware status for testing purposes.
@@ -251,12 +251,12 @@ class RepoUtils {
     /**
      * Generates a random hardware mac address for testing purposes.
      */
-    fun newTestHardwareMacAddress() = "mac-${abs(Random.nextLong())}"
+    fun newTestHardwareMacAddress() = MacAddress("mac-${abs(Random.nextLong())}")
 
     /**
      * Generates a random hardware IP address for testing purposes.
      */
-    fun newTestHardwareIpAddress() = "ip-${abs(Random.nextLong())}"
+    fun newTestHardwareIpAddress() = IpAddress("ip-${abs(Random.nextLong())}")
 
     /**
      * Creates a new hardware in the database and returns its ID.
@@ -275,12 +275,14 @@ class RepoUtils {
         val createdAt = clock.now()
 
         return hardwareRepo.createHardware(
-            name = hardwareName,
-            serialNum = serialNum,
-            status = status,
-            macAddress = macAddress,
-            ipAddress = ipAddress,
-            createdAt = createdAt,
+            Hardware(
+                name = hardwareName,
+                serialNumber = serialNum,
+                status = status,
+                macAddress = macAddress,
+                ipAddress = ipAddress,
+                createdAt = createdAt,
+            )
         )
     }
 

@@ -1,10 +1,11 @@
 package isel.rl.core.repository.jdbi
 
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.HardwareName
-import isel.rl.core.domain.hardware.HardwareStatus
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
 import isel.rl.core.repository.HardwareRepository
-import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
@@ -13,25 +14,20 @@ data class JdbiHardwareRepository(
     val handle: Handle,
 ) : HardwareRepository {
     override fun createHardware(
-        name: HardwareName,
-        serialNum: String,
-        status: HardwareStatus,
-        macAddress: String?,
-        ipAddress: String?,
-        createdAt: Instant,
+        validatedCreateHardware: Hardware
     ): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.hardware (name, serial_num, status, mac_address, ip_address, created_at)
-            VALUES (:name, :serial_num, :status, :mac_address, :ip_address, :created_at)
+            INSERT INTO rl.hardware (name, serial_number, status, mac_address, ip_address, created_at)
+            VALUES (:name, :serial_number, :status, :mac_address, :ip_address, :created_at)
         """,
         )
-            .bind("name", name.hardwareNameInfo)
-            .bind("serial_num", serialNum)
-            .bind("status", status.char)
-            .bind("mac_address", macAddress)
-            .bind("ip_address", ipAddress)
-            .bind("created_at", createdAt.toJavaInstant())
+            .bind("name", validatedCreateHardware.name.hardwareNameInfo)
+            .bind("serial_number", validatedCreateHardware.serialNumber.serialNumberInfo)
+            .bind("status", validatedCreateHardware.status.char)
+            .bind("mac_address", validatedCreateHardware.macAddress?.address)
+            .bind("ip_address", validatedCreateHardware.ipAddress?.address)
+            .bind("created_at", validatedCreateHardware.createdAt.toJavaInstant())
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
@@ -62,8 +58,8 @@ data class JdbiHardwareRepository(
         hwId: Int,
         hwName: HardwareName?,
         hwStatus: HardwareStatus?,
-        ipAddress: String?,
-        macAddress: String?,
+        macAddress: MacAddress?,
+        ipAddress: IpAddress?,
     ): Boolean {
         val updateQuery =
             StringBuilder(
@@ -82,13 +78,13 @@ data class JdbiHardwareRepository(
             updateQuery.append("status = :status, ")
             params["status"] = it.char
         }
-        ipAddress?.let {
-            updateQuery.append("ip_address = :ip_address, ")
-            params["ip_address"] = it
-        }
         macAddress?.let {
             updateQuery.append("mac_address = :mac_address, ")
-            params["mac_address"] = it
+            params["mac_address"] = it.address
+        }
+        ipAddress?.let {
+            updateQuery.append("ip_address = :ip_address, ")
+            params["ip_address"] = it.address
         }
 
         // Remove the last comma and space

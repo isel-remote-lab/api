@@ -1,18 +1,14 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.HardwareName
-import isel.rl.core.domain.hardware.HardwareStatus
-import kotlinx.datetime.Instant
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
 
 interface HardwareRepository {
     fun createHardware(
-        name: HardwareName,
-        serialNum: String,
-        status: HardwareStatus,
-        macAddress: String?,
-        ipAddress: String?,
-        createdAt: Instant,
+        validatedCreateHardware: Hardware
     ): Int
 
     fun getHardwareById(hwId: Int): Hardware?
@@ -23,8 +19,8 @@ interface HardwareRepository {
         hwId: Int,
         hwName: HardwareName? = null,
         hwStatus: HardwareStatus? = null,
-        ipAddress: String? = null,
-        macAddress: String? = null,
+        macAddress: MacAddress? = null,
+        ipAddress: IpAddress? = null,
     ): Boolean
 
     fun deleteHardware(hwId: Int): Boolean

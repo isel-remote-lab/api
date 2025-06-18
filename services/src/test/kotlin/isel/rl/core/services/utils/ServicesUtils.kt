@@ -1,7 +1,7 @@
 package isel.rl.core.services.utils
 
 import isel.rl.core.domain.group.domain.GroupsDomain
-import isel.rl.core.domain.hardware.HardwareStatus
+import isel.rl.core.domain.hardware.props.HardwareStatus
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.user.domain.UsersDomain

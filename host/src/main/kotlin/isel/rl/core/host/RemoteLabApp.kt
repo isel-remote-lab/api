@@ -1,10 +1,7 @@
 package isel.rl.core.host
 
 import isel.rl.core.domain.Secrets
-import isel.rl.core.domain.config.DomainConfig
-import isel.rl.core.domain.config.GroupsDomainConfig
-import isel.rl.core.domain.config.LaboratoriesDomainConfig
-import isel.rl.core.domain.config.UsersDomainConfig
+import isel.rl.core.domain.config.*
 import isel.rl.core.domain.user.token.Sha256TokenEncoder
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
@@ -19,6 +16,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.filter.CorsFilter
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -90,6 +90,12 @@ class RemoteLabApp {
             config = domainConfigs.group,
         )
 
+    @Bean
+    fun hardwareDomainConfig() =
+        HardwareDomainConfig.from(
+            config = domainConfigs.hardware,
+        )
+
     /**
      * Creates a Clock bean.
      *
@@ -130,6 +136,30 @@ class PipelineConfigurer(
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
         resolvers.add(authenticatedUserArgumentResolver)
+    }
+}
+
+/** TEMPORARY CORS CONFIGURATION FOR DEVELOPMENT PURPOSES */
+@Configuration
+class CorsConfig {
+
+    @Bean
+    fun corsFilter(): CorsFilter {
+        val config = CorsConfiguration()
+
+        config.allowedOrigins = listOf("http://localhost:3000", "http://localhost:8080")
+
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+
+        config.allowedHeaders = listOf("*")
+
+        config.allowCredentials = true
+
+        val source = UrlBasedCorsConfigurationSource()
+
+        source.registerCorsConfiguration("/**", config)
+
+        return CorsFilter(source)
     }
 }
 

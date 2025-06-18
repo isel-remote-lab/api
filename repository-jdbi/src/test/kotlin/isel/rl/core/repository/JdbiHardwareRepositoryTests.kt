@@ -1,8 +1,7 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.HardwareName
-import isel.rl.core.domain.hardware.HardwareStatus
+import isel.rl.core.domain.hardware.props.*
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
@@ -289,31 +288,33 @@ class JdbiHardwareRepositoryTests {
         private data class InitialHardware(
             val clock: TestClock,
             val hardwareName: HardwareName = repoUtils.newTestHardwareName(),
-            val serialNum: String = repoUtils.newTestHardwareSerialNumber(),
+            val serialNum: SerialNumber = repoUtils.newTestHardwareSerialNumber(),
             val status: HardwareStatus = repoUtils.randomHardwareStatus(),
-            val macAddress: String? = repoUtils.newTestHardwareMacAddress(),
-            val ipAddress: String? = repoUtils.newTestHardwareIpAddress(),
+            val macAddress: MacAddress? = repoUtils.newTestHardwareMacAddress(),
+            val ipAddress: IpAddress? = repoUtils.newTestHardwareIpAddress(),
             val createdAt: Instant = clock.now(),
         )
 
         private fun JdbiHardwareRepository.createHardware(hardware: InitialHardware): Int {
             return createHardware(
-                name = hardware.hardwareName,
-                serialNum = hardware.serialNum,
-                status = hardware.status,
-                macAddress = hardware.macAddress,
-                ipAddress = hardware.ipAddress,
-                createdAt = hardware.createdAt,
+                Hardware(
+                    name = hardware.hardwareName,
+                    serialNumber = hardware.serialNum,
+                    status = hardware.status,
+                    macAddress = hardware.macAddress,
+                    ipAddress = hardware.ipAddress,
+                    createdAt = hardware.createdAt,
+                )
             )
         }
 
         private fun InitialHardware.assertHardwareWith(hardware: Hardware?) {
             assertNotNull(hardware) { "No hardware retrieved" }
             assertEquals(hardwareName, hardware.name, "Hardware names do not match")
-            assertEquals(serialNum, hardware.serialNum, "Hardware serial numbers do not match")
-            assertEquals(status, hardware.status, "Hardware statuses do not match")
-            assertEquals(macAddress, hardware.macAddress, "Hardware mac addresses do not match")
-            assertEquals(ipAddress, hardware.ipAddress, "Hardware ip addresses do not match")
+            assertEquals(serialNum.serialNumberInfo, hardware.serialNumber.serialNumberInfo, "Hardware serial numbers do not match")
+            assertEquals(status.char, hardware.status.char, "Hardware statuses do not match")
+            assertEquals(macAddress?.address, hardware.macAddress?.address, "Hardware mac addresses do not match")
+            assertEquals(ipAddress?.address, hardware.ipAddress?.address, "Hardware ip addresses do not match")
             assertEquals(createdAt, hardware.createdAt, "CreatedAt do not match")
             assertTrue(hardware.id >= 0, "HardwareId must be >= 0")
         }

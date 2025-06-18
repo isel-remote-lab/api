@@ -72,6 +72,18 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
                 Problem.invalidGroupDescription(exception.message!!),
             )
 
+        /**
+         * Hardware Exceptions
+         */
+
+        ServicesExceptions.Hardware.HardwareNotFound -> TODO()
+        ServicesExceptions.Hardware.InvalidHardwareId -> TODO()
+        is ServicesExceptions.Hardware.InvalidHardwareIpAddress -> TODO()
+        is ServicesExceptions.Hardware.InvalidHardwareMacAddress -> TODO()
+        is ServicesExceptions.Hardware.InvalidHardwareName -> TODO()
+        is ServicesExceptions.Hardware.InvalidHardwareSerialNumber -> TODO()
+        is ServicesExceptions.Hardware.InvalidHardwareStatus -> TODO()
+
         is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
         is ServicesExceptions.InvalidQueryParam -> Problem.response(400, Problem.invalidQueryParam(exception.message!!))
         ServicesExceptions.UnexpectedError -> Problem.response(500, Problem.unexpectedError)

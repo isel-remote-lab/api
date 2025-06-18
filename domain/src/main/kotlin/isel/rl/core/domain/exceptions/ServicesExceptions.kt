@@ -75,6 +75,26 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
         class InvalidGroupDescription(message: String) : ServicesExceptions(message)
     }
 
+    data object Hardware {
+        data object InvalidHardwareId : ServicesExceptions() {
+            private fun readResolve(): Any = InvalidHardwareId
+        }
+
+        data object HardwareNotFound : ServicesExceptions() {
+            private fun readResolve(): Any = HardwareNotFound
+        }
+
+        class InvalidHardwareName(message: String) : ServicesExceptions(message)
+
+        class InvalidHardwareSerialNumber(message: String) : ServicesExceptions(message)
+
+        class InvalidHardwareMacAddress(message: String) : ServicesExceptions(message)
+
+        class InvalidHardwareIpAddress(message: String) : ServicesExceptions(message)
+
+        class InvalidHardwareStatus(message: String) : ServicesExceptions(message)
+    }
+
     class InvalidQueryParam(message: String) : ServicesExceptions(message)
 
     class Forbidden(message: String) : ServicesExceptions(message)
