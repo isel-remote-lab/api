@@ -89,6 +89,16 @@ object Uris {
          * URI for removing a group from a laboratory
          */
         const val REMOVE_GROUP_FROM_LABORATORY = "$BASE/{id}/groups"
+
+        /**
+         * URI for update the laboratory hardware
+         */
+        const val ADD_HARDWARE_TO_LABORATORY = "$BASE/{id}/hardware"
+
+        /**
+         * URI for removing the hardware from a laboratory
+         */
+        const val REMOVE_HARDWARE_TO_LABORATORY = "$BASE/{id}/hardware"
     }
 
     object Groups {

@@ -2,10 +2,12 @@ package isel.rl.core.services
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.group.domain.GroupsDomain
+import isel.rl.core.domain.hardware.domain.HardwareDomain
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.user.User
 import isel.rl.core.repository.TransactionManager
 import isel.rl.core.services.interfaces.AddGroupToLaboratoryResult
+import isel.rl.core.services.interfaces.AddHardwareToLaboratoryResult
 import isel.rl.core.services.interfaces.CreateLaboratoryResult
 import isel.rl.core.services.interfaces.DeleteLaboratoryResult
 import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
@@ -41,6 +43,7 @@ data class LaboratoriesService(
     private val clock: Clock,
     private val laboratoriesDomain: LaboratoriesDomain,
     private val groupsDomain: GroupsDomain,
+    private val hardwareDomain: HardwareDomain,
 ) : ILaboratoriesService {
     override fun createLaboratory(
         name: String?,
@@ -215,6 +218,36 @@ data class LaboratoriesService(
         }.getOrElse { e ->
             handleException(e as Exception)
         }
+
+    override fun addHardwareToLaboratory(
+        labId: String,
+        hardwareId: String?,
+        ownerId: Int,
+    ): AddHardwareToLaboratoryResult = runCatching {
+        val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+        val validatedHardwareId =
+            hardwareId?.let(hardwareDomain::validateHardwareId)
+                ?: return failure(ServicesExceptions.InvalidQueryParam("HardwareId cannot be null"))
+
+        transactionManager.run {
+            val labRepo = it.laboratoriesRepository
+            val hardwareRepo = it.hardwareRepository
+
+            return@run when {
+                !hardwareRepo.checkIfHardwareExists(validatedHardwareId) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
+                !labRepo.checkIfLaboratoryExists(validatedLabId) ||
+                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                    failure(
+                        ServicesExceptions.Laboratories.LaboratoryNotFound,
+                    )
+
+                labRepo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
+                else -> failure(ServicesExceptions.UnexpectedError)
+            }
+        }
+    }.getOrElse { e ->
+        handleException(e as Exception)
+    }
 
     override fun getAllLaboratoriesByUser(
         userId: Int,

@@ -30,6 +30,10 @@ typealias AddGroupToLaboratoryResult = Either<ServicesExceptions, Unit>
 
 typealias RemoveGroupFromLaboratoryResult = Either<ServicesExceptions, Unit>
 
+typealias AddHardwareToLaboratoryResult = Either<ServicesExceptions, Unit>
+
+typealias RemoveHardwareFromLaboratoryResult = Either<ServicesExceptions, Unit>
+
 typealias GetAllLaboratoriesResult = Either<ServicesExceptions, List<Laboratory>>
 
 typealias DeleteLaboratoryResult = Either<ServicesExceptions, Unit>
@@ -111,6 +115,12 @@ interface ILaboratoriesService {
         groupId: String? = null,
         ownerId: Int,
     ): RemoveGroupFromLaboratoryResult
+
+    fun addHardwareToLaboratory(
+        labId: String,
+        hardwareId: String? = null,
+        ownerId: Int,
+    ): AddHardwareToLaboratoryResult
 
     fun getAllLaboratoriesByUser(
         userId: Int,

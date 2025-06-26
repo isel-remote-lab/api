@@ -238,8 +238,8 @@ data class JdbiLaboratoriesRepository(
     ): Boolean =
         handle.createUpdate(
             """
-            INSERT INTO rl.hardware_laboratory (lab_id, hw_id)
-            VALUES (:lab_id, :hw_id)
+            INSERT INTO rl.hardware_laboratory (hw_id, lab_id)
+            VALUES (:hw_id, :lab_id)
         """,
         )
             .bind("hw_id", hwId)

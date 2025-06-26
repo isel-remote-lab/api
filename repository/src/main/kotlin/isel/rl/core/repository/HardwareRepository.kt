@@ -15,6 +15,8 @@ interface HardwareRepository {
 
     fun getHardwareByName(hwName: HardwareName): List<Hardware>
 
+    fun checkIfHardwareExists(hardwareId: Int): Boolean
+
     fun updateHardware(
         hwId: Int,
         hwName: HardwareName? = null,

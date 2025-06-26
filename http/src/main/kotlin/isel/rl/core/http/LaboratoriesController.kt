@@ -204,6 +204,29 @@ data class LaboratoriesController(
         }
 
     @RequireRole(Role.TEACHER)
+    @PatchMapping(Uris.Laboratories.ADD_HARDWARE_TO_LABORATORY)
+    fun addHardwareToLaboratory(
+        user: AuthenticatedUser,
+        @PathVariable id: String,
+        @RequestParam hardwareId: String? = null,
+    ): ResponseEntity<*> =
+        when (
+            val result = laboratoriesService.addHardwareToLaboratory(
+                labId = id,
+                hardwareId = hardwareId,
+                ownerId = user.user.id,
+            )) {
+            is Success ->
+                ResponseEntity.status(HttpStatus.OK).body(
+                    SuccessResponse(
+                        message = "Hardware added to laboratory successfully",
+                    ),
+                )
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
+
+    @RequireRole(Role.TEACHER)
     @DeleteMapping(Uris.Laboratories.DELETE)
     fun deleteLaboratory(
         user: AuthenticatedUser,
