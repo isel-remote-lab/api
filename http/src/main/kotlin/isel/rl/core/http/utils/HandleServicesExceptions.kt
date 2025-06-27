@@ -76,13 +76,25 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
          * Hardware Exceptions
          */
 
-        ServicesExceptions.Hardware.HardwareNotFound -> TODO()
-        ServicesExceptions.Hardware.InvalidHardwareId -> TODO()
-        is ServicesExceptions.Hardware.InvalidHardwareIpAddress -> TODO()
-        is ServicesExceptions.Hardware.InvalidHardwareMacAddress -> TODO()
-        is ServicesExceptions.Hardware.InvalidHardwareName -> TODO()
-        is ServicesExceptions.Hardware.InvalidHardwareSerialNumber -> TODO()
-        is ServicesExceptions.Hardware.InvalidHardwareStatus -> TODO()
+        ServicesExceptions.Hardware.HardwareNotFound -> Problem.response(404, Problem.hardwareNotFound)
+        ServicesExceptions.Hardware.InvalidHardwareId -> Problem.response(400, Problem.invalidHardwareId)
+        is ServicesExceptions.Hardware.InvalidHardwareIpAddress ->
+            Problem.response(
+                400,
+                Problem.invalidHardwareIpAddress(exception.message!!),
+            )
+        is ServicesExceptions.Hardware.InvalidHardwareMacAddress ->
+            Problem.response(
+                400,
+                Problem.invalidHardwareMacAddress(exception.message!!),
+            )
+        is ServicesExceptions.Hardware.InvalidHardwareName -> Problem.response(400, Problem.invalidHardwareName(exception.message!!))
+        is ServicesExceptions.Hardware.InvalidHardwareSerialNumber ->
+            Problem.response(
+                400,
+                Problem.invalidHardwareSerialNumber(exception.message!!),
+            )
+        is ServicesExceptions.Hardware.InvalidHardwareStatus -> Problem.response(400, Problem.invalidHardwareStatus(exception.message!!))
 
         is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
         is ServicesExceptions.InvalidQueryParam -> Problem.response(400, Problem.invalidQueryParam(exception.message!!))

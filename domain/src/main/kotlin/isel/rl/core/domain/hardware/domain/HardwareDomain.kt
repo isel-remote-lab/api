@@ -3,62 +3,88 @@ package isel.rl.core.domain.hardware.domain
 import isel.rl.core.domain.config.HardwareDomainConfig
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.props.*
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
+import isel.rl.core.domain.hardware.props.SerialNumber
 import kotlinx.datetime.Instant
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 data class HardwareDomain(
     private val domainConfig: HardwareDomainConfig,
 ) {
+    private val hardwareStatusNotInAvailableOptions =
+        "Hardware status must be one of the following options: ${
+            domainConfig.hardwareStatusOptionsAvailable.forEach { option ->
+                option + "\n"
+            }
+        }"
+
+    private val invalidHardwareNameLength =
+        "Hardware name must be between ${domainConfig.minHardwareNameLength} and " +
+            "${domainConfig.maxHardwareNameLength} characters"
+
     fun validateCreateHardware(
         name: String?,
         serialNumber: String?,
         status: String?,
         macAddress: String?,
         ipAddress: String?,
-        createdAt: Instant
+        createdAt: Instant,
     ): Hardware {
-        val validatedName = when {
-            domainConfig.isHardwareNameOptional && name.isNullOrBlank() -> HardwareName()
-            name.isNullOrBlank() ->
-                throw ServicesExceptions.Hardware.InvalidHardwareName(
-                    "Hardware name must be between ${domainConfig.minHardwareNameLength} and " +
-                            "${domainConfig.maxHardwareNameLength} characters",
-                )
+        val validatedName =
+            when {
+                domainConfig.isHardwareNameOptional && name.isNullOrBlank() -> HardwareName()
+                name.isNullOrBlank() ->
+                    throw ServicesExceptions.Hardware.InvalidHardwareName(
+                        invalidHardwareNameLength,
+                    )
 
-            else -> validateHardwareName(name)
-        }
+                else -> validateHardwareName(name)
+            }
+
+        val validatedStatus =
+            when {
+                domainConfig.isHardwareStatusOptional && status.isNullOrBlank() -> null
+                status.isNullOrBlank() ->
+                    throw ServicesExceptions.Hardware.InvalidHardwareStatus(
+                        hardwareStatusNotInAvailableOptions,
+                    )
+
+                else -> validateHardwareStatus(status)
+            }
 
         return Hardware(
             name = validatedName,
             serialNumber = SerialNumber(serialNumber!!),
-            status = when(status?.uppercase(Locale.getDefault())) {
-                "A" -> HardwareStatus.Available
-                "O" -> HardwareStatus.Occupied
-                "M" -> HardwareStatus.Maintenance
-                else -> throw ServicesExceptions.Hardware.InvalidHardwareStatus(
-                    "Hardware status must be one of: A (Available), O (Occupied), M (Maintenance)"
-                )
-            },
+            status = validatedStatus,
             macAddress = if (macAddress == null) null else MacAddress(macAddress),
             ipAddress = if (ipAddress == null) null else IpAddress(ipAddress),
-            createdAt = createdAt
+            createdAt = createdAt,
         )
     }
 
-    fun validateHardwareId(id: String) =
-        runCatching { id.toInt() }.getOrElse { throw ServicesExceptions.Hardware.InvalidHardwareId }
+    fun validateHardwareId(id: String) = runCatching { id.toInt() }.getOrElse { throw ServicesExceptions.Hardware.InvalidHardwareId }
 
     fun validateHardwareName(name: String): HardwareName {
         if (name.length !in domainConfig.minHardwareNameLength..domainConfig.maxHardwareNameLength) {
             throw ServicesExceptions.Hardware.InvalidHardwareName(
-                "Hardware name must be between ${domainConfig.minHardwareNameLength} and " +
-                        "${domainConfig.maxHardwareNameLength} characters",
+                invalidHardwareNameLength,
             )
         }
         return HardwareName(name)
+    }
+
+    fun validateHardwareStatus(status: String): HardwareStatus {
+        if (status.length > 1 || status !in domainConfig.hardwareStatusOptionsAvailable) {
+            throw ServicesExceptions.Hardware.InvalidHardwareStatus(
+                hardwareStatusNotInAvailableOptions,
+            )
+        }
+
+        return HardwareStatus.from(status)
     }
 
     /*

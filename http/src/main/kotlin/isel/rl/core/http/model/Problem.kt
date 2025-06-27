@@ -28,11 +28,9 @@ data class Problem(
                 "title": "$title",
                 "detail": "$detail"
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        private fun type(
-            type: String,
-        ): String = URI(PREFIX_TYPE_URI + type + FILE_TYPE_SUFFIX).toASCIIString()
+        private fun type(type: String): String = URI(PREFIX_TYPE_URI + type + FILE_TYPE_SUFFIX).toASCIIString()
 
         /**
          * Common Problems
@@ -198,6 +196,58 @@ data class Problem(
             Problem(
                 type("invalid-group-description"),
                 "Invalid group description",
+                message,
+            )
+
+        /**
+         * Hardware Related
+         */
+        val hardwareNotFound =
+            Problem(
+                type("hardware-not-found"),
+                "Hardware not found",
+                "The hardware with the provided information was not found.",
+            )
+
+        val invalidHardwareId =
+            Problem(
+                type("invalid-hardware-id"),
+                "Invalid hardware id",
+                "The hardware with the provided information was not found.",
+            )
+
+        fun invalidHardwareIpAddress(message: String) =
+            Problem(
+                type("invalid-hardware-ip-address"),
+                "Invalid hardware ip address",
+                message,
+            )
+
+        fun invalidHardwareMacAddress(message: String) =
+            Problem(
+                type("invalid-hardware-mac-address"),
+                "Invalid hardware mac address",
+                message,
+            )
+
+        fun invalidHardwareName(message: String) =
+            Problem(
+                type("invalid-hardware-name"),
+                "Invalid hardware name",
+                message,
+            )
+
+        fun invalidHardwareSerialNumber(message: String) =
+            Problem(
+                type("invalid-hardware-serial-number"),
+                "Invalid hardware number",
+                message,
+            )
+
+        fun invalidHardwareStatus(message: String) =
+            Problem(
+                type("invalid-hardware-status"),
+                "Invalid hardware status",
                 message,
             )
     }

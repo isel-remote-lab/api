@@ -6,6 +6,7 @@ import isel.rl.core.utils.Either
 
 typealias CreateHardwareResult = Either<ServicesExceptions, Hardware>
 typealias GetHardwareByIdResult = Either<ServicesExceptions, Hardware>
+typealias GetAllHardwareResult = Either<ServicesExceptions, List<Hardware>>
 
 interface IHardwareService {
     fun createHardware(
@@ -17,4 +18,10 @@ interface IHardwareService {
     ): CreateHardwareResult
 
     fun getHardwareById(id: String): GetHardwareByIdResult
+
+    fun getAllHardware(
+        limit: String? = null,
+        skip: String? = null,
+        status: String? = null,
+    ): GetAllHardwareResult
 }

@@ -14,7 +14,7 @@ data class DomainConfig(
     val user: UserRestrictions,
     val laboratory: LaboratoryRestrictions,
     val group: GroupRestrictions,
-    val hardware: HardwareRestrictions
+    val hardware: HardwareRestrictions,
 ) {
     @Serializable
     data class UserRestrictions(
@@ -41,13 +41,18 @@ data class DomainConfig(
 
     @Serializable
     data class HardwareRestrictions(
-        val name: Properties
+        val name: Properties,
+        val serialNumber: Properties,
+        val status: Properties,
+        val macAddress: Properties,
+        val ipAddress: Properties,
     )
 
     @Serializable
     data class Properties(
         val min: Int = 0,
         val max: Int = 0,
+        val availableOptions: List<String> = emptyList(),
         val optional: Boolean = false,
         val unit: String = "",
     )

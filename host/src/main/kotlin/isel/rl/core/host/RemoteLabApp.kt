@@ -1,7 +1,11 @@
 package isel.rl.core.host
 
 import isel.rl.core.domain.Secrets
-import isel.rl.core.domain.config.*
+import isel.rl.core.domain.config.DomainConfig
+import isel.rl.core.domain.config.GroupsDomainConfig
+import isel.rl.core.domain.config.HardwareDomainConfig
+import isel.rl.core.domain.config.LaboratoriesDomainConfig
+import isel.rl.core.domain.config.UsersDomainConfig
 import isel.rl.core.domain.user.token.Sha256TokenEncoder
 import isel.rl.core.http.pipeline.AuthenticatedUserArgumentResolver
 import isel.rl.core.http.pipeline.interceptors.ApiKeyInterceptor
@@ -142,7 +146,6 @@ class PipelineConfigurer(
 /** TEMPORARY CORS CONFIGURATION FOR DEVELOPMENT PURPOSES */
 @Configuration
 class CorsConfig {
-
     @Bean
     fun corsFilter(): CorsFilter {
         val config = CorsConfiguration()

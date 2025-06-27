@@ -1,7 +1,11 @@
 package isel.rl.core.repository.jdbi.mappers.hardware
 
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.props.*
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
+import isel.rl.core.domain.hardware.props.SerialNumber
 import kotlinx.datetime.toKotlinInstant
 import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.statement.StatementContext
@@ -21,11 +25,12 @@ class HardwareMapper : RowMapper<Hardware> {
             id = rs.getInt(Hardware.ID_PROP),
             name = HardwareName(rs.getString(Hardware.NAME_PROP)),
             serialNumber = SerialNumber(rs.getString(Hardware.SERIAL_NUMBER_PROP)),
-            status = HardwareStatus.entries.firstOrNull { it.char == hardwareStatus }
-                ?: throw SQLException("Unknown role: $hardwareStatus"),
+            status =
+                HardwareStatus.entries.firstOrNull { it.char == hardwareStatus }
+                    ?: throw SQLException("Unknown role: $hardwareStatus"),
             macAddress = if (macAddress.isNullOrBlank()) null else MacAddress(macAddress),
             ipAddress = if (ipAddress.isNullOrBlank()) null else IpAddress(ipAddress),
-            createdAt = rs.getTimestamp(Hardware.CREATED_AT_PROP).toInstant().toKotlinInstant()
+            createdAt = rs.getTimestamp(Hardware.CREATED_AT_PROP).toInstant().toKotlinInstant(),
         )
     }
 }

@@ -9,4 +9,4 @@ import isel.rl.core.utils.failure
  * @param e The exception to handle.
  * @return A [failure] result containing the exception.
  */
-fun handleException(e: Exception) = failure(if (e is ServicesExceptions) e else ServicesExceptions.UnexpectedError)
+fun handleException(e: Exception) = failure(e as? ServicesExceptions ?: ServicesExceptions.UnexpectedError)

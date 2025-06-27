@@ -1,5 +1,6 @@
 package isel.rl.core.repository.jdbi
 
+import isel.rl.core.domain.LimitAndSkip
 import isel.rl.core.domain.hardware.Hardware
 import isel.rl.core.domain.hardware.props.HardwareName
 import isel.rl.core.domain.hardware.props.HardwareStatus
@@ -13,9 +14,7 @@ import org.jdbi.v3.core.kotlin.mapTo
 data class JdbiHardwareRepository(
     val handle: Handle,
 ) : HardwareRepository {
-    override fun createHardware(
-        validatedCreateHardware: Hardware
-    ): Int =
+    override fun createHardware(validatedCreateHardware: Hardware): Int =
         handle.createUpdate(
             """
             INSERT INTO rl.hardware (name, serial_number, status, mac_address, ip_address, created_at)
@@ -24,7 +23,7 @@ data class JdbiHardwareRepository(
         )
             .bind("name", validatedCreateHardware.name.hardwareNameInfo)
             .bind("serial_number", validatedCreateHardware.serialNumber.serialNumberInfo)
-            .bind("status", validatedCreateHardware.status.char)
+            .bind("status", validatedCreateHardware.status?.char)
             .bind("mac_address", validatedCreateHardware.macAddress?.address)
             .bind("ip_address", validatedCreateHardware.ipAddress?.address)
             .bind("created_at", validatedCreateHardware.createdAt.toJavaInstant())
@@ -53,6 +52,30 @@ data class JdbiHardwareRepository(
             .bind("name", hwName.hardwareNameInfo)
             .mapTo<Hardware>()
             .list()
+
+    override fun getAllHardware(
+        limitAndSkip: LimitAndSkip,
+        status: HardwareStatus?,
+    ): List<Hardware> {
+        val query = StringBuilder("SELECT * FROM rl.hardware ")
+        val params = mutableMapOf<String, Any?>()
+
+        if (status != null) {
+            query.append("WHERE status = :status ")
+            params["status"] = status.char
+        }
+
+        query.append("LIMIT :limit OFFSET :skip ")
+
+        return handle.createQuery(
+            query.toString(),
+        )
+            .bindMap(params)
+            .bind("limit", limitAndSkip.limit)
+            .bind("skip", limitAndSkip.skip)
+            .mapTo<Hardware>()
+            .list()
+    }
 
     override fun checkIfHardwareExists(hardwareId: Int): Boolean =
         handle.createQuery(

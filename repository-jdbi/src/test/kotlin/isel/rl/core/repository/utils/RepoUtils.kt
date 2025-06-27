@@ -4,7 +4,11 @@ import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.group.props.GroupDescription
 import isel.rl.core.domain.group.props.GroupName
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.props.*
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
+import isel.rl.core.domain.hardware.props.SerialNumber
 import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.laboratory.props.LabDescription
@@ -282,7 +286,7 @@ class RepoUtils {
                 macAddress = macAddress,
                 ipAddress = ipAddress,
                 createdAt = createdAt,
-            )
+            ),
         )
     }
 

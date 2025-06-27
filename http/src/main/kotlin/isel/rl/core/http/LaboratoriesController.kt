@@ -211,15 +211,42 @@ data class LaboratoriesController(
         @RequestParam hardwareId: String? = null,
     ): ResponseEntity<*> =
         when (
-            val result = laboratoriesService.addHardwareToLaboratory(
-                labId = id,
-                hardwareId = hardwareId,
-                ownerId = user.user.id,
-            )) {
+            val result =
+                laboratoriesService.addHardwareToLaboratory(
+                    labId = id,
+                    hardwareId = hardwareId,
+                    ownerId = user.user.id,
+                )
+        ) {
             is Success ->
                 ResponseEntity.status(HttpStatus.OK).body(
                     SuccessResponse(
                         message = "Hardware added to laboratory successfully",
+                    ),
+                )
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
+
+    @RequireRole(Role.TEACHER)
+    @DeleteMapping(Uris.Laboratories.REMOVE_HARDWARE_TO_LABORATORY)
+    fun removeHardwareToLaboratory(
+        user: AuthenticatedUser,
+        @PathVariable id: String,
+        @RequestParam hardwareId: String? = null,
+    ): ResponseEntity<*> =
+        when (
+            val result =
+                laboratoriesService.removeHardwareFromLaboratory(
+                    labId = id,
+                    hardwareId = hardwareId,
+                    ownerId = user.user.id,
+                )
+        ) {
+            is Success ->
+                ResponseEntity.status(HttpStatus.OK).body(
+                    SuccessResponse(
+                        message = "Hardware removed from laboratory successfully",
                     ),
                 )
 

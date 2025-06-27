@@ -30,9 +30,10 @@ class ApiKeyInterceptor(
                 response.contentType = "application/problem+json"
                 response.writer.println(
                     Problem.stringResponse(
-                        "forbidden", "Forbidden",
-                        "You must provide a valid API key in the '$NAME_APIKEY_HEADER' header to access this resource."
-                    )
+                        "forbidden",
+                        "Forbidden",
+                        "You must provide a valid API key in the '$NAME_APIKEY_HEADER' header to access this resource.",
+                    ),
                 )
                 false
             }

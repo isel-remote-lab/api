@@ -8,7 +8,8 @@ data class HardwareOutputModel(
     val serialNumber: String,
     val status: String? = null,
     val macAddress: String? = null,
-    val ipAddress: String? = null
+    val ipAddress: String? = null,
+    val createdAt: String,
 ) {
     companion object {
         fun mapOf(hardware: Hardware): HardwareOutputModel =
@@ -16,10 +17,10 @@ data class HardwareOutputModel(
                 id = hardware.id.toString(),
                 name = hardware.name.hardwareNameInfo,
                 serialNumber = hardware.serialNumber.serialNumberInfo,
-                status = hardware.status.char,
+                status = hardware.status?.char,
                 macAddress = hardware.macAddress?.address,
-                ipAddress = hardware.ipAddress?.address
+                ipAddress = hardware.ipAddress?.address,
+                createdAt = hardware.createdAt.toString()
             )
     }
 }
-

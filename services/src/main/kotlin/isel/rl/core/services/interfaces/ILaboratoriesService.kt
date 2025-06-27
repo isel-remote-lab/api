@@ -122,6 +122,12 @@ interface ILaboratoriesService {
         ownerId: Int,
     ): AddHardwareToLaboratoryResult
 
+    fun removeHardwareFromLaboratory(
+        labId: String,
+        hardwareId: String? = null,
+        ownerId: Int,
+    ): RemoveHardwareFromLaboratoryResult
+
     fun getAllLaboratoriesByUser(
         userId: Int,
         limit: String? = null,

@@ -153,6 +153,8 @@ object Uris {
          */
         const val GET_BY_ID = "$BASE/{id}"
 
+        const val GET_ALL_HARDWARE = BASE
+
         /**
          * URI for getting all hardware of a user
          */

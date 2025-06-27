@@ -45,8 +45,8 @@ class AuthenticationInterceptor(
                     Problem.stringResponse(
                         "unauthorized",
                         "Unauthorized",
-                        "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource."
-                    )
+                        "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource.",
+                    ),
                 )
                 return false
             }
@@ -73,8 +73,8 @@ class AuthenticationInterceptor(
                 Problem.stringResponse(
                     "unauthorized",
                     "Unauthorized",
-                    "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource."
-                )
+                    "You must provide a valid token in the 'Authorization' header or a 'token' cookie to access this resource.",
+                ),
             )
             false
         } else {

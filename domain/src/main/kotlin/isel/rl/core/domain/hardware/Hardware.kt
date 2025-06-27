@@ -1,13 +1,17 @@
 package isel.rl.core.domain.hardware
 
-import isel.rl.core.domain.hardware.props.*
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
+import isel.rl.core.domain.hardware.props.SerialNumber
 import kotlinx.datetime.Instant
 
 data class Hardware(
     val id: Int = 0,
     val name: HardwareName,
     val serialNumber: SerialNumber,
-    val status: HardwareStatus,
+    val status: HardwareStatus? = null,
     val macAddress: MacAddress? = null,
     val ipAddress: IpAddress? = null,
     val createdAt: Instant,

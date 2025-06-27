@@ -1,7 +1,11 @@
 package isel.rl.core.repository
 
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.hardware.props.*
+import isel.rl.core.domain.hardware.props.HardwareName
+import isel.rl.core.domain.hardware.props.HardwareStatus
+import isel.rl.core.domain.hardware.props.IpAddress
+import isel.rl.core.domain.hardware.props.MacAddress
+import isel.rl.core.domain.hardware.props.SerialNumber
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock
@@ -304,7 +308,7 @@ class JdbiHardwareRepositoryTests {
                     macAddress = hardware.macAddress,
                     ipAddress = hardware.ipAddress,
                     createdAt = hardware.createdAt,
-                )
+                ),
             )
         }
 
@@ -312,7 +316,7 @@ class JdbiHardwareRepositoryTests {
             assertNotNull(hardware) { "No hardware retrieved" }
             assertEquals(hardwareName, hardware.name, "Hardware names do not match")
             assertEquals(serialNum.serialNumberInfo, hardware.serialNumber.serialNumberInfo, "Hardware serial numbers do not match")
-            assertEquals(status.char, hardware.status.char, "Hardware statuses do not match")
+            assertEquals(status.char, hardware.status?.char, "Hardware statuses do not match")
             assertEquals(macAddress?.address, hardware.macAddress?.address, "Hardware mac addresses do not match")
             assertEquals(ipAddress?.address, hardware.ipAddress?.address, "Hardware ip addresses do not match")
             assertEquals(createdAt, hardware.createdAt, "CreatedAt do not match")
