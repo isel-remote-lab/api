@@ -20,7 +20,7 @@ data class HardwareOutputModel(
                 status = hardware.status?.char,
                 macAddress = hardware.macAddress?.address,
                 ipAddress = hardware.ipAddress?.address,
-                createdAt = hardware.createdAt.toString()
+                createdAt = hardware.createdAt.toString(),
             )
     }
 }

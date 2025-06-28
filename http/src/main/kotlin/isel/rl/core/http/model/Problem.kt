@@ -154,6 +154,34 @@ data class Problem(
                 message,
             )
 
+        val groupNotFoundInLaboratory =
+            Problem(
+                type("group-not-found-in-laboratory"),
+                "Group not found in laboratory",
+                "The group with the provided information was not found in the laboratory.",
+            )
+
+        val hardwareNotFoundInLaboratory =
+            Problem(
+                type("hardware-not-found-in-laboratory"),
+                "Hardware not found in laboratory",
+                "The hardware with the provided information was not found in the laboratory.",
+            )
+
+        val groupAlreadyInLaboratory =
+            Problem(
+                type("group-already-in-laboratory"),
+                "Group already in laboratory",
+                "The group with the provided information is already in the laboratory.",
+            )
+
+        val hardwareAlreadyInLaboratory =
+            Problem(
+                type("hardware-already-in-laboratory"),
+                "Hardware already in laboratory",
+                "The hardware with the provided information is already in the laboratory.",
+            )
+
         /**
          * Groups Related
          */

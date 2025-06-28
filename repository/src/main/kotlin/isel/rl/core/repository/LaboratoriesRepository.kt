@@ -53,6 +53,11 @@ interface LaboratoriesRepository {
         limitAndSkip: LimitAndSkip? = null,
     ): List<Int>
 
+    fun checkIfGroupBelongsToLaboratory(
+        labId: Int,
+        groupId: Int,
+    ): Boolean
+
     fun addHardwareToLaboratory(
         labId: Int,
         hwId: Int,
@@ -61,6 +66,11 @@ interface LaboratoriesRepository {
     fun getLaboratoryHardware(labId: Int): List<Int>
 
     fun removeHardwareLaboratory(
+        labId: Int,
+        hwId: Int,
+    ): Boolean
+
+    fun checkIfHardwareBelongsToLaboratory(
         labId: Int,
         hwId: Int,
     ): Boolean

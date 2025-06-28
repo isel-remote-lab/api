@@ -22,6 +22,7 @@ import isel.rl.core.services.utils.verifyQuery
 import isel.rl.core.utils.failure
 import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 // runCatching is used to handle exceptions that may occur during the creation of a laboratory.
@@ -54,6 +55,7 @@ data class LaboratoriesService(
         owner: User,
     ): CreateLaboratoryResult =
         runCatching {
+            LOG.info("Creating laboratory with name: {}", name)
             val laboratory =
                 laboratoriesDomain.validateCreateLaboratory(
                     name,
@@ -68,6 +70,7 @@ data class LaboratoriesService(
                 success(laboratory.copy(id = labId, ownerId = owner.id))
             }
         }.getOrElse { e ->
+            LOG.error("Error creating laboratory with name {}", name, e)
             handleException(e as Exception)
         }
 
@@ -76,16 +79,19 @@ data class LaboratoriesService(
         userId: Int,
     ): GetLaboratoryResult =
         runCatching {
+            LOG.info("Getting laboratory with id: {}", id)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(id)
-            transactionManager.run {
-                val laboratoriesRepo = it.laboratoriesRepository
 
-                laboratoriesRepo.getLaboratoryById(validatedLabId)?.takeIf {
-                    laboratoriesRepo.checkIfUserBelongsToLaboratory(validatedLabId, userId)
+            transactionManager.run {
+                val repo = it.laboratoriesRepository
+
+                repo.getLaboratoryById(validatedLabId)?.takeIf {
+                    repo.checkIfUserBelongsToLaboratory(validatedLabId, userId)
                 }?.let { lab -> success(lab) }
                     ?: failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
             }
         }.getOrElse { e ->
+            LOG.error("Error getting laboratory with id: {}", id, e)
             handleException(e as Exception)
         }
 
@@ -98,6 +104,7 @@ data class LaboratoriesService(
         ownerId: Int,
     ): UpdateLaboratoryResult =
         runCatching {
+            LOG.info("Updating laboratory with id: {}", labId)
             // Validate received parameters
             // Since validate methods of domain verify if the parameters are null or empty,
             // a let is used to avoid the null verification
@@ -108,16 +115,16 @@ data class LaboratoriesService(
             val validatedLabQueueLimit = labQueueLimit?.let(laboratoriesDomain::validateLabQueueLimit)
 
             transactionManager.run {
-                val labRepo = it.laboratoriesRepository
+                val repo = it.laboratoriesRepository
 
                 // Check if the laboratory exists or if the owner ID matches
-                if (!labRepo.checkIfLaboratoryExists(validatedLabId) || labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
+                if (!repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
                     failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 } else {
                     // If update is successful, return success
                     // Otherwise, return failure with unexpected error
                     val updated =
-                        labRepo.updateLaboratory(
+                        repo.updateLaboratory(
                             validatedLabId,
                             validatedLabName,
                             validatedLabDescription,
@@ -128,6 +135,7 @@ data class LaboratoriesService(
                 }
             }
         }.getOrElse { e ->
+            LOG.error("Error updating laboratory with id: {}, owner id: {}. Error: {}", labId, ownerId, e.message, e)
             handleException(e as Exception)
         }
 
@@ -137,6 +145,7 @@ data class LaboratoriesService(
         skip: String?,
     ): GetLaboratoryGroupsResult =
         runCatching {
+            LOG.info("Getting groups for laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
             val limitAndSkip = verifyQuery(limit, skip)
 
@@ -147,15 +156,15 @@ data class LaboratoriesService(
                 if (!labRepo.checkIfLaboratoryExists(validatedLabId)) {
                     failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 } else {
-                    // Get the groups associated with the laboratory
                     val groups =
-                        labRepo.getLaboratoryGroups(validatedLabId, limitAndSkip).map { groupId ->
-                            groupRepo.getGroupById(groupId)!!
+                        labRepo.getLaboratoryGroups(validatedLabId, limitAndSkip).mapNotNull { groupId ->
+                            groupRepo.getGroupById(groupId)
                         }
                     success(groups)
                 }
             }
         }.getOrElse { e ->
+            LOG.error("Error getting groups for laboratory with id: {}. Error: {}", labId, e.message, e)
             handleException(e as Exception)
         }
 
@@ -165,6 +174,7 @@ data class LaboratoriesService(
         ownerId: Int,
     ): AddGroupToLaboratoryResult =
         runCatching {
+            LOG.info("Adding group to laboratory with id: {}", labId)
             // Validate the laboratory and group ID's
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
             val validatedGroupId =
@@ -172,21 +182,30 @@ data class LaboratoriesService(
                     ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
 
             transactionManager.run {
-                val labRepo = it.laboratoriesRepository
-
-                return@run when {
+                val repo = it.laboratoriesRepository
+                when {
                     !it.groupsRepository.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
-                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
-                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
-                        failure(
-                            ServicesExceptions.Laboratories.LaboratoryNotFound,
-                        )
+                    !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
-                    labRepo.addGroupToLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
+                    repo.checkIfGroupBelongsToLaboratory(
+                        validatedLabId,
+                        validatedGroupId,
+                    ) -> failure(ServicesExceptions.Laboratories.GroupAlreadyInLaboratory)
+
+                    repo.addGroupToLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error(
+                "Error adding group with id: {} to laboratory with id: {}, owner id: {}. Error: {}",
+                groupId,
+                labId,
+                ownerId,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
@@ -196,27 +215,35 @@ data class LaboratoriesService(
         ownerId: Int,
     ): RemoveGroupFromLaboratoryResult =
         runCatching {
+            LOG.info("Removing group from laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
             val validatedGroupId =
                 groupId?.let(groupsDomain::validateGroupId)
                     ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
 
             transactionManager.run {
-                val labRepo = it.laboratoriesRepository
-
-                return@run when {
+                val repo = it.laboratoriesRepository
+                when {
                     !it.groupsRepository.checkIfGroupExists(validatedGroupId) -> failure(ServicesExceptions.Groups.GroupNotFound)
-                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
-                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
-                        failure(
-                            ServicesExceptions.Laboratories.LaboratoryNotFound,
-                        )
+                    !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
-                    labRepo.removeGroupFromLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
+                    !repo.checkIfGroupBelongsToLaboratory(validatedLabId, validatedGroupId) ->
+                        failure(ServicesExceptions.Laboratories.GroupNotFoundInLaboratory)
+
+                    repo.removeGroupFromLaboratory(validatedLabId, validatedGroupId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error(
+                "Error removing group with id: {} from laboratory with id: {}, owner id: {}. Error: {}",
+                groupId,
+                labId,
+                ownerId,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
@@ -226,28 +253,39 @@ data class LaboratoriesService(
         ownerId: Int,
     ): AddHardwareToLaboratoryResult =
         runCatching {
+            LOG.info("Adding hardware to laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
             val validatedHardwareId =
                 hardwareId?.let(hardwareDomain::validateHardwareId)
                     ?: return failure(ServicesExceptions.InvalidQueryParam("HardwareId cannot be null"))
 
             transactionManager.run {
-                val labRepo = it.laboratoriesRepository
-                val hardwareRepo = it.hardwareRepository
+                val repo = it.laboratoriesRepository
+                when {
+                    !it.hardwareRepository.checkIfHardwareExists(
+                        validatedHardwareId,
+                    ) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
+                    !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
-                return@run when {
-                    !hardwareRepo.checkIfHardwareExists(validatedHardwareId) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
-                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
-                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                    repo.checkIfHardwareBelongsToLaboratory(validatedLabId, validatedHardwareId) ->
                         failure(
-                            ServicesExceptions.Laboratories.LaboratoryNotFound,
+                            ServicesExceptions.Laboratories.HardwareAlreadyInLaboratory,
                         )
 
-                    labRepo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
+                    repo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error(
+                "Error adding hardware with id: {} to laboratory with id: {}, owner id: {}. Error: {}",
+                hardwareId,
+                labId,
+                ownerId,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
@@ -257,28 +295,37 @@ data class LaboratoriesService(
         ownerId: Int,
     ): RemoveHardwareFromLaboratoryResult =
         runCatching {
+            LOG.info("Removing hardware from laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
             val validatedHardwareId =
                 hardwareId?.let(hardwareDomain::validateHardwareId)
                     ?: return failure(ServicesExceptions.InvalidQueryParam("HardwareId cannot be null"))
 
             transactionManager.run {
-                val labRepo = it.laboratoriesRepository
-                val hardwareRepo = it.hardwareRepository
+                val repo = it.laboratoriesRepository
+                when {
+                    !it.hardwareRepository.checkIfHardwareExists(
+                        validatedHardwareId,
+                    ) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
+                    !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
+                        failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
-                return@run when {
-                    !hardwareRepo.checkIfHardwareExists(validatedHardwareId) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
-                    !labRepo.checkIfLaboratoryExists(validatedLabId) ||
-                        labRepo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
-                        failure(
-                            ServicesExceptions.Laboratories.LaboratoryNotFound,
-                        )
+                    !repo.checkIfHardwareBelongsToLaboratory(validatedLabId, validatedHardwareId) ->
+                        failure(ServicesExceptions.Laboratories.HardwareNotFoundInLaboratory)
 
-                    labRepo.removeHardwareLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
+                    repo.removeHardwareLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error(
+                "Error removing hardware with id: {} from laboratory with id: {}, owner id: {}. Error: {}",
+                hardwareId,
+                labId,
+                ownerId,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
@@ -288,11 +335,14 @@ data class LaboratoriesService(
         skip: String?,
     ): GetAllLaboratoriesResult =
         runCatching {
+            LOG.info("Getting all laboratories for user with id: {}", userId)
             val limitAndSkip = verifyQuery(limit, skip)
+
             transactionManager.run {
                 success(it.laboratoriesRepository.getLaboratoriesByUserId(userId, limitAndSkip))
             }
         }.getOrElse { e ->
+            LOG.error("Error getting all laboratories for user with id: {}. Error: {}", userId, e.message, e)
             handleException(e as Exception)
         }
 
@@ -301,27 +351,25 @@ data class LaboratoriesService(
         ownerId: Int,
     ): DeleteLaboratoryResult =
         runCatching {
+            LOG.info("Deleting laboratory with id: {}, owner id: {}", labId, ownerId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
 
             transactionManager.run {
                 val repo = it.laboratoriesRepository
-
                 if (!repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId) {
                     failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 } else {
-                    // Remove all groups associated with the laboratory before deleting it
-                    repo.getLaboratoryGroups(validatedLabId).forEach { groupId ->
-                        repo.removeGroupFromLaboratory(validatedLabId, groupId)
-                    }
-
-                    if (repo.deleteLaboratory(validatedLabId)) {
-                        success(Unit)
-                    } else {
-                        failure(ServicesExceptions.UnexpectedError)
-                    }
+                    repo.getLaboratoryGroups(validatedLabId)
+                        .forEach { repo.removeGroupFromLaboratory(validatedLabId, it) }
+                    if (repo.deleteLaboratory(validatedLabId)) success(Unit) else failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error("Error deleting laboratory with id: {}, owner id: {}. Error: {}", labId, ownerId, e.message, e)
             handleException(e as Exception)
         }
+
+    companion object {
+        private val LOG = LoggerFactory.getLogger(LaboratoriesService::class.java)
+    }
 }

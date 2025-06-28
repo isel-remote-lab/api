@@ -58,6 +58,30 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
         is ServicesExceptions.Laboratories.InvalidLaboratoryId -> Problem.response(400, Problem.invalidLaboratoryId)
         ServicesExceptions.Laboratories.LaboratoryNotFound -> Problem.response(404, Problem.laboratoryNotFound)
 
+        ServicesExceptions.Laboratories.GroupAlreadyInLaboratory ->
+            Problem.response(
+                400,
+                Problem.groupAlreadyInLaboratory,
+            )
+
+        ServicesExceptions.Laboratories.GroupNotFoundInLaboratory ->
+            Problem.response(
+                404,
+                Problem.groupNotFoundInLaboratory,
+            )
+
+        ServicesExceptions.Laboratories.HardwareAlreadyInLaboratory ->
+            Problem.response(
+                400,
+                Problem.hardwareAlreadyInLaboratory,
+            )
+
+        ServicesExceptions.Laboratories.HardwareNotFoundInLaboratory ->
+            Problem.response(
+                404,
+                Problem.hardwareNotFoundInLaboratory,
+            )
+
         /**
          * Groups Exceptions
          */
@@ -65,7 +89,12 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
         ServicesExceptions.Groups.GroupNotFound -> Problem.response(404, Problem.groupNotFound)
         ServicesExceptions.Groups.UserAlreadyInGroup -> Problem.response(400, Problem.userAlreadyInGroup)
         ServicesExceptions.Groups.UserNotInGroup -> Problem.response(400, Problem.userNotInGroup)
-        is ServicesExceptions.Groups.InvalidGroupName -> Problem.response(400, Problem.invalidGroupName(exception.message!!))
+        is ServicesExceptions.Groups.InvalidGroupName ->
+            Problem.response(
+                400,
+                Problem.invalidGroupName(exception.message!!),
+            )
+
         is ServicesExceptions.Groups.InvalidGroupDescription ->
             Problem.response(
                 400,
@@ -83,18 +112,30 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
                 400,
                 Problem.invalidHardwareIpAddress(exception.message!!),
             )
+
         is ServicesExceptions.Hardware.InvalidHardwareMacAddress ->
             Problem.response(
                 400,
                 Problem.invalidHardwareMacAddress(exception.message!!),
             )
-        is ServicesExceptions.Hardware.InvalidHardwareName -> Problem.response(400, Problem.invalidHardwareName(exception.message!!))
+
+        is ServicesExceptions.Hardware.InvalidHardwareName ->
+            Problem.response(
+                400,
+                Problem.invalidHardwareName(exception.message!!),
+            )
+
         is ServicesExceptions.Hardware.InvalidHardwareSerialNumber ->
             Problem.response(
                 400,
                 Problem.invalidHardwareSerialNumber(exception.message!!),
             )
-        is ServicesExceptions.Hardware.InvalidHardwareStatus -> Problem.response(400, Problem.invalidHardwareStatus(exception.message!!))
+
+        is ServicesExceptions.Hardware.InvalidHardwareStatus ->
+            Problem.response(
+                400,
+                Problem.invalidHardwareStatus(exception.message!!),
+            )
 
         is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
         is ServicesExceptions.InvalidQueryParam -> Problem.response(400, Problem.invalidQueryParam(exception.message!!))

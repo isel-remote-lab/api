@@ -232,6 +232,23 @@ data class JdbiLaboratoriesRepository(
             .list()
     }
 
+    override fun checkIfGroupBelongsToLaboratory(
+        labId: Int,
+        groupId: Int,
+    ): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM rl.group_laboratory 
+                WHERE lab_id = :lab_id AND group_id = :group_id
+            )
+        """,
+        )
+            .bind("lab_id", labId)
+            .bind("group_id", groupId)
+            .mapTo<Boolean>()
+            .one()
+
     override fun addHardwareToLaboratory(
         labId: Int,
         hwId: Int,
@@ -270,4 +287,21 @@ data class JdbiLaboratoriesRepository(
             .bind("hw_id", hwId)
             .bind("lab_id", labId)
             .execute() == 1
+
+    override fun checkIfHardwareBelongsToLaboratory(
+        labId: Int,
+        hwId: Int,
+    ): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM rl.hardware_laboratory 
+                WHERE lab_id = :lab_id AND hw_id = :hw_id
+            )
+        """,
+        )
+            .bind("lab_id", labId)
+            .bind("hw_id", hwId)
+            .mapTo<Boolean>()
+            .one()
 }

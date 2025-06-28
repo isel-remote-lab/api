@@ -45,6 +45,9 @@ subprojects {
     dependencies {
         // Kotlinx datetime library
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+
+        // SLF4J
+        implementation("org.slf4j:slf4j-api:2.0.16")
     }
 
     // Set the Kotlin JVM toolchain to use Java 21

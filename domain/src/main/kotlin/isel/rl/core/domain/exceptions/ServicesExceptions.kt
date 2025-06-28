@@ -44,6 +44,22 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
             private fun readResolve(): Any = LaboratoryNotFound
         }
 
+        data object GroupNotFoundInLaboratory : ServicesExceptions() {
+            private fun readResolve(): Any = GroupNotFoundInLaboratory
+        }
+
+        data object HardwareNotFoundInLaboratory : ServicesExceptions() {
+            private fun readResolve(): Any = HardwareNotFoundInLaboratory
+        }
+
+        data object GroupAlreadyInLaboratory : ServicesExceptions() {
+            private fun readResolve(): Any = GroupAlreadyInLaboratory
+        }
+
+        data object HardwareAlreadyInLaboratory : ServicesExceptions() {
+            private fun readResolve(): Any = HardwareAlreadyInLaboratory
+        }
+
         class InvalidLaboratoryName(message: String) : ServicesExceptions(message)
 
         class InvalidLaboratoryDescription(message: String) : ServicesExceptions(message)

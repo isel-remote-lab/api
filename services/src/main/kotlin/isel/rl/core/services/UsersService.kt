@@ -17,6 +17,7 @@ import isel.rl.core.utils.Success
 import isel.rl.core.utils.failure
 import isel.rl.core.utils.success
 import kotlinx.datetime.Clock
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -33,8 +34,10 @@ data class UsersService(
         email: String,
     ): LoginUserResult =
         runCatching {
+            LOG.info("Login attempt for email: {}", email)
+
             when (val userResult = getUserByEmail(email)) {
-                is Failure ->
+                is Failure -> {
                     if (userResult.value == ServicesExceptions.Users.UserNotFound) {
                         createUser(INITIAL_USER_ROLE, name, email).let { result ->
                             if (result is Success) {
@@ -46,10 +49,14 @@ data class UsersService(
                     } else {
                         failure(userResult.value)
                     }
+                }
 
-                is Success -> success(userResult.value to createToken(userResult.value.id))
+                is Success -> {
+                    success(userResult.value to createToken(userResult.value.id))
+                }
             }
         }.getOrElse { e ->
+            LOG.error("Unexpected error during login for email: {}. Exception: {}", email, e.message, e)
             handleException(e as Exception)
         }
 
@@ -59,29 +66,50 @@ data class UsersService(
         newRole: String?,
     ): UpdateUserRoleResult =
         runCatching {
+            LOG.info(
+                "User {} attempting to update role for user {} to role: {}",
+                actorUserId.id,
+                targetUserId,
+                newRole,
+            )
+
             // Validate the targetUserId and newRole
             val validatedTargetUserId = usersDomain.validateUserId(targetUserId)
             val validatedNewRole = usersDomain.checkRole(newRole)
 
             transactionManager.run {
                 val usersRepository = it.usersRepository
-                usersRepository.getUserById(validatedTargetUserId)
-                    ?: return@run failure(ServicesExceptions.Users.UserNotFound)
+                val targetUser = usersRepository.getUserById(validatedTargetUserId)
+
+                if (targetUser == null) {
+                    return@run failure(ServicesExceptions.Users.UserNotFound)
+                }
 
                 if (usersRepository.updateUserRole(validatedTargetUserId, validatedNewRole)) {
                     success(Unit)
                 } else {
-                    failure(ServicesExceptions.Users.ErrorWhenUpdatingUser)
+                    failure(ServicesExceptions.UnexpectedError)
                 }
             }
         }.getOrElse { e ->
+            LOG.error(
+                "Unexpected error during role update. Actor: {}, Target: {}, New Role: {}. Exception: {}",
+                actorUserId.id,
+                targetUserId,
+                newRole,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
     override fun getUserByToken(token: String): User? {
+        LOG.debug("Attempting to get user by token")
+
         if (!usersDomain.canBeToken(token)) {
             return null
         }
+
         return transactionManager.run {
             val usersRepository = it.usersRepository
             val tokenValidationInfo = usersDomain.createTokenValidationInformation(token)
@@ -98,6 +126,7 @@ data class UsersService(
     }
 
     override fun revokeToken(token: String): Boolean {
+        LOG.debug("Revoking token")
         val tokenValidationInfo = usersDomain.createTokenValidationInformation(token)
         return transactionManager.run {
             it.usersRepository.removeTokenByValidationInfo(tokenValidationInfo)
@@ -111,24 +140,41 @@ data class UsersService(
         email: String,
     ): CreateUserResult =
         runCatching {
+            LOG.info("Creating new user with name: {}, email: {}, role: {}", name, email, role)
+
             val user = usersDomain.validateCreateUser(role, name, email, clock.now())
+
             transactionManager.run {
                 val userId = it.usersRepository.createUser(user)
                 success(user.copy(id = userId))
             }
         }.getOrElse { e ->
-            // Handle exceptions that may occur during the creation process
+            LOG.error(
+                "Failed to create user with name: {}, email: {}, role: {}. Exception: {}",
+                name,
+                email,
+                role,
+                e.message,
+                e,
+            )
             handleException(e as Exception)
         }
 
     override fun getUserById(id: String): GetUserResult =
         runCatching {
+            LOG.info("Getting user by ID: {}", id)
+
             val validatedId = usersDomain.validateUserId(id)
             transactionManager.run {
-                it.usersRepository.getUserById(validatedId)?.let(::success)
-                    ?: failure(ServicesExceptions.Users.UserNotFound)
+                val user = it.usersRepository.getUserById(validatedId)
+                if (user != null) {
+                    success(user)
+                } else {
+                    failure(ServicesExceptions.Users.UserNotFound)
+                }
             }
         }.getOrElse { e ->
+            LOG.error("Error getting user by ID: {}. Exception: {}", id, e.message, e)
             handleException(e as Exception)
         }
 
@@ -143,17 +189,24 @@ data class UsersService(
      */
     override fun getUserByEmail(email: String): GetUserResult =
         runCatching {
+            LOG.info("Getting user by email: {}", email)
+
             val validatedEmail = usersDomain.checkEmail(email)
             transactionManager.run {
-                it.usersRepository.getUserByEmail(validatedEmail)?.let(::success)
-                    ?: failure(ServicesExceptions.Users.UserNotFound)
+                val user = it.usersRepository.getUserByEmail(validatedEmail)
+                if (user != null) {
+                    success(user)
+                } else {
+                    failure(ServicesExceptions.Users.UserNotFound)
+                }
             }
         }.getOrElse { e ->
+            LOG.error("Error getting user by email: {}. Exception: {}", email, e.message, e)
             handleException(e as Exception)
         }
 
-    private fun createToken(userId: Int) =
-        transactionManager.run {
+    private fun createToken(userId: Int): String {
+        return transactionManager.run {
             val usersRepository = it.usersRepository
             val tokenValue = usersDomain.generateTokenValue()
             val createdAt = clock.now()
@@ -165,11 +218,12 @@ data class UsersService(
                     lastUsedAt = createdAt,
                 )
             usersRepository.createToken(newToken, usersDomain.maxNumberOfTokensPerUser)
-
             tokenValue
         }
+    }
 
     companion object {
+        private val LOG = LoggerFactory.getLogger(UsersService::class.java)
         val INITIAL_USER_ROLE = Role.STUDENT.char
     }
 }
