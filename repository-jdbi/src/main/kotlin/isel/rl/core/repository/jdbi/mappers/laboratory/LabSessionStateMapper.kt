@@ -1,6 +1,6 @@
 package isel.rl.core.repository.jdbi.mappers.laboratory
 
-import isel.rl.core.domain.laboratory.LabSessionState
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.statement.StatementContext
 import java.sql.ResultSet

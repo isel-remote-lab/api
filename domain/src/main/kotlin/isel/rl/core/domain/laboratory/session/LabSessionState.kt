@@ -1,4 +1,4 @@
-package isel.rl.core.domain.laboratory
+package isel.rl.core.domain.laboratory.session
 
 enum class LabSessionState(val char: String) {
     InProgress("P"),

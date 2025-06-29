@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
-import isel.rl.core.domain.laboratory.LabSession
-import isel.rl.core.domain.laboratory.LabSessionState
+import isel.rl.core.domain.laboratory.session.LabSession
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import kotlinx.datetime.Instant
 
 interface LabSessionRepository {
@@ -21,8 +21,8 @@ interface LabSessionRepository {
 
     fun updateLabSession(
         labSessionId: Int,
-        startTime: Instant?,
-        endTime: Instant?,
+        startTime: Instant? = null,
+        endTime: Instant? = null,
         state: LabSessionState?,
     ): Boolean
 

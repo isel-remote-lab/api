@@ -23,6 +23,10 @@ data class LaboratoriesDomain(
 
     val isLabQueueLimitOptional = domainConfig.isLabQueueLimitOptional
 
+    val labDuration = domainConfig.maxLabDuration
+
+    val labDurationUnit = domainConfig.labDurationUnit
+
     fun validateCreateLaboratory(
         labName: String?,
         labDescription: String?,

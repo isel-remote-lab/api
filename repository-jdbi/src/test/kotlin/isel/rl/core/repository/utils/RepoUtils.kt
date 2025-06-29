@@ -9,12 +9,12 @@ import isel.rl.core.domain.hardware.props.HardwareStatus
 import isel.rl.core.domain.hardware.props.IpAddress
 import isel.rl.core.domain.hardware.props.MacAddress
 import isel.rl.core.domain.hardware.props.SerialNumber
-import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.laboratory.props.LabDescription
 import isel.rl.core.domain.laboratory.props.LabDuration
 import isel.rl.core.domain.laboratory.props.LabName
 import isel.rl.core.domain.laboratory.props.LabQueueLimit
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import isel.rl.core.domain.user.domain.UsersDomain
 import isel.rl.core.domain.user.props.Email
 import isel.rl.core.domain.user.props.Name

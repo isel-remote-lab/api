@@ -1,0 +1,30 @@
+package isel.rl.core.domain.events
+
+import kotlinx.datetime.Instant
+import org.springframework.http.HttpStatusCode
+
+/**
+ * Represents an event that can be sent to the client.
+ */
+sealed interface Event {
+    data class Message(
+        val eventId: Long,
+        val type: String,
+        val remainingTime: Int? = null,
+    ) : Event
+
+    /**
+     * Represents a error event.
+     *
+     * @param statusCode the status code of the error
+     * @param message the message of the error
+     */
+    data class Error(val statusCode: HttpStatusCode, val message: String) : Event
+
+    /**
+     * Represents a keep-alive event.
+     *
+     * @param timestamp the timestamp of the keep-alive
+     */
+    data class KeepAlive(val timestamp: Instant) : Event
+}

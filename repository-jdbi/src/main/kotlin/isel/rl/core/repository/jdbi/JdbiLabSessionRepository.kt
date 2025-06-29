@@ -1,7 +1,7 @@
 package isel.rl.core.repository.jdbi
 
-import isel.rl.core.domain.laboratory.LabSession
-import isel.rl.core.domain.laboratory.LabSessionState
+import isel.rl.core.domain.laboratory.session.LabSession
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import isel.rl.core.repository.LabSessionRepository
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant

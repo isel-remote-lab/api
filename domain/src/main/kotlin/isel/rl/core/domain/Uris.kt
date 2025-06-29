@@ -156,17 +156,46 @@ object Uris {
         const val GET_ALL_HARDWARE = BASE
 
         /**
-         * URI for getting all hardware of a user
-         */
-        const val GET_USER_HARDWARE = BASE
-
-        /**
          * URI for updating hardware by ID
          */
         const val UPDATE = "$BASE/{id}"
 
         /**
          * URI for deleting hardware by ID
+         */
+        const val DELETE = "$BASE/{id}"
+    }
+
+    object LabSession {
+        private const val BASE = "$PREFIX/laboratories/{id}/sessions"
+
+        /**
+         * URI for creating a lab session
+         */
+        const val CREATE = BASE
+
+        /**
+         * URI for creating and listen to a lab session
+         */
+        const val CREATE_AND_LISTEN = "$BASE/listen"
+
+        /**
+         * URI for getting a lab session by ID
+         */
+        const val GET_BY_ID = "$BASE/{id}"
+
+        /**
+         * URI for getting all lab sessions of a user
+         */
+        const val GET_USER_LAB_SESSIONS = BASE
+
+        /**
+         * URI for updating a lab session by ID
+         */
+        const val UPDATE = "$BASE/{id}"
+
+        /**
+         * URI for deleting a lab session by ID
          */
         const val DELETE = "$BASE/{id}"
     }

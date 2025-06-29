@@ -3,8 +3,8 @@ package isel.rl.core.repository.jdbi
 import isel.rl.core.domain.config.DomainConfig
 import isel.rl.core.domain.group.Group
 import isel.rl.core.domain.hardware.Hardware
-import isel.rl.core.domain.laboratory.LabSessionState
 import isel.rl.core.domain.laboratory.Laboratory
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import isel.rl.core.domain.user.User
 import isel.rl.core.domain.user.token.TokenValidationInfo
 import isel.rl.core.repository.jdbi.mappers.InstantMapper

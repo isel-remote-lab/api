@@ -1,7 +1,7 @@
 package isel.rl.core.repository
 
-import isel.rl.core.domain.laboratory.LabSession
-import isel.rl.core.domain.laboratory.LabSessionState
+import isel.rl.core.domain.laboratory.session.LabSession
+import isel.rl.core.domain.laboratory.session.LabSessionState
 import isel.rl.core.repository.jdbi.JdbiLabSessionRepository
 import isel.rl.core.repository.utils.RepoUtils
 import isel.rl.core.repository.utils.TestClock

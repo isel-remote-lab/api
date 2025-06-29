@@ -16,6 +16,9 @@ dependencies {
     // For the domain configs
     testImplementation(project(":host"))
     testImplementation(kotlin("test"))
+
+    // To use coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
 
 tasks.test {
