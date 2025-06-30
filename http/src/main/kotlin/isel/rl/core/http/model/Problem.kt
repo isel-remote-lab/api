@@ -213,6 +213,13 @@ data class Problem(
                 "The user with the provided information is not in the group.",
             )
 
+        val cantRemoveOwner =
+            Problem(
+                type("cant-remove-owner"),
+                "cant-remove-owner",
+                "Cant remove owner from group",
+            )
+
         fun invalidGroupName(message: String) =
             Problem(
                 type("invalid-group-name"),

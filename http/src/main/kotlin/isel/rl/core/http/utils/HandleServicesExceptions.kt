@@ -89,6 +89,7 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
         ServicesExceptions.Groups.GroupNotFound -> Problem.response(404, Problem.groupNotFound)
         ServicesExceptions.Groups.UserAlreadyInGroup -> Problem.response(400, Problem.userAlreadyInGroup)
         ServicesExceptions.Groups.UserNotInGroup -> Problem.response(400, Problem.userNotInGroup)
+        ServicesExceptions.Groups.CantRemoveOwner -> Problem.response(400, Problem.cantRemoveOwner)
         is ServicesExceptions.Groups.InvalidGroupName ->
             Problem.response(
                 400,

@@ -153,18 +153,19 @@ class GroupsService(
     ): RemoveUserFromGroupResult =
         runCatching {
             val validatedGroupId = groupsDomain.validateGroupId(groupId)
-            val validatedUserId =
-                userId?.let(usersDomain::validateUserId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("UserId cannot be null"))
+            val validatedUserId = usersDomain.validateUserId(userId)
 
             transactionManager.run {
                 val groupRepo = it.groupsRepository
                 val userRepo = it.usersRepository
 
+                val groupOwner = groupRepo.getGroupOwnerId(validatedGroupId)
+
                 when {
                     !userRepo.checkIfUserExists(validatedUserId) -> failure(usersDomain.userNotFound)
+                    groupOwner == validatedUserId -> failure(ServicesExceptions.Groups.CantRemoveOwner)
                     !groupRepo.checkIfGroupExists(validatedGroupId) ||
-                        groupRepo.getGroupOwnerId(validatedGroupId) != actorUserId -> failure(groupsDomain.groupNotFound)
+                            groupOwner != actorUserId -> failure(groupsDomain.groupNotFound)
 
                     !groupRepo.checkIfUserIsInGroup(
                         userId = validatedUserId,

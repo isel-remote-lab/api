@@ -86,9 +86,14 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
             private fun readResolve(): Any = UserNotInGroup
         }
 
+        data object CantRemoveOwner : ServicesExceptions() {
+            private fun readResolve(): Any = CantRemoveOwner
+        }
+
         class InvalidGroupName(message: String) : ServicesExceptions(message)
 
         class InvalidGroupDescription(message: String) : ServicesExceptions(message)
+
     }
 
     data object Hardware {
