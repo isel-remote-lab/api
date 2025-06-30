@@ -171,7 +171,7 @@ data class LabSessionService(
 
         while (countDownStartMark.hasNotPassedNow() && !shouldStop.get()) {
             // Check if remaining time is smaller than the notify interval
-            // If yes, calculate a delayTime to allow the countdown timer to be executed
+            // If true, calculate a delayTime to allow the countdown timer to be executed
             if (remainingDuration <= notifyInterval) {
                 val delayTime = remainingDuration - countDownMarkValue
                 delay(delayTime)

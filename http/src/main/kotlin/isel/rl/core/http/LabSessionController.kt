@@ -28,7 +28,7 @@ data class LabSessionController(
     private val labSessionService: ILabSessionService,
 ) {
     @PostMapping(Uris.LabSession.CREATE)
-    suspend fun createLabSession(
+    fun createLabSession(
         user: AuthenticatedUser,
         @PathVariable id: String,
         @RequestParam listen: String?,
