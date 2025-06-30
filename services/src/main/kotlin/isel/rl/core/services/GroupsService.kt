@@ -117,14 +117,12 @@ class GroupsService(
 
     override fun addUserToGroup(
         actorUserId: Int,
-        userId: String?,
+        userId: String,
         groupId: String,
     ): AddUserToGroupResult =
         runCatching {
             val validatedGroupId = groupsDomain.validateGroupId(groupId)
-            val validatedUserId =
-                userId?.let(usersDomain::validateUserId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("UserId cannot be null"))
+            val validatedUserId = usersDomain.validateUserId(userId)
 
             transactionManager.run {
                 val groupRepo = it.groupsRepository
@@ -150,7 +148,7 @@ class GroupsService(
 
     override fun removeUserFromGroup(
         actorUserId: Int,
-        userId: String?,
+        userId: String,
         groupId: String,
     ): RemoveUserFromGroupResult =
         runCatching {

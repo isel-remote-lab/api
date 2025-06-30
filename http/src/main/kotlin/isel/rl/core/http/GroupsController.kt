@@ -4,6 +4,7 @@ import isel.rl.core.domain.Uris
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
+import isel.rl.core.http.model.group.UpdateGroupUsersInputModel
 import isel.rl.core.http.model.group.GroupCreateInputModel
 import isel.rl.core.http.model.group.GroupOutputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
@@ -107,9 +108,9 @@ class GroupsController(
     fun addUserToGroup(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam userId: String?,
+        @RequestBody input: UpdateGroupUsersInputModel,
     ): ResponseEntity<*> =
-        when (val result = groupsService.addUserToGroup(user.user.id, userId, id)) {
+        when (val result = groupsService.addUserToGroup(user.user.id, input.userId, id)) {
             is Success ->
                 ResponseEntity.ok(
                     SuccessResponse(
@@ -125,9 +126,9 @@ class GroupsController(
     fun removeUserFromGroup(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam userId: String?,
+        @RequestBody input: UpdateGroupUsersInputModel,
     ): ResponseEntity<*> =
-        when (val result = groupsService.removeUserFromGroup(user.user.id, userId, id)) {
+        when (val result = groupsService.removeUserFromGroup(user.user.id, input.userId, id)) {
             is Success ->
                 ResponseEntity.ok(
                     SuccessResponse(

@@ -36,13 +36,13 @@ interface IGroupsService {
 
     fun addUserToGroup(
         actorUserId: Int,
-        userId: String?,
+        userId: String,
         groupId: String,
     ): AddUserToGroupResult
 
     fun removeUserFromGroup(
         actorUserId: Int,
-        userId: String?,
+        userId: String,
         groupId: String,
     ): RemoveUserFromGroupResult
 

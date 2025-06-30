@@ -106,25 +106,25 @@ interface ILaboratoriesService {
 
     fun addGroupToLaboratory(
         labId: String,
-        groupId: String? = null,
+        groupId: String,
         ownerId: Int,
     ): AddGroupToLaboratoryResult
 
     fun removeGroupFromLaboratory(
         labId: String,
-        groupId: String? = null,
+        groupId: String,
         ownerId: Int,
     ): RemoveGroupFromLaboratoryResult
 
     fun addHardwareToLaboratory(
         labId: String,
-        hardwareId: String? = null,
+        hardwareId: String,
         ownerId: Int,
     ): AddHardwareToLaboratoryResult
 
     fun removeHardwareFromLaboratory(
         labId: String,
-        hardwareId: String? = null,
+        hardwareId: String,
         ownerId: Int,
     ): RemoveHardwareFromLaboratoryResult
 

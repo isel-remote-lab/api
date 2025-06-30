@@ -170,16 +170,14 @@ data class LaboratoriesService(
 
     override fun addGroupToLaboratory(
         labId: String,
-        groupId: String?,
+        groupId: String,
         ownerId: Int,
     ): AddGroupToLaboratoryResult =
         runCatching {
             LOG.info("Adding group to laboratory with id: {}", labId)
             // Validate the laboratory and group ID's
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
-            val validatedGroupId =
-                groupId?.let(groupsDomain::validateGroupId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
+            val validatedGroupId = groupsDomain.validateGroupId(groupId)
 
             transactionManager.run {
                 val repo = it.laboratoriesRepository
@@ -211,15 +209,13 @@ data class LaboratoriesService(
 
     override fun removeGroupFromLaboratory(
         labId: String,
-        groupId: String?,
+        groupId: String,
         ownerId: Int,
     ): RemoveGroupFromLaboratoryResult =
         runCatching {
             LOG.info("Removing group from laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
-            val validatedGroupId =
-                groupId?.let(groupsDomain::validateGroupId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("GroupId cannot be null"))
+            val validatedGroupId = groupsDomain.validateGroupId(groupId)
 
             transactionManager.run {
                 val repo = it.laboratoriesRepository
@@ -249,15 +245,13 @@ data class LaboratoriesService(
 
     override fun addHardwareToLaboratory(
         labId: String,
-        hardwareId: String?,
+        hardwareId: String,
         ownerId: Int,
     ): AddHardwareToLaboratoryResult =
         runCatching {
             LOG.info("Adding hardware to laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
-            val validatedHardwareId =
-                hardwareId?.let(hardwareDomain::validateHardwareId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("HardwareId cannot be null"))
+            val validatedHardwareId = hardwareDomain.validateHardwareId(hardwareId)
 
             transactionManager.run {
                 val repo = it.laboratoriesRepository
@@ -265,6 +259,7 @@ data class LaboratoriesService(
                     !it.hardwareRepository.checkIfHardwareExists(
                         validatedHardwareId,
                     ) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
+
                     !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
                         failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
@@ -291,15 +286,13 @@ data class LaboratoriesService(
 
     override fun removeHardwareFromLaboratory(
         labId: String,
-        hardwareId: String?,
+        hardwareId: String,
         ownerId: Int,
     ): RemoveHardwareFromLaboratoryResult =
         runCatching {
             LOG.info("Removing hardware from laboratory with id: {}", labId)
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
-            val validatedHardwareId =
-                hardwareId?.let(hardwareDomain::validateHardwareId)
-                    ?: return failure(ServicesExceptions.InvalidQueryParam("HardwareId cannot be null"))
+            val validatedHardwareId = hardwareDomain.validateHardwareId(hardwareId)
 
             transactionManager.run {
                 val repo = it.laboratoriesRepository
@@ -307,6 +300,7 @@ data class LaboratoriesService(
                     !it.hardwareRepository.checkIfHardwareExists(
                         validatedHardwareId,
                     ) -> failure(ServicesExceptions.Hardware.HardwareNotFound)
+
                     !repo.checkIfLaboratoryExists(validatedLabId) || repo.getLaboratoryOwnerId(validatedLabId) != ownerId ->
                         failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 

@@ -8,6 +8,8 @@ import isel.rl.core.http.model.group.GroupOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryUpdateInputModel
+import isel.rl.core.http.model.laboratory.UpdateLabGroupsInputModel
+import isel.rl.core.http.model.laboratory.UpdateLabHardwareInputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.ILaboratoriesService
@@ -158,13 +160,13 @@ data class LaboratoriesController(
     fun addGroupToLaboratory(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam groupId: String? = null,
+        @RequestBody input: UpdateLabGroupsInputModel,
     ): ResponseEntity<*> =
         when (
             val result =
                 laboratoriesService.addGroupToLaboratory(
                     labId = id,
-                    groupId = groupId,
+                    groupId = input.groupId,
                     ownerId = user.user.id,
                 )
         ) {
@@ -183,13 +185,13 @@ data class LaboratoriesController(
     fun removeGroupFromLaboratory(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam groupId: String? = null,
+        @RequestBody input: UpdateLabGroupsInputModel,
     ): ResponseEntity<*> =
         when (
             val result =
                 laboratoriesService.removeGroupFromLaboratory(
                     labId = id,
-                    groupId = groupId,
+                    groupId = input.groupId,
                     ownerId = user.user.id,
                 )
         ) {
@@ -208,13 +210,13 @@ data class LaboratoriesController(
     fun addHardwareToLaboratory(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam hardwareId: String? = null,
+        @RequestBody input: UpdateLabHardwareInputModel,
     ): ResponseEntity<*> =
         when (
             val result =
                 laboratoriesService.addHardwareToLaboratory(
                     labId = id,
-                    hardwareId = hardwareId,
+                    hardwareId = input.hardwareId,
                     ownerId = user.user.id,
                 )
         ) {
@@ -233,13 +235,13 @@ data class LaboratoriesController(
     fun removeHardwareToLaboratory(
         user: AuthenticatedUser,
         @PathVariable id: String,
-        @RequestParam hardwareId: String? = null,
+        @RequestBody input: UpdateLabHardwareInputModel,
     ): ResponseEntity<*> =
         when (
             val result =
                 laboratoriesService.removeHardwareFromLaboratory(
                     labId = id,
-                    hardwareId = hardwareId,
+                    hardwareId = input.hardwareId,
                     ownerId = user.user.id,
                 )
         ) {
