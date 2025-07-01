@@ -99,6 +99,11 @@ object Uris {
          * URI for removing the hardware from a laboratory
          */
         const val REMOVE_HARDWARE_TO_LABORATORY = "$BASE/{id}/hardware"
+
+        /**
+         * URI for getting laboratory hardware
+         */
+        const val GET_LABORATORY_HARDWARE = "$BASE/{id}/hardware"
     }
 
     object Groups {

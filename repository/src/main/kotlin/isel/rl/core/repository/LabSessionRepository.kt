@@ -7,6 +7,7 @@ import kotlinx.datetime.Instant
 interface LabSessionRepository {
     fun createLabSession(
         labId: Int,
+        hwId: Int,
         ownerId: Int,
         startTime: Instant,
         endTime: Instant,
@@ -18,6 +19,8 @@ interface LabSessionRepository {
     fun getLabSessionsByLabId(labId: Int): List<LabSession>
 
     fun getLabSessionsByUserId(userId: Int): List<LabSession>
+
+    fun isUserInSession(userId: Int): Boolean
 
     fun updateLabSession(
         labSessionId: Int,

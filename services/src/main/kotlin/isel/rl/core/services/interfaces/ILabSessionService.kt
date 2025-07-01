@@ -16,8 +16,7 @@ interface ILabSessionService {
 
     suspend fun startLabSession(
         listener: EventEmitter,
-        labId: Int,
-        labSessionId: Int,
+        labSession: LabSession,
     ): StartLabSessionResult
 
     /*fun startLabSession(

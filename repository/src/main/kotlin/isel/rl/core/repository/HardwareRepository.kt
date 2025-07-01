@@ -21,6 +21,11 @@ interface HardwareRepository {
 
     fun checkIfHardwareExists(hardwareId: Int): Boolean
 
+    fun checkHardwareStatus(
+        hwId: Int,
+        status: HardwareStatus,
+    ): Boolean
+
     fun updateHardware(
         hwId: Int,
         hwName: HardwareName? = null,

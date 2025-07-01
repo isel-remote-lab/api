@@ -2,6 +2,7 @@ package isel.rl.core.services.interfaces
 
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.group.Group
+import isel.rl.core.domain.hardware.Hardware
 import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.user.User
 import isel.rl.core.utils.Either
@@ -29,6 +30,8 @@ typealias GetLaboratoryGroupsResult = Either<ServicesExceptions, List<Group>>
 typealias AddGroupToLaboratoryResult = Either<ServicesExceptions, Unit>
 
 typealias RemoveGroupFromLaboratoryResult = Either<ServicesExceptions, Unit>
+
+typealias GetLaboratoryHardwareResult = Either<ServicesExceptions, List<Hardware>>
 
 typealias AddHardwareToLaboratoryResult = Either<ServicesExceptions, Unit>
 
@@ -115,6 +118,12 @@ interface ILaboratoriesService {
         groupId: String,
         ownerId: Int,
     ): RemoveGroupFromLaboratoryResult
+
+    fun getLaboratoryHardware(
+        labId: String,
+        limit: String? = null,
+        skip: String? = null,
+    ): GetLaboratoryHardwareResult
 
     fun addHardwareToLaboratory(
         labId: String,

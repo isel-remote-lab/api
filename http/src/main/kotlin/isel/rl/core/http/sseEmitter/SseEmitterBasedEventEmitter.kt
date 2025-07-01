@@ -26,10 +26,16 @@ class SseEmitterBasedEventEmitter(
         try {
             val sseEvent =
                 when (event) {
-                    is Event.Message ->
+                    is Event.LabSessionState ->
                         SseEmitter.event()
                             .id(event.eventId.toString())
                             .name("message")
+                            .data(event)
+
+                    is Event.LabSessionStarting ->
+                        SseEmitter.event()
+                            .id(event.eventId.toString())
+                            .name("labSessionStarting")
                             .data(event)
 
                     is Event.Error -> SseEmitter.event()

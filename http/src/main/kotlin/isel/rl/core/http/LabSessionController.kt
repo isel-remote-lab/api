@@ -36,7 +36,7 @@ data class LabSessionController(
         when (val result = labSessionService.createLabSession(labId = id, userId = user.user.id)) {
             is Success -> {
                 if (listen.toBoolean()) {
-                    createSseConnection(id.toInt(), result.value)
+                    createSseConnection(result.value)
                 } else {
                     ResponseEntity.status(HttpStatus.CREATED).body(
                         SuccessResponse(
@@ -50,10 +50,7 @@ data class LabSessionController(
             is Failure -> handleServicesExceptions(result.value)
         }
 
-    private fun createSseConnection(
-        labId: Int,
-        labSession: LabSession,
-    ): SseEmitter {
+    private fun createSseConnection(labSession: LabSession): SseEmitter {
         val sseEmitter = SseEmitter(TimeUnit.HOURS.toMillis(1))
 
         try {
@@ -71,8 +68,7 @@ data class LabSessionController(
                 try {
                     labSessionService.startLabSession(
                         SseEmitterBasedEventEmitter(sseEmitter),
-                        labId = labId,
-                        labSessionId = labSession.id,
+                        labSession,
                     )
                 } catch (e: Exception) {
                     try {

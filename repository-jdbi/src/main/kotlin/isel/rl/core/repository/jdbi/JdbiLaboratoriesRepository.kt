@@ -263,14 +263,20 @@ data class JdbiLaboratoriesRepository(
             .bind("lab_id", labId)
             .execute() == 1
 
-    override fun getLaboratoryHardware(labId: Int): List<Int> =
+    override fun getLaboratoryHardware(
+        labId: Int,
+        limitAndSkip: LimitAndSkip?,
+    ): List<Int> =
         handle.createQuery(
             """
             SELECT hw_id FROM rl.hardware_laboratory 
             WHERE lab_id = :lab_id
+            LIMIT :limit OFFSET :skip
         """,
         )
             .bind("lab_id", labId)
+            .bind("limit", limitAndSkip?.limit)
+            .bind("skip", limitAndSkip?.skip)
             .mapTo<Int>()
             .list()
 

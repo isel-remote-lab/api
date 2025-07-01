@@ -4,9 +4,9 @@ import isel.rl.core.domain.Uris
 import isel.rl.core.domain.user.props.Role
 import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
-import isel.rl.core.http.model.group.UpdateGroupUsersInputModel
 import isel.rl.core.http.model.group.GroupCreateInputModel
 import isel.rl.core.http.model.group.GroupOutputModel
+import isel.rl.core.http.model.group.UpdateGroupUsersInputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.model.user.UserOutputModel
 import isel.rl.core.http.utils.handleServicesExceptions

@@ -7,10 +7,20 @@ import org.springframework.http.HttpStatusCode
  * Represents an event that can be sent to the client.
  */
 sealed interface Event {
-    data class Message(
+    data class LabSessionState(
         val eventId: Long,
         val type: String,
         val remainingTime: Int? = null,
+        val timeUnit: String? = null,
+    ) : Event
+
+    data class LabSessionStarting(
+        val eventId: Long,
+        val labId: String,
+        val hwId: String,
+        val hwIpAddress: String,
+        val labDuration: String,
+        val notifyInterval: String,
     ) : Event
 
     /**

@@ -60,6 +60,10 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
             private fun readResolve(): Any = HardwareAlreadyInLaboratory
         }
 
+        data object NoAvailableHardware : ServicesExceptions() {
+            private fun readResolve(): Any = NoAvailableHardware
+        }
+
         class InvalidLaboratoryName(message: String) : ServicesExceptions(message)
 
         class InvalidLaboratoryDescription(message: String) : ServicesExceptions(message)
@@ -93,7 +97,6 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
         class InvalidGroupName(message: String) : ServicesExceptions(message)
 
         class InvalidGroupDescription(message: String) : ServicesExceptions(message)
-
     }
 
     data object Hardware {
@@ -114,6 +117,12 @@ sealed class ServicesExceptions(message: String = "") : Exception(message) {
         class InvalidHardwareIpAddress(message: String) : ServicesExceptions(message)
 
         class InvalidHardwareStatus(message: String) : ServicesExceptions(message)
+    }
+
+    data object LabSessions {
+        data object UserAlreadyInSession : ServicesExceptions() {
+            private fun readResolve(): Any = UserAlreadyInSession
+        }
     }
 
     class InvalidQueryParam(message: String) : ServicesExceptions(message)

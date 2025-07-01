@@ -13,6 +13,7 @@ data class JdbiLabSessionRepository(
 ) : LabSessionRepository {
     override fun createLabSession(
         labId: Int,
+        hwId: Int,
         ownerId: Int,
         startTime: Instant,
         endTime: Instant,
@@ -20,11 +21,12 @@ data class JdbiLabSessionRepository(
     ): Int =
         handle.createUpdate(
             """
-            INSERT INTO rl.lab_session (lab_id, owner_id, start_time, end_time, state)
-            VALUES (:lab_id, :owner_id, :start_time, :end_time, :state)
+            INSERT INTO rl.lab_session (lab_id, hw_id, owner_id, start_time, end_time, state)
+            VALUES (:lab_id, :hw_id, :owner_id, :start_time, :end_time, :state)
             """,
         )
             .bind("lab_id", labId)
+            .bind("hw_id", hwId)
             .bind("owner_id", ownerId)
             .bind("start_time", startTime.toJavaInstant())
             .bind("end_time", endTime.toJavaInstant())
@@ -65,6 +67,19 @@ data class JdbiLabSessionRepository(
             .bind("owner_id", userId)
             .mapTo<LabSession>()
             .list()
+
+    override fun isUserInSession(userId: Int): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM rl.lab_session 
+                WHERE owner_id = :owner_id AND state = 'P'
+            )
+            """,
+        )
+            .bind("owner_id", userId)
+            .mapTo<Boolean>()
+            .one()
 
     override fun updateLabSession(
         labSessionId: Int,

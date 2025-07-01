@@ -138,7 +138,14 @@ fun handleServicesExceptions(exception: ServicesExceptions): ResponseEntity<*> =
                 Problem.invalidHardwareStatus(exception.message!!),
             )
 
+        ServicesExceptions.Laboratories.NoAvailableHardware ->
+            Problem.response(
+                400,
+                Problem.noAvailableHardware,
+            )
+
         is ServicesExceptions.Forbidden -> Problem.response(403, Problem.forbidden(exception.message!!))
         is ServicesExceptions.InvalidQueryParam -> Problem.response(400, Problem.invalidQueryParam(exception.message!!))
         ServicesExceptions.UnexpectedError -> Problem.response(500, Problem.unexpectedError)
+        ServicesExceptions.LabSessions.UserAlreadyInSession -> Problem.response(400, Problem.userAlreadyInSession)
     }

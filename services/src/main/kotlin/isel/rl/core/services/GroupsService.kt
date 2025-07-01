@@ -165,7 +165,7 @@ class GroupsService(
                     !userRepo.checkIfUserExists(validatedUserId) -> failure(usersDomain.userNotFound)
                     groupOwner == validatedUserId -> failure(ServicesExceptions.Groups.CantRemoveOwner)
                     !groupRepo.checkIfGroupExists(validatedGroupId) ||
-                            groupOwner != actorUserId -> failure(groupsDomain.groupNotFound)
+                        groupOwner != actorUserId -> failure(groupsDomain.groupNotFound)
 
                     !groupRepo.checkIfUserIsInGroup(
                         userId = validatedUserId,

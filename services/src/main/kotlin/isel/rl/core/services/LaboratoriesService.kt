@@ -12,6 +12,7 @@ import isel.rl.core.services.interfaces.CreateLaboratoryResult
 import isel.rl.core.services.interfaces.DeleteLaboratoryResult
 import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
 import isel.rl.core.services.interfaces.GetLaboratoryGroupsResult
+import isel.rl.core.services.interfaces.GetLaboratoryHardwareResult
 import isel.rl.core.services.interfaces.GetLaboratoryResult
 import isel.rl.core.services.interfaces.ILaboratoriesService
 import isel.rl.core.services.interfaces.RemoveGroupFromLaboratoryResult
@@ -237,6 +238,39 @@ data class LaboratoriesService(
                 groupId,
                 labId,
                 ownerId,
+                e.message,
+                e,
+            )
+            handleException(e as Exception)
+        }
+
+    override fun getLaboratoryHardware(
+        labId: String,
+        limit: String?,
+        skip: String?,
+    ): GetLaboratoryHardwareResult =
+        runCatching {
+            LOG.info("Getting hardware for laboratory with id: {}", labId)
+            val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
+            val limitAndSkip = verifyQuery(limit, skip)
+
+            transactionManager.run {
+                val repo = it.laboratoriesRepository
+
+                if (!repo.checkIfLaboratoryExists(validatedLabId)) {
+                    failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                } else {
+                    success(
+                        repo.getLaboratoryHardware(validatedLabId, limitAndSkip).map { hwId ->
+                            it.hardwareRepository.getHardwareById(hwId)!!
+                        },
+                    )
+                }
+            }
+        }.getOrElse { e ->
+            LOG.error(
+                "Error getting hardware for laboratory with id: {}. Error: {}",
+                labId,
                 e.message,
                 e,
             )

@@ -1,9 +1,16 @@
 package isel.rl.core.repository.jdbi.transaction
 
-import isel.rl.core.repository.*
+import isel.rl.core.repository.GroupsRepository
+import isel.rl.core.repository.HardwareRepository
+import isel.rl.core.repository.LabSessionRepository
+import isel.rl.core.repository.LabWaitingQueueRepository
+import isel.rl.core.repository.LaboratoriesRepository
+import isel.rl.core.repository.Transaction
+import isel.rl.core.repository.UsersRepository
 import isel.rl.core.repository.jdbi.JdbiGroupsRepository
 import isel.rl.core.repository.jdbi.JdbiHardwareRepository
 import isel.rl.core.repository.jdbi.JdbiLabSessionRepository
+import isel.rl.core.repository.jdbi.JdbiLabWaitingQueueRepository
 import isel.rl.core.repository.jdbi.JdbiLaboratoriesRepository
 import isel.rl.core.repository.jdbi.JdbiUsersRepository
 import org.jdbi.v3.core.Handle
@@ -22,6 +29,7 @@ class JdbiTransaction(
     override val groupsRepository: GroupsRepository = JdbiGroupsRepository(handle)
     override val hardwareRepository: HardwareRepository = JdbiHardwareRepository(handle)
     override val labSessionRepository: LabSessionRepository = JdbiLabSessionRepository(handle)
+    override val labWaitingQueueRepository: LabWaitingQueueRepository = JdbiLabWaitingQueueRepository(handle)
 
     override fun rollback() {
         handle.rollback()

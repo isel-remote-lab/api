@@ -5,6 +5,7 @@ import kotlinx.datetime.Instant
 data class LabSession(
     val id: Int = 0,
     val labId: Int,
+    val hwId: Int,
     val ownerId: Int,
     val startTime: Instant,
     val endTime: Instant,

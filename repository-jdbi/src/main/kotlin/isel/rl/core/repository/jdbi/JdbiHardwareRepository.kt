@@ -91,6 +91,24 @@ data class JdbiHardwareRepository(
             .mapTo<Boolean>()
             .one()
 
+    override fun checkHardwareStatus(
+        hwId: Int,
+        status: HardwareStatus,
+    ): Boolean =
+        handle.createQuery(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM rl.hardware 
+                WHERE id = :id AND status = :status
+            )
+        """,
+        )
+            .bind("id", hwId)
+            .bind("status", status.char)
+            .mapTo<Boolean>()
+            .one()
+
     override fun updateHardware(
         hwId: Int,
         hwName: HardwareName?,

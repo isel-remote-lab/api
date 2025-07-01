@@ -9,6 +9,7 @@ interface Transaction {
     val groupsRepository: GroupsRepository
     val hardwareRepository: HardwareRepository
     val labSessionRepository: LabSessionRepository
+    val labWaitingQueueRepository: LabWaitingQueueRepository
 
     /**
      * Rolls back the current transaction.

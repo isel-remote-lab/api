@@ -5,6 +5,7 @@ import isel.rl.core.domain.user.props.Role
 import isel.rl.core.http.annotations.RequireRole
 import isel.rl.core.http.model.SuccessResponse
 import isel.rl.core.http.model.group.GroupOutputModel
+import isel.rl.core.http.model.hardware.HardwareOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryCreateInputModel
 import isel.rl.core.http.model.laboratory.LaboratoryOutputModel
 import isel.rl.core.http.model.laboratory.LaboratoryUpdateInputModel
@@ -201,6 +202,27 @@ data class LaboratoriesController(
                         message = "Group removed from laboratory successfully",
                     ),
                 )
+
+            is Failure -> handleServicesExceptions(result.value)
+        }
+
+    @RequireRole(Role.TEACHER)
+    @GetMapping(Uris.Laboratories.GET_LABORATORY_HARDWARE)
+    fun getLabHardware(
+        user: AuthenticatedUser,
+        @PathVariable id: String,
+        @RequestParam limit: String? = null,
+        @RequestParam skip: String? = null,
+    ): ResponseEntity<*> =
+        when (val result = laboratoriesService.getLaboratoryHardware(labId = id, limit = limit, skip = skip)) {
+            is Success -> {
+                ResponseEntity.status(HttpStatus.OK).body(
+                    SuccessResponse(
+                        message = "Laboratory hardware retrieved successfully",
+                        data = result.value.map { HardwareOutputModel.mapOf(it) },
+                    ),
+                )
+            }
 
             is Failure -> handleServicesExceptions(result.value)
         }

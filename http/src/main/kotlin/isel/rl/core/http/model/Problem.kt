@@ -285,5 +285,22 @@ data class Problem(
                 "Invalid hardware status",
                 message,
             )
+
+        val noAvailableHardware =
+            Problem(
+                type("no-available-hardware"),
+                "No available hardware",
+                "There is no available hardware for the laboratory.",
+            )
+
+        /**
+         * Lab Session related
+         */
+        val userAlreadyInSession =
+            Problem(
+                type("user-already-in-session"),
+                "User already in session",
+                "The user is already in a session.",
+            )
     }
 }
