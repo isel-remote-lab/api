@@ -1,21 +1,9 @@
 package isel.rl.core.http
 
 import isel.rl.core.domain.Uris
-import isel.rl.core.domain.laboratory.session.LabSession
-import isel.rl.core.http.model.SuccessResponse
-import isel.rl.core.http.model.labSession.LabSessionOutputModel
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.sseEmitter.SseEmitterBasedEventEmitter
-import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.ILabSessionService
-import isel.rl.core.utils.Failure
-import isel.rl.core.utils.Success
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -32,8 +20,14 @@ data class LabSessionController(
         user: AuthenticatedUser,
         @PathVariable id: String,
         @RequestParam listen: String?,
-    ): Any =
-        when (val result = labSessionService.createLabSession(labId = id, userId = user.user.id)) {
+    ): Any {
+        val sseEmitter = SseEmitter(TimeUnit.HOURS.toMillis(1))
+        val eventEmitter = SseEmitterBasedEventEmitter(sseEmitter)
+
+        // Validate lab session creation
+        labSessionService.handleLabSessionCreation(labId = id, userId = user.user.id, eventEmitter)
+
+        /*return when (val result = labSessionService.createLabSession(labId = id, userId = user.user.id)) {
             is Success -> {
                 if (listen.toBoolean()) {
                     createSseConnection(result.value)
@@ -49,8 +43,11 @@ data class LabSessionController(
 
             is Failure -> handleServicesExceptions(result.value)
         }
+         */
+        return sseEmitter
+    }
 
-    private fun createSseConnection(labSession: LabSession): SseEmitter {
+    /*private fun createSseConnection(labSession: LabSession): SseEmitter {
         val sseEmitter = SseEmitter(TimeUnit.HOURS.toMillis(1))
 
         try {
@@ -63,8 +60,30 @@ data class LabSessionController(
             )
 
             // Start the lab session monitoring in a separate coroutine
-            // Use GlobalScope or application-scoped coroutine scope
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                try {
+                    labSessionService
+                        .listenToChannel("teste")
+                        .first()
+                        .let { message ->
+                            sseEmitter.send(
+                                SseEmitter.event()
+                                    .name("redisMessage")
+                                    .data(message)
+                            )
+
+                            /*labSessionService.startLabSession(
+                                SseEmitterBasedEventEmitter(sseEmitter),
+                                labSession
+                            )*/
+                        }
+                } catch (e: Exception) {
+                    try {
+                        sseEmitter.completeWithError(e)
+                    } catch (_: Exception) {
+                    }
+                }
+                /*
                 try {
                     labSessionService.startLabSession(
                         SseEmitterBasedEventEmitter(sseEmitter),
@@ -76,6 +95,8 @@ data class LabSessionController(
                     } catch (_: Exception) {
                     }
                 }
+
+     */
             }
         } catch (e: Exception) {
             sseEmitter.completeWithError(e)
@@ -83,4 +104,6 @@ data class LabSessionController(
 
         return sseEmitter
     }
+
+     */
 }

@@ -12,6 +12,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false // Ktlint for code formatting
     id("org.springframework.boot") version "3.3.3" apply false // Spring Boot plugin
     id("io.spring.dependency-management") version "1.1.6" apply false // Dependency management
+    id("com.google.osdetector") version "1.7.0"
     kotlin("jvm") version "2.0.10" // Kotlin JVM plugin
     kotlin("plugin.spring") version "1.9.25" apply false // Kotlin Spring plugin
 }
@@ -39,12 +40,15 @@ subprojects {
         plugin("io.spring.dependency-management")
         plugin("org.jetbrains.kotlin.jvm")
         plugin("org.jetbrains.kotlin.plugin.spring")
+        plugin("com.google.osdetector")
     }
 
     // Define common dependencies for all subprojects
     dependencies {
         // Kotlinx datetime library
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+
+        implementation("io.netty:netty-all")
 
         // SLF4J
         implementation("org.slf4j:slf4j-api:2.0.16")

@@ -24,4 +24,6 @@ interface LabWaitingQueueRepository {
      * Returns user ID
      */
     fun popLabQueue(labId: Int): Int
+
+    fun getUsersInQueue(labId: Int): List<Int>
 }

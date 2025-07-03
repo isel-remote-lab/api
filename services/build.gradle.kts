@@ -19,6 +19,10 @@ dependencies {
 
     // To use coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
+    // Redis dependencies
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
 }
 
 tasks.test {

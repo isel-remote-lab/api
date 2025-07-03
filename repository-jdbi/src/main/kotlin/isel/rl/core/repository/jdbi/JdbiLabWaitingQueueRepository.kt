@@ -99,4 +99,17 @@ data class JdbiLabWaitingQueueRepository(
             .executeAndReturnGeneratedKeys("user_id")
             .mapTo<Int>()
             .one()
+
+    override fun getUsersInQueue(labId: Int): List<Int> =
+        handle.createQuery(
+            """
+            SELECT user_id
+            FROM rl.lab_waiting_queue
+            WHERE lab_id = :lab_id
+            ORDER BY id
+        """,
+        )
+            .bind("lab_id", labId)
+            .mapTo<Int>()
+            .list()
 }

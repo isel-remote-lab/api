@@ -20,6 +20,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 
+    // Redis dependencies
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
+
     testImplementation(kotlin("test"))
     testImplementation(project(":repository"))
 }

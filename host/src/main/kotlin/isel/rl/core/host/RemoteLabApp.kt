@@ -15,21 +15,31 @@ import isel.rl.core.repository.jdbi.configureWithAppRequirements
 import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.runApplication
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import org.springframework.web.filter.CorsFilter
+import org.springframework.context.annotation.Primary
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.listener.RedisMessageListenerContainer
+import org.springframework.data.redis.serializer.StringRedisSerializer
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-@SpringBootApplication(scanBasePackages = ["isel.rl.core"])
+@SpringBootApplication(
+    scanBasePackages = ["isel.rl.core"],
+    exclude = [SecurityAutoConfiguration::class],
+)
+@EnableCaching
 class RemoteLabApp {
     /**
      * Helper function to load the domain-config.json file from the resources directory.
@@ -126,7 +136,7 @@ class RemoteLabApp {
 }
 
 @Configuration
-class PipelineConfigurer(
+data class PipelineConfigurer(
     val apiKeyInterceptor: ApiKeyInterceptor,
     val authenticationInterceptor: AuthenticationInterceptor,
     val checkRoleInterceptor: CheckRoleInterceptor,
@@ -143,26 +153,41 @@ class PipelineConfigurer(
     }
 }
 
-/** TEMPORARY CORS CONFIGURATION FOR DEVELOPMENT PURPOSES */
 @Configuration
-class CorsConfig {
+class RedisConfig {
     @Bean
-    fun corsFilter(): CorsFilter {
-        val config = CorsConfiguration()
+    @Primary // Make this the primary connection factory
+    fun redisConnectionFactory(): LettuceConnectionFactory {
+        logger.info("LettuceConnection Factory initialized")
 
-        config.allowedOrigins = listOf("http://localhost:3000", "http://localhost:8080")
+        val redisHost = System.getenv("SPRING_REDIS_HOST") ?: "localhost"
+        val redisPort = System.getenv("SPRING_REDIS_PORT")?.toIntOrNull() ?: 6379
 
-        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        logger.info("Connecting to Redis at $redisHost:$redisPort")
 
-        config.allowedHeaders = listOf("*")
+        val standaloneConfig = RedisStandaloneConfiguration(redisHost, redisPort)
+        val connectionFactory = LettuceConnectionFactory(standaloneConfig)
+        return connectionFactory
+    }
 
-        config.allowCredentials = true
+    @Bean
+    fun redisTemplate(): RedisTemplate<String, String> {
+        val template = RedisTemplate<String, String>()
+        template.connectionFactory = redisConnectionFactory()
+        template.keySerializer = StringRedisSerializer()
+        template.valueSerializer = StringRedisSerializer()
+        return template
+    }
 
-        val source = UrlBasedCorsConfigurationSource()
+    @Bean
+    fun redisMessageListenerContainer(): RedisMessageListenerContainer {
+        val container = RedisMessageListenerContainer()
+        container.setConnectionFactory(redisConnectionFactory())
+        return container
+    }
 
-        source.registerCorsConfiguration("/**", config)
-
-        return CorsFilter(source)
+    companion object {
+        private val logger = LoggerFactory.getLogger(RedisConfig::class.java)
     }
 }
 

@@ -9,17 +9,18 @@ import isel.rl.core.domain.laboratory.Laboratory
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.laboratory.session.LabSession
 import isel.rl.core.domain.laboratory.session.LabSessionState
-import isel.rl.core.repository.Transaction
 import isel.rl.core.repository.TransactionManager
-import isel.rl.core.services.interfaces.CreateLabSessionResult
 import isel.rl.core.services.interfaces.ILabSessionService
-import isel.rl.core.services.interfaces.StartLabSessionResult
+import isel.rl.core.services.interfaces.ILabWaitingQueueService
+import isel.rl.core.services.interfaces.ValidateLabSessionCreationResult
 import isel.rl.core.services.utils.handleException
-import isel.rl.core.utils.Success
 import isel.rl.core.utils.failure
 import isel.rl.core.utils.success
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toKotlinInstant
@@ -38,13 +39,15 @@ data class LabSessionService(
     private val transactionManager: TransactionManager,
     private val clock: Clock,
     private val laboratoriesDomain: LaboratoriesDomain,
+    private val labWaitingQueueService: ILabWaitingQueueService,
 ) : ILabSessionService {
-    override fun createLabSession(
+    override fun handleLabSessionCreation(
         labId: String,
         userId: Int,
-    ): CreateLabSessionResult =
+        listener: EventEmitter,
+    ): ValidateLabSessionCreationResult =
         runCatching {
-            LOG.info("Creating lab session for labId: $labId, userId: $userId")
+            LOG.info("Validating lab session creation for labId: $labId, userId: $userId")
             val validatedLabId = laboratoriesDomain.validateLaboratoryId(labId)
 
             transactionManager.run {
@@ -59,84 +62,136 @@ data class LabSessionService(
                         ?: return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
 
                 // Handle queue logic and hardware availability
-                // Check if the waiting queue is empty
-                val filteredHardware =
-                    it.laboratoriesRepository.getLaboratoryHardware(validatedLabId).filter { hwId ->
-                        it.hardwareRepository.checkHardwareStatus(hwId, HardwareStatus.Available)
-                    }
-
-                return@run when (it.labWaitingQueueRepository.isLabQueueEmpty(validatedLabId)) {
+                when (it.labWaitingQueueRepository.isLabQueueEmpty(validatedLabId)) {
                     true -> {
                         LOG.info("Lab Queue is empty")
-
-                        if (filteredHardware.isEmpty()) {
-                            LOG.warn("No available hardware for labId: $labId. Putting user $userId in queue")
-                            it.labWaitingQueueRepository.addUserToLabQueue(labId = validatedLabId, userId = userId)
-                            // Waiting phase
-                            // TODO: Maybe add an exception for labSession when user is in queue
-                            failure(ServicesExceptions.Laboratories.NoAvailableHardware)
-                        } else {
-                            val availableHardwareId = filteredHardware.random()
-
-                            it.handleLabSessionCreation(
-                                labId = validatedLabId,
-                                hwId = availableHardwareId,
-                                ownerId = userId,
-                                labDuration = laboratory.duration.labDurationInfo!!,
-                                state = LabSessionState.InProgress,
-                            )
-                        }
+                        handleEmptyQueue(laboratory, userId, listener)
                     }
 
                     false -> {
-                        if (filteredHardware.isEmpty()) {
-                            // TODO: Test this. It should not enter in this if block.
-                            LOG.warn("No available hardware for labId: $labId")
-                            failure(ServicesExceptions.UnexpectedError)
-                        } else {
-                            // TODO: POP queue and signal the user.
-                            // TODO: PUSH the userId of this request to the waiting queue
-                            val nextUserInQueue = it.labWaitingQueueRepository.popLabQueue(validatedLabId)
-                            LOG.info("User popped $nextUserInQueue and signaling")
-                            failure(ServicesExceptions.UnexpectedError)
-                        }
+                        LOG.info("Lab Queue is not empty")
+                        handleFullLabQueue(laboratory, userId, listener)
                     }
                 }
             }
+            success(Unit)
         }.getOrElse { e ->
-            LOG.error("Error creating lab session for labId: $labId, userId: $userId", e)
             handleException(e as Exception)
         }
 
-    private fun Transaction.handleLabSessionCreation(
+    private fun handleEmptyQueue(
+        laboratory: Laboratory,
+        userId: Int,
+        listener: EventEmitter,
+    ): ValidateLabSessionCreationResult {
+        // If there is no hardware available
+        val availableHardware = getAvailableHardware(laboratory.id)
+        return if (availableHardware.isEmpty()) {
+            LOG.info("No available hardware for labId: {}", laboratory.id)
+
+            handleNoAvailableHardware(laboratory, userId, listener)
+
+            success(Unit)
+        } else {
+            LOG.info("Available hardware for labId: {} found", laboratory.id)
+
+            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                startLabSession(
+                    listener = listener,
+                    labSession =
+                        createLabSession(
+                            labId = laboratory.id,
+                            hwId = availableHardware.random(),
+                            ownerId = userId,
+                            labDuration = laboratory.duration.labDurationInfo!!,
+                            state = LabSessionState.InProgress,
+                        ),
+                )
+            }
+
+            success(Unit)
+        }
+    }
+
+    private fun handleFullLabQueue(
+        laboratory: Laboratory,
+        userId: Int,
+        listener: EventEmitter,
+    ): ValidateLabSessionCreationResult {
+        val availableHardware = getAvailableHardware(laboratory.id)
+        return if (availableHardware.isEmpty()) {
+            LOG.info("No available hardware for labId: {}", laboratory.id)
+
+            handleNoAvailableHardware(laboratory, userId, listener)
+
+            success(Unit)
+        } else {
+            // TODO: Review this else. This only happens if:
+            // 1 - a hardware is created and associated to the lab without sending a notification
+            // 2 - a problem occurs with a ongoing session and the hardware is made available but no notification is sent.
+            availableHardware.forEach { hwId ->
+                LOG.info("Available hardware for labId: {} found with id {}", laboratory.id, hwId)
+
+                labWaitingQueueService.popUserFromQueue(laboratory.id)
+            }
+
+            // TODO: Insert current user in queue if there is still a available hardware and do the other tasks
+            success(Unit)
+        }
+    }
+
+    private fun handleNoAvailableHardware(
+        laboratory: Laboratory,
+        userId: Int,
+        listener: EventEmitter,
+    ) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            // Await response (suspension point)
+            labWaitingQueueService.pushUserIntoQueue(labId = laboratory.id, userId = userId, listener = listener)
+
+            startLabSession(
+                listener = listener,
+                labSession =
+                    createLabSession(
+                        labId = laboratory.id,
+                        hwId = getAvailableHardware(laboratory.id).random(),
+                        ownerId = userId,
+                        labDuration = laboratory.duration.labDurationInfo!!,
+                        state = LabSessionState.InProgress,
+                    ),
+            )
+        }
+    }
+
+    private fun createLabSession(
         labId: Int,
         hwId: Int,
         ownerId: Int,
         labDuration: Duration,
         state: LabSessionState,
-    ): Success<LabSession> {
+    ): LabSession {
         LOG.info("Available hardware found for labId: $labId")
 
         val startTime = clock.now()
         val endtime =
             startTime.plus(labDuration).toJavaInstant().toKotlinInstant()
 
-        val sessionId =
-            labSessionRepository.createLabSession(
-                labId = labId,
+        return transactionManager.run {
+            val sessionId =
+                it.labSessionRepository.createLabSession(
+                    labId = labId,
+                    hwId = hwId,
+                    ownerId = ownerId,
+                    startTime = startTime,
+                    endTime = endtime,
+                    state = state,
+                )
+
+            it.hardwareRepository.updateHardware(
                 hwId = hwId,
-                ownerId = ownerId,
-                startTime = startTime,
-                endTime = endtime,
-                state = state,
+                hwStatus = HardwareStatus.Occupied,
             )
 
-        hardwareRepository.updateHardware(
-            hwId = hwId,
-            hwStatus = HardwareStatus.Occupied,
-        )
-
-        return success(
             LabSession(
                 id = sessionId,
                 labId = labId,
@@ -145,14 +200,21 @@ data class LabSessionService(
                 startTime = startTime,
                 endTime = endtime,
                 state = LabSessionState.InProgress,
-            ),
-        )
+            )
+        }
     }
 
-    override suspend fun startLabSession(
+    private fun getAvailableHardware(labId: Int): List<Int> =
+        transactionManager.run {
+            it.laboratoriesRepository.getLaboratoryHardware(labId).filter { hwId ->
+                it.hardwareRepository.checkHardwareStatus(hwId, HardwareStatus.Available)
+            }
+        }
+
+    suspend fun startLabSession(
         listener: EventEmitter,
         labSession: LabSession,
-    ): StartLabSessionResult {
+    ) {
         lateinit var laboratory: Laboratory
         lateinit var hardware: Hardware
 
@@ -164,11 +226,12 @@ data class LabSessionService(
                 ?: return@run failure(ServicesExceptions.Hardware.HardwareNotFound)
         }
 
+        // TODO: Since this are nullable, maybe emit a error message in the listener and end the connection if null.
         val labDuration =
-            laboratory.duration.labDurationInfo ?: return failure(ServicesExceptions.UnexpectedError)
+            laboratory.duration.labDurationInfo!!
 
         val hardwareIpAddress =
-            hardware.ipAddress ?: return failure(ServicesExceptions.UnexpectedError)
+            hardware.ipAddress!!
 
         // Send initial lab session info
         listener.emit(
@@ -216,16 +279,14 @@ data class LabSessionService(
 
             if (!shouldStop.get()) {
                 finishSession(listener, labSession.id, hardware.id)
+
+                labWaitingQueueService.popUserFromQueue(laboratory.id)
+                labWaitingQueueService.updateQueuePositions(laboratory.id)
             }
-        } catch (e: CancellationException) {
-            LOG.info("Lab session cancelled")
-            throw e // Re-throw cancellation
         } catch (e: Exception) {
             LOG.error("Error in lab session", e)
             handleSessionError(labSession.id, hardware.id, shouldStop)
         }
-
-        return success(Unit)
     }
 
     private fun setupListenerCallbacks(

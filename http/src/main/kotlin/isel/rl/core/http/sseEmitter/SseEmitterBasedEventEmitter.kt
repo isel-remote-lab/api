@@ -43,6 +43,18 @@ class SseEmitterBasedEventEmitter(
                     is Event.KeepAlive ->
                         SseEmitter.event()
                             .comment(event.timestamp.epochSeconds.toString())
+
+                    is Event.Message ->
+                        SseEmitter.event()
+                            .id(event.eventId.toString())
+                            .name("message")
+                            .data(event.message)
+
+                    is Event.WaitingQueue ->
+                        SseEmitter.event()
+                            .id(event.eventId.toString())
+                            .name("WaitingQueue")
+                            .data(event)
                 }
             sseEmitter.send(sseEvent)
         } catch (e: IOException) {

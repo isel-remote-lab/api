@@ -23,6 +23,17 @@ sealed interface Event {
         val notifyInterval: String,
     ) : Event
 
+    data class WaitingQueue(
+        val eventId: Long,
+        val labId: String,
+        val waitingQueuePos: Int,
+    ) : Event
+
+    data class Message(
+        val eventId: Long,
+        val message: String,
+    ) : Event
+
     /**
      * Represents a error event.
      *
