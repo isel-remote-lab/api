@@ -57,6 +57,10 @@ data class LabSessionService(
                     return@run failure(ServicesExceptions.LabSessions.UserAlreadyInSession)
                 }
 
+                /*if (it.laboratoriesRepository.checkIfUserBelongsToLaboratory(labId = validatedLabId, userId = userId)) {
+                    return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
+                }*/
+
                 val laboratory =
                     it.laboratoriesRepository.getLaboratoryById(validatedLabId)
                         ?: return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)

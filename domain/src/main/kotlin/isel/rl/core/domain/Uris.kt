@@ -180,11 +180,6 @@ object Uris {
         const val CREATE = BASE
 
         /**
-         * URI for creating and listen to a lab session
-         */
-        const val CREATE_AND_LISTEN = "$BASE/listen"
-
-        /**
          * URI for getting a lab session by ID
          */
         const val GET_BY_ID = "$BASE/{id}"

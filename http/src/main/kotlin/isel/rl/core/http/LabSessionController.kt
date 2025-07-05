@@ -4,8 +4,8 @@ import isel.rl.core.domain.Uris
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.sseEmitter.SseEmitterBasedEventEmitter
 import isel.rl.core.services.interfaces.ILabSessionService
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 data class LabSessionController(
     private val labSessionService: ILabSessionService,
 ) {
-    @PostMapping(Uris.LabSession.CREATE)
+    @GetMapping(Uris.LabSession.CREATE)
     fun createLabSession(
         user: AuthenticatedUser,
         @PathVariable id: String,
