@@ -182,9 +182,9 @@ data class JdbiLaboratoriesRepository(
     override fun checkIfUserBelongsToLaboratory(
         labId: Int,
         userId: Int,
-    ): Boolean {
+    ): Boolean =
         // Check first if the user is the owner
-        return if (getLaboratoryOwnerId(labId) == userId) {
+        if (getLaboratoryOwnerId(labId) == userId) {
             true
         } else { // Check if the user is part of any group in the laboratory
             handle.createQuery(
@@ -201,7 +201,6 @@ data class JdbiLaboratoriesRepository(
                 .mapTo<Boolean>()
                 .one()
         }
-    }
 
     override fun getLaboratoryGroups(
         labId: Int,

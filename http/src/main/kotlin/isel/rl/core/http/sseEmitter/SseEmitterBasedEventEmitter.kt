@@ -53,7 +53,7 @@ class SseEmitterBasedEventEmitter(
                     is Event.WaitingQueue ->
                         SseEmitter.event()
                             .id(event.eventId.toString())
-                            .name("WaitingQueue")
+                            .name("waitingQueue")
                             .data(event)
                 }
             sseEmitter.send(sseEvent)

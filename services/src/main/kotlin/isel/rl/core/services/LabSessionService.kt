@@ -57,7 +57,7 @@ data class LabSessionService(
                     return@run failure(ServicesExceptions.LabSessions.UserAlreadyInSession)
                 }
 
-                if (it.laboratoriesRepository.checkIfUserBelongsToLaboratory(labId = validatedLabId, userId = userId)) {
+                if (!it.laboratoriesRepository.checkIfUserBelongsToLaboratory(labId = validatedLabId, userId = userId)) {
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
                 }
 
