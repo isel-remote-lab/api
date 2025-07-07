@@ -284,7 +284,7 @@ data class LabSessionService(
             if (!shouldStop.get()) {
                 finishSession(listener, labSession.id, hardware.id)
 
-                if (transactionManager.run { it.labWaitingQueueRepository.isLabQueueEmpty(laboratory.id) }) {
+                if (!transactionManager.run { it.labWaitingQueueRepository.isLabQueueEmpty(laboratory.id) }) {
                     labWaitingQueueService.popUserFromQueue(laboratory.id)
                     labWaitingQueueService.updateQueuePositions(laboratory.id)
                 }
