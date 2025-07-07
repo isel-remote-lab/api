@@ -77,8 +77,8 @@ data class LabSessionService(
                         handleFullLabQueue(laboratory, userId, listener)
                     }
                 }
+                success(Unit)
             }
-            success(Unit)
         }.getOrElse { e ->
             handleException(e as Exception)
         }
