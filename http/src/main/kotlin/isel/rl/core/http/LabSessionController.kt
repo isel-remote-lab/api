@@ -3,7 +3,10 @@ package isel.rl.core.http
 import isel.rl.core.domain.Uris
 import isel.rl.core.http.model.user.AuthenticatedUser
 import isel.rl.core.http.sseEmitter.SseEmitterBasedEventEmitter
+import isel.rl.core.http.utils.handleServicesExceptions
 import isel.rl.core.services.interfaces.ILabSessionService
+import isel.rl.core.utils.Failure
+import isel.rl.core.utils.Success
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
@@ -25,26 +28,11 @@ data class LabSessionController(
         val eventEmitter = SseEmitterBasedEventEmitter(sseEmitter)
 
         // Validate lab session creation
-        labSessionService.handleLabSessionCreation(labId = id, userId = user.user.id, eventEmitter)
-
-        /*return when (val result = labSessionService.createLabSession(labId = id, userId = user.user.id)) {
-            is Success -> {
-                if (listen.toBoolean()) {
-                    createSseConnection(result.value)
-                } else {
-                    ResponseEntity.status(HttpStatus.CREATED).body(
-                        SuccessResponse(
-                            message = "Lab session created successfully",
-                            data = LabSessionOutputModel.mapOf(result.value),
-                        ),
-                    )
-                }
-            }
-
+        return when (val result =
+            labSessionService.handleLabSessionCreation(labId = id, userId = user.user.id, eventEmitter)) {
+            is Success -> sseEmitter
             is Failure -> handleServicesExceptions(result.value)
         }
-         */
-        return sseEmitter
     }
 
     /*private fun createSseConnection(labSession: LabSession): SseEmitter {
