@@ -57,9 +57,9 @@ data class LabSessionService(
                     return@run failure(ServicesExceptions.LabSessions.UserAlreadyInSession)
                 }
 
-                /*if (it.laboratoriesRepository.checkIfUserBelongsToLaboratory(labId = validatedLabId, userId = userId)) {
+                if (it.laboratoriesRepository.checkIfUserBelongsToLaboratory(labId = validatedLabId, userId = userId)) {
                     return@run failure(ServicesExceptions.Laboratories.LaboratoryNotFound)
-                }*/
+                }
 
                 val laboratory =
                     it.laboratoriesRepository.getLaboratoryById(validatedLabId)
@@ -284,8 +284,10 @@ data class LabSessionService(
             if (!shouldStop.get()) {
                 finishSession(listener, labSession.id, hardware.id)
 
-                labWaitingQueueService.popUserFromQueue(laboratory.id)
-                labWaitingQueueService.updateQueuePositions(laboratory.id)
+                if (transactionManager.run { it.labWaitingQueueRepository.isLabQueueEmpty(laboratory.id) }) {
+                    labWaitingQueueService.popUserFromQueue(laboratory.id)
+                    labWaitingQueueService.updateQueuePositions(laboratory.id)
+                }
             }
         } catch (e: Exception) {
             LOG.error("Error in lab session", e)
@@ -383,7 +385,7 @@ data class LabSessionService(
         }
     }
 
-    private suspend fun finishSession(
+    private fun finishSession(
         listener: EventEmitter,
         labSessionId: Int,
         hardwareId: Int,
