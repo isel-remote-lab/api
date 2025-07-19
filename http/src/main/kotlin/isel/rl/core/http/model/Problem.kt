@@ -11,7 +11,7 @@ data class Problem(
     companion object {
         private const val MEDIA_TYPE = "application/problem+json"
         private const val FILE_TYPE_SUFFIX = ".md"
-        private const val PREFIX_TYPE_URI = "https://github.com/isel-remote-lab/documentation/blob/main/problems/"
+        private const val PREFIX_TYPE_URI = "https://github.com/isel-remote-lab/api/tree/develop/problems/"
 
         fun response(
             status: Int,
