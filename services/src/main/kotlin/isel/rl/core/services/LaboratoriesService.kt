@@ -306,7 +306,11 @@ data class LaboratoriesService(
                         )
 
                     repo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> {
-                        if (it.hardwareRepository.getHardwareById(validatedHardwareId)?.status == HardwareStatus.Available) {
+                        if (it.hardwareRepository.getHardwareById(validatedHardwareId)?.status == HardwareStatus.Available
+                            && !it.labWaitingQueueRepository.isLabQueueEmpty(
+                                validatedLabId
+                            )
+                        ) {
                             laboratoryWaitingQueueService.popUserFromQueue(validatedLabId)
                         }
 
