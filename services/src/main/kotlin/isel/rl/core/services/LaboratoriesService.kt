@@ -3,6 +3,7 @@ package isel.rl.core.services
 import isel.rl.core.domain.exceptions.ServicesExceptions
 import isel.rl.core.domain.group.domain.GroupsDomain
 import isel.rl.core.domain.hardware.domain.HardwareDomain
+import isel.rl.core.domain.hardware.props.HardwareStatus
 import isel.rl.core.domain.laboratory.domain.LaboratoriesDomain
 import isel.rl.core.domain.user.User
 import isel.rl.core.repository.TransactionManager
@@ -14,6 +15,7 @@ import isel.rl.core.services.interfaces.GetAllLaboratoriesResult
 import isel.rl.core.services.interfaces.GetLaboratoryGroupsResult
 import isel.rl.core.services.interfaces.GetLaboratoryHardwareResult
 import isel.rl.core.services.interfaces.GetLaboratoryResult
+import isel.rl.core.services.interfaces.ILabWaitingQueueService
 import isel.rl.core.services.interfaces.ILaboratoriesService
 import isel.rl.core.services.interfaces.RemoveGroupFromLaboratoryResult
 import isel.rl.core.services.interfaces.RemoveHardwareFromLaboratoryResult
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Service
 data class LaboratoriesService(
     private val transactionManager: TransactionManager,
     private val clock: Clock,
+    private val laboratoryWaitingQueueService: ILabWaitingQueueService,
     private val laboratoriesDomain: LaboratoriesDomain,
     private val groupsDomain: GroupsDomain,
     private val hardwareDomain: HardwareDomain,
@@ -302,7 +305,14 @@ data class LaboratoriesService(
                             ServicesExceptions.Laboratories.HardwareAlreadyInLaboratory,
                         )
 
-                    repo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> success(Unit)
+                    repo.addHardwareToLaboratory(validatedLabId, validatedHardwareId) -> {
+                        if (it.hardwareRepository.getHardwareById(validatedHardwareId)?.status == HardwareStatus.Available) {
+                            laboratoryWaitingQueueService.popUserFromQueue(validatedLabId)
+                        }
+
+                        success(Unit)
+                    }
+
                     else -> failure(ServicesExceptions.UnexpectedError)
                 }
             }
