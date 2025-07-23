@@ -312,6 +312,9 @@ data class LaboratoriesService(
                             )
                         ) {
                             laboratoryWaitingQueueService.popUserFromQueue(validatedLabId)
+                            if (!it.labWaitingQueueRepository.isLabQueueEmpty(validatedLabId)) {
+                                laboratoryWaitingQueueService.updateQueuePositions(validatedLabId)
+                            }
                         }
 
                         success(Unit)
