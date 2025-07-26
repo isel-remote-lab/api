@@ -150,6 +150,20 @@ data class LabSessionService(
         listener: EventEmitter,
     ) {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            val keepAliveJob = launch {
+                while (true) {
+                    listener.emit(
+                        Event.Message(
+                            eventId = System.currentTimeMillis(),
+                            message = "Waiting for available hardware...",
+                        ),
+                    )
+
+                    delay(60.seconds)
+                }
+            }
+
+
             // Await response (suspension point)
             labWaitingQueueService.pushUserIntoQueue(labId = laboratory.id, userId = userId, listener = listener)
 
@@ -164,6 +178,8 @@ data class LabSessionService(
                         state = LabSessionState.InProgress,
                     ),
             )
+
+            keepAliveJob.cancel()
         }
     }
 
